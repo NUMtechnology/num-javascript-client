@@ -1,3 +1,3 @@
-import { NUMClient } from './client';
+import { createClient } from './client';
 
-export const client = new NUMClient();
+export const client = createClient();
