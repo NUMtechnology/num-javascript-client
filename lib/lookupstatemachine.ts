@@ -1,3 +1,5 @@
+import { Context, Location } from './client';
+
 /**
  * Lookup location state machine state
  */
@@ -44,63 +46,70 @@ export class LookupLocationStateMachine {
    * Steps lookup location state machine
    * @param f
    */
-  step(f: () => true | number) {
+  step(f: () => true | number, ctx: Context) {
     // f is a function supplied by the caller and its result controls the state machine.
     const result = f();
-    typeof result === 'boolean' ? this.success() : this.fail(result);
+    typeof result === 'boolean' ? this.success() : this.fail(result, ctx);
   }
 
   private success() {
     this.state = LookupState.SUCCESS;
   }
 
-  private fail(result: number) {
+  private fail(result: number, ctx: Context) {
     switch (this.state) {
       case LookupState.INDY1:
         this.state = LookupState.HOSTED1;
+        ctx.location = Location.HOSTED;
         break;
       case LookupState.HOSTED1:
         this.state = LookupState.POP0;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP0:
-        this.checkStatus(result);
+        this.checkStatus(result, ctx);
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP1:
         this.state = LookupState.POP2;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP2:
         this.state = LookupState.POP3;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP3:
         this.state = LookupState.POP4;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP4:
         this.state = LookupState.POP5;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP5:
         this.state = LookupState.POP6;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP6:
         this.state = LookupState.POP7;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP7:
         this.state = LookupState.POP8;
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP8:
         this.state = LookupState.POP9;
-        break;
-      case LookupState.POP9:
-        this.state = LookupState.ERROR;
-        break;
-      case LookupState.ERROR:
+        ctx.location = Location.POPULATOR;
         break;
       case LookupState.SUCCESS:
         break;
+      case LookupState.POP9:
       case LookupState.INDY2:
-        this.state = LookupState.ERROR;
-        break;
       case LookupState.HOSTED2:
+      case LookupState.ERROR:
         this.state = LookupState.ERROR;
+        ctx.location = Location.NONE;
         break;
       default:
         throw Error(`Invalid LookupState status: ${this.state}`);
@@ -111,16 +120,19 @@ export class LookupLocationStateMachine {
    * Checks status
    * @param result
    */
-  private checkStatus(result: number) {
+  private checkStatus(result: number, ctx: Context) {
     switch (result) {
       case 1:
         this.state = LookupState.POP1;
+        ctx.location = Location.POPULATOR;
         break;
       case 2:
         this.state = LookupState.INDY2;
+        ctx.location = Location.INDEPENDENT;
         break;
       case 3:
         this.state = LookupState.HOSTED2;
+        ctx.location = Location.HOSTED;
         break;
       default:
         throw Error(`Invalid populator status: ${result}`);

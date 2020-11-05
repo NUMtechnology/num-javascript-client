@@ -1,3 +1,5 @@
+import { LookupLocationStateMachine } from './lookupstatemachine';
+
 const DOMAIN_REGEX = new RegExp(
   /^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/
 );
@@ -69,7 +71,10 @@ export class NumUri {
 /**
  * Context
  */
-export class Context {}
+export class Context {
+  location: Location = Location.INDEPENDENT;
+  result: string | null = null;
+}
 
 /**
  * Callback handler
@@ -280,15 +285,17 @@ class NumClientImpl implements NumClient {
    * @returns num record
    */
   async retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    return new Promise<string | null>(() => {
+    return new Promise<string | null>((resolve) => {
       const modl = this.retrieveModlRecordInternal(ctx, handler);
       if (modl) {
         const json = this.interpret(modl, this.numAddress.port);
         if (json) {
           handler.setResult(json);
         }
+        resolve(json);
         return json;
       }
+      resolve(null);
       return null;
     });
   }
@@ -300,11 +307,12 @@ class NumClientImpl implements NumClient {
    * @returns modl record
    */
   async retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    return new Promise<string | null>(() => {
+    return new Promise<string | null>((resolve) => {
       const modl = this.retrieveModlRecordInternal(ctx, handler);
       if (modl) {
         handler.setResult(modl);
       }
+      resolve(modl);
       return modl;
     });
   }
@@ -317,7 +325,29 @@ class NumClientImpl implements NumClient {
    */
   private retrieveModlRecordInternal(ctx: Context, handler: CallbackHandler): string | null {
     if (this.options) {
-      return 'ok';
+      const sm = new LookupLocationStateMachine();
+
+      // Use a lambda to query the DNS
+      const queryDns = () => {
+        switch (ctx.location) {
+          case Location.INDEPENDENT:
+            return this.independentQuery();
+          case Location.HOSTED:
+            return this.hostedQuery();
+          case Location.POPULATOR:
+            return this.populatorQuery();
+          case Location.NONE:
+          default:
+            return 0;
+        }
+      };
+
+      // Step through the state machine, querying DNS as we go.
+      while (!sm.complete()) {
+        sm.step(queryDns, ctx);
+      }
+
+      return ctx.result;
     }
     return null;
   }
@@ -330,5 +360,27 @@ class NumClientImpl implements NumClient {
    */
   private interpret(modl: string, port: PositiveInteger): string | null {
     return null;
+  }
+
+  /**
+   * Independents query
+   * @returns
+   */
+  private independentQuery() {
+    return 2; // TODO
+  }
+  /**
+   * Hosted query
+   * @returns
+   */
+  private hostedQuery() {
+    return 3; // TODO
+  }
+  /**
+   * Populators query
+   * @returns
+   */
+  private populatorQuery() {
+    return 1; // TODO
   }
 }
