@@ -12,29 +12,35 @@ const MAX_LOCAL_PART_LENGTH = 64;
  */
 export interface NumClient {
   /**
-   * Begins num client
-   * @param numAddress
-   * @param handler
-   * @returns begin
-   */
-  begin(numAddress: NumUri, handler: CallbackHandler): Context;
-  /**
-   * Retrieves num record
+   *
    * @param ctx
    * @param handler
    * @returns num record
    */
-  retrieveNumRecord(ctx: Context, handler: CallbackHandler): string | null;
+  retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
+
+  /**
+   *
+   * @param ctx
+   * @param handler
+   * @returns MODL record
+   */
+  retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
 }
+
+/**
+ * Num client options
+ */
+export class NumClientOptions {}
 
 /**
  * Location
  */
 export enum Location {
-  LOCATION_HOSTED,
-  LOCATION_INDEPENDENT,
-  LOCATION_POPULATOR,
-  LOCATION_STOP,
+  HOSTED,
+  INDEPENDENT,
+  POPULATOR,
+  NONE,
 }
 
 /**
@@ -42,6 +48,9 @@ export enum Location {
  */
 export class NumUri {
   readonly protocol: string;
+  readonly userinfo: UrlUserInfo;
+  readonly port: PositiveInteger;
+  readonly path: UrlPath;
   /**
    * Creates an instance of num uri.
    * @param userinfo
@@ -49,13 +58,11 @@ export class NumUri {
    * @param port
    * @param path
    */
-  constructor(
-    readonly userinfo: UrlUserInfo,
-    readonly host: Hostname,
-    readonly port: PositiveInteger,
-    readonly path: UrlPath
-  ) {
+  constructor(readonly host: Hostname, port?: PositiveInteger, userinfo?: UrlUserInfo, path?: UrlPath) {
     this.protocol = 'num';
+    this.userinfo = userinfo ? userinfo : NO_USER_INFO;
+    this.port = port ? port : MODULE_0;
+    this.path = path ? path : NO_PATH;
   }
 }
 
@@ -81,6 +88,44 @@ export interface CallbackHandler {
 }
 
 /**
+ * Default callback handler
+ */
+export class DefaultCallbackHandler implements CallbackHandler {
+  private location: Location | null = null;
+  private result: string | null = null;
+  /**
+   * Sets location
+   * @param l
+   */
+  setLocation(l: Location): void {
+    this.location = l;
+  }
+  /**
+   * Sets result
+   * @param r
+   */
+  setResult(r: string): void {
+    this.result = r;
+  }
+
+  /**
+   * Gets location
+   * @returns location
+   */
+  getLocation(): Location | null {
+    return this.location;
+  }
+
+  /**
+   * Gets result
+   * @returns result
+   */
+  getResult(): string | null {
+    return this.result;
+  }
+}
+
+/**
  * Positive integer
  */
 export class PositiveInteger {
@@ -94,6 +139,18 @@ export class PositiveInteger {
     }
   }
 }
+
+export const MODULE_0 = new PositiveInteger(0);
+export const MODULE_1 = new PositiveInteger(1);
+export const MODULE_2 = new PositiveInteger(2);
+export const MODULE_3 = new PositiveInteger(3);
+export const MODULE_4 = new PositiveInteger(4);
+export const MODULE_5 = new PositiveInteger(5);
+export const MODULE_6 = new PositiveInteger(6);
+export const MODULE_7 = new PositiveInteger(7);
+export const MODULE_8 = new PositiveInteger(8);
+export const MODULE_9 = new PositiveInteger(9);
+export const MODULE_10 = new PositiveInteger(10);
 
 /**
  * Hostname
@@ -161,6 +218,7 @@ export class UrlPath {
   }
 }
 
+export const NO_PATH = new UrlPath('/');
 /**
  * Url user info
  */
@@ -188,22 +246,89 @@ export class UrlUserInfo {
   }
 }
 
+export const NO_USER_INFO = new UrlUserInfo('');
+
 /**
  * Creates client
  * @returns client
  */
-export function createClient(): NumClient {
-  return new NumClientImpl();
+export function createClient(numAddress: NumUri, options?: NumClientOptions): NumClient {
+  return new NumClientImpl(numAddress, options);
 }
 
 /**
  * Num client impl
  */
 class NumClientImpl implements NumClient {
-  begin(numAddress: NumUri, handler: CallbackHandler): Context {
-    throw new Error('Method not implemented.');
+  private numAddress: NumUri;
+  private options: NumClientOptions;
+
+  /**
+   * Creates an instance of num client impl.
+   * @param numAddress
+   * @param [options]
+   */
+  constructor(numAddress: NumUri, options?: NumClientOptions) {
+    this.numAddress = numAddress;
+    this.options = options ? options : new NumClientOptions();
   }
-  retrieveNumRecord(ctx: Context, handler: CallbackHandler): string | null {
-    throw new Error('Method not implemented.');
+
+  /**
+   * Retrieves num record and interprets it to JSON
+   * @param ctx
+   * @param handler
+   * @returns num record
+   */
+  async retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
+    return new Promise<string | null>(() => {
+      const modl = this.retrieveModlRecordInternal(ctx, handler);
+      if (modl) {
+        const json = this.interpret(modl, this.numAddress.port);
+        if (json) {
+          handler.setResult(json);
+        }
+        return json;
+      }
+      return null;
+    });
+  }
+
+  /**
+   * Retrieves raw MODL record - i.e. not interpreted
+   * @param ctx
+   * @param handler
+   * @returns modl record
+   */
+  async retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
+    return new Promise<string | null>(() => {
+      const modl = this.retrieveModlRecordInternal(ctx, handler);
+      if (modl) {
+        handler.setResult(modl);
+      }
+      return modl;
+    });
+  }
+
+  /**
+   * Retrieves modl record internal
+   * @param ctx
+   * @param handler
+   * @returns modl record internal
+   */
+  private retrieveModlRecordInternal(ctx: Context, handler: CallbackHandler): string | null {
+    if (this.options) {
+      return 'ok';
+    }
+    return null;
+  }
+
+  /**
+   * Interprets a MODL record for the given module
+   * @param modl
+   * @param port
+   * @returns interpret
+   */
+  private interpret(modl: string, port: PositiveInteger): string | null {
+    return null;
   }
 }

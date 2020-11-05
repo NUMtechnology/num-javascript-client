@@ -1,0 +1,129 @@
+/**
+ * Lookup location state machine state
+ */
+enum LookupState {
+  INDY1,
+  INDY2,
+  HOSTED1,
+  HOSTED2,
+  POP0,
+  POP1,
+  POP2,
+  POP3,
+  POP4,
+  POP5,
+  POP6,
+  POP7,
+  POP8,
+  POP9,
+  ERROR,
+  SUCCESS,
+}
+
+/**
+ * Lookup location state machine
+ */
+export class LookupLocationStateMachine {
+  private state: LookupState;
+  /**
+   * Creates an instance of lookup location state machine.
+   */
+  constructor() {
+    this.state = LookupState.INDY1;
+  }
+
+  /**
+   * Completes lookup location state machine
+   * @returns true if complete
+   */
+  complete(): boolean {
+    return this.state === LookupState.SUCCESS || this.state === LookupState.ERROR;
+  }
+
+  /**
+   * Steps lookup location state machine
+   * @param f
+   */
+  step(f: () => true | number) {
+    // f is a function supplied by the caller and its result controls the state machine.
+    const result = f();
+    typeof result === 'boolean' ? this.success() : this.fail(result);
+  }
+
+  private success() {
+    this.state = LookupState.SUCCESS;
+  }
+
+  private fail(result: number) {
+    switch (this.state) {
+      case LookupState.INDY1:
+        this.state = LookupState.HOSTED1;
+        break;
+      case LookupState.HOSTED1:
+        this.state = LookupState.POP0;
+        break;
+      case LookupState.POP0:
+        this.checkStatus(result);
+        break;
+      case LookupState.POP1:
+        this.state = LookupState.POP2;
+        break;
+      case LookupState.POP2:
+        this.state = LookupState.POP3;
+        break;
+      case LookupState.POP3:
+        this.state = LookupState.POP4;
+        break;
+      case LookupState.POP4:
+        this.state = LookupState.POP5;
+        break;
+      case LookupState.POP5:
+        this.state = LookupState.POP6;
+        break;
+      case LookupState.POP6:
+        this.state = LookupState.POP7;
+        break;
+      case LookupState.POP7:
+        this.state = LookupState.POP8;
+        break;
+      case LookupState.POP8:
+        this.state = LookupState.POP9;
+        break;
+      case LookupState.POP9:
+        this.state = LookupState.ERROR;
+        break;
+      case LookupState.ERROR:
+        break;
+      case LookupState.SUCCESS:
+        break;
+      case LookupState.INDY2:
+        this.state = LookupState.ERROR;
+        break;
+      case LookupState.HOSTED2:
+        this.state = LookupState.ERROR;
+        break;
+      default:
+        throw Error(`Invalid LookupState status: ${this.state}`);
+    }
+  }
+
+  /**
+   * Checks status
+   * @param result
+   */
+  private checkStatus(result: number) {
+    switch (result) {
+      case 1:
+        this.state = LookupState.POP1;
+        break;
+      case 2:
+        this.state = LookupState.INDY2;
+        break;
+      case 3:
+        this.state = LookupState.HOSTED2;
+        break;
+      default:
+        throw Error(`Invalid populator status: ${result}`);
+    }
+  }
+}

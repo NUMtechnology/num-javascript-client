@@ -1,3 +1,5 @@
-import { createClient } from './client';
+import { createClient, NumClient, NumClientOptions, NumUri } from './client';
 
-export const client = createClient();
+export function createNumClient(numAddress: NumUri, options?: NumClientOptions): NumClient {
+  return createClient(numAddress, options);
+}
