@@ -1,4 +1,5 @@
 import { Context, Location } from './client';
+import delay from 'delay';
 
 /**
  * Lookup location state machine state
@@ -56,7 +57,7 @@ export class LookupLocationStateMachine {
     this.state = LookupState.SUCCESS;
   }
 
-  private fail(result: number, ctx: Context) {
+  private async fail(result: number, ctx: Context) {
     switch (this.state) {
       case LookupState.INDY1:
         this.state = LookupState.HOSTED1;
@@ -67,40 +68,48 @@ export class LookupLocationStateMachine {
         ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP0:
-        this.checkStatus(result, ctx);
+        await this.checkStatus(result, ctx);
         ctx.location = Location.POPULATOR;
         break;
       case LookupState.POP1:
         this.state = LookupState.POP2;
         ctx.location = Location.POPULATOR;
+        await delay(2000);
         break;
       case LookupState.POP2:
         this.state = LookupState.POP3;
         ctx.location = Location.POPULATOR;
+        await delay(2000);
         break;
       case LookupState.POP3:
         this.state = LookupState.POP4;
         ctx.location = Location.POPULATOR;
+        await delay(2000);
         break;
       case LookupState.POP4:
         this.state = LookupState.POP5;
         ctx.location = Location.POPULATOR;
+        await delay(5000);
         break;
       case LookupState.POP5:
         this.state = LookupState.POP6;
         ctx.location = Location.POPULATOR;
+        await delay(5000);
         break;
       case LookupState.POP6:
         this.state = LookupState.POP7;
         ctx.location = Location.POPULATOR;
+        await delay(5000);
         break;
       case LookupState.POP7:
         this.state = LookupState.POP8;
         ctx.location = Location.POPULATOR;
+        await delay(5000);
         break;
       case LookupState.POP8:
         this.state = LookupState.POP9;
         ctx.location = Location.POPULATOR;
+        await delay(5000);
         break;
       case LookupState.SUCCESS:
         break;
@@ -112,7 +121,7 @@ export class LookupLocationStateMachine {
         ctx.location = Location.NONE;
         break;
       default:
-        throw Error(`Invalid LookupState status: ${this.state}`);
+        throw new Error(`Invalid LookupState status: ${this.state}`);
     }
   }
 
@@ -120,11 +129,12 @@ export class LookupLocationStateMachine {
    * Checks status
    * @param result
    */
-  private checkStatus(result: number, ctx: Context) {
+  private async checkStatus(result: number, ctx: Context) {
     switch (result) {
       case 1:
         this.state = LookupState.POP1;
         ctx.location = Location.POPULATOR;
+        await delay(2000);
         break;
       case 2:
         this.state = LookupState.INDY2;
@@ -135,7 +145,7 @@ export class LookupLocationStateMachine {
         ctx.location = Location.HOSTED;
         break;
       default:
-        throw Error(`Invalid populator status: ${result}`);
+        throw new Error(`Invalid populator status: ${result}`);
     }
   }
 }

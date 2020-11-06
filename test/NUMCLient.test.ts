@@ -1,13 +1,5 @@
 import { expect } from 'chai';
-import {
-  Context,
-  createClient,
-  DefaultCallbackHandler,
-  Hostname,
-  MODULE_1,
-  NumClientOptions,
-  NumUri,
-} from '../lib/client';
+import { Context, createClient, DefaultCallbackHandler, Hostname, MODULE_1, NumClientOptions, NumUri } from '../lib/client';
 
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {

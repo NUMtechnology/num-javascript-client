@@ -7,7 +7,7 @@
     "max-classes-per-file": false,
     "max-line-length": {
       "options": [
-        120
+        160
       ]
     },
     "new-parens": true,

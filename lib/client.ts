@@ -1,8 +1,7 @@
 import { LookupLocationStateMachine } from './lookupstatemachine';
+import log from 'loglevel';
 
-const DOMAIN_REGEX = new RegExp(
-  /^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/
-);
+const DOMAIN_REGEX = new RegExp(/^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/);
 const USERINFO_REGEX = new RegExp(/^(?!\s)[^@\f\t\r\b\n]+?(?<!\s)$/);
 const PATH_REGEX = new RegExp(/^(\/[^;,/\\?:@&=+$.#\s]+)*\/?$/);
 const MAX_LABEL_LENGTH = 63;
@@ -328,14 +327,14 @@ class NumClientImpl implements NumClient {
       const sm = new LookupLocationStateMachine();
 
       // Use a lambda to query the DNS
-      const queryDns = () => {
+      const query = () => {
         switch (ctx.location) {
           case Location.INDEPENDENT:
-            return this.independentQuery();
+            return this.independentQuery(ctx);
           case Location.HOSTED:
-            return this.hostedQuery();
+            return this.hostedQuery(ctx);
           case Location.POPULATOR:
-            return this.populatorQuery();
+            return this.populatorQuery(ctx);
           case Location.NONE:
           default:
             return 0;
@@ -344,7 +343,7 @@ class NumClientImpl implements NumClient {
 
       // Step through the state machine, querying DNS as we go.
       while (!sm.complete()) {
-        sm.step(queryDns, ctx);
+        sm.step(query, ctx);
       }
 
       return ctx.result;
@@ -366,21 +365,30 @@ class NumClientImpl implements NumClient {
    * Independents query
    * @returns
    */
-  private independentQuery() {
+  private independentQuery(ctx: Context) {
+    log.info('independentQuery');
+    this.queryDns(this.numAddress.host.s); // TODO
     return 2; // TODO
   }
   /**
    * Hosted query
    * @returns
    */
-  private hostedQuery() {
+  private hostedQuery(ctx: Context) {
+    log.info('hostedQuery');
+    this.queryDns(this.numAddress.host.s); // TODO
     return 3; // TODO
   }
   /**
    * Populators query
    * @returns
    */
-  private populatorQuery() {
+  private populatorQuery(ctx: Context) {
+    log.info('populatorQuery');
     return 1; // TODO
+  }
+
+  private queryDns(query: string): string {
+    return 'TODO';
   }
 }

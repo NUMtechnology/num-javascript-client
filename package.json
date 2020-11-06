@@ -6,7 +6,11 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "antlr4": "^4.7.2",
+    "any-base": "^1.1.0",
+    "crypto-js": "^4.0.0",
+    "delay": "^4.4.0",
     "loglevel": "^1.7.0",
+    "punycode": "^2.1.1",
     "ts-loader": "^7.0.5",
     "typescript": "^4.0.2"
   },
