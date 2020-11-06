@@ -52,7 +52,7 @@
       true,
       20
     ],
-    "array-type": true,
+    "array-type": false,
     "arrow-return-shorthand": true,
     "class-name": true,
     "comment-format": true,

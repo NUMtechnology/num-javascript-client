@@ -1,16 +1,19 @@
 import { LookupLocationStateMachine } from '../lib/lookupstatemachine';
 import { expect } from 'chai';
-import { Context } from '../lib/client';
+import { Context } from '../lib/context';
 import { Logger } from 'loglevel';
+import { Hostname, MODULE_1, NumUri } from '../lib/client';
 
 const log = require('loglevel') as Logger;
 
-log.setLevel('info');
+log.setLevel('warn');
+
+const testUri = new NumUri(new Hostname('example.com'), MODULE_1);
 
 describe('LookupLocationStateMachine', () => {
   it('should be able to step through all the best-case states', () => {
     const sm = new LookupLocationStateMachine();
-    const ctx = new Context();
+    const ctx = new Context(testUri);
 
     var count = 0;
     while (!sm.complete()) {
@@ -23,7 +26,7 @@ describe('LookupLocationStateMachine', () => {
 
   it('should be able to step through all the worst-case states', () => {
     const sm = new LookupLocationStateMachine();
-    const ctx = new Context();
+    const ctx = new Context(testUri);
 
     var count = 0;
     while (!sm.complete()) {
@@ -36,7 +39,7 @@ describe('LookupLocationStateMachine', () => {
 
   it('should be able to succeed at INDY2', () => {
     const sm = new LookupLocationStateMachine();
-    const ctx = new Context();
+    const ctx = new Context(testUri);
 
     var count = 0;
     while (!sm.complete()) {
@@ -49,7 +52,7 @@ describe('LookupLocationStateMachine', () => {
 
   it('should be able to succeed at HOSTED2', () => {
     const sm = new LookupLocationStateMachine();
-    const ctx = new Context();
+    const ctx = new Context(testUri);
 
     var count = 0;
     while (!sm.complete()) {

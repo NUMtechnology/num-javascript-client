@@ -1,12 +1,9 @@
 import { expect } from 'chai';
-import { Context, createClient, DefaultCallbackHandler, Hostname, MODULE_1, NumClientOptions, NumUri } from '../lib/client';
+import { createClient, DefaultCallbackHandler, Hostname, MODULE_1, NumUri } from '../lib/client';
 
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
-    const host = new Hostname('num.uk');
-    const numUri = new NumUri(host, MODULE_1);
-
-    const client = createClient(numUri, new NumClientOptions());
+    const client = createClient();
     expect(client).not.to.be.null;
   });
 
@@ -15,9 +12,9 @@ describe('NUMClient', () => {
     const numUri = new NumUri(host, MODULE_1);
     const handler = new DefaultCallbackHandler();
 
-    const client = createClient(numUri, new NumClientOptions());
-
-    const result = await client.retrieveNumRecord(new Context(), handler);
+    const client = createClient();
+    const ctx = client.begin(numUri);
+    const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.to.be.null;
     expect(result).to.equal('TODO: a valid num record');
   });

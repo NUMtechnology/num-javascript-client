@@ -17,14 +17,23 @@ import { NumInvalidDnsQueryException, NumInvalidParameterException, NumInvalidRe
 import { EmailLookupGenerator, DomainLookupGenerator, UrlLookupGenerator } from './lookupgenerators';
 import logger from 'loglevel';
 
+/**
+ * Module dns queries
+ */
 export class ModuleDnsQueries {
   private moduleId: number;
   private numId: string;
-  private independentRecordLocation: string;
-  private rootIndependentRecordLocation: string;
-  private hostedRecordLocation: string;
-  private rootHostedRecordLocation: string;
+  private _independentRecordLocation: string;
+  private _rootIndependentRecordLocation: string;
+  private _hostedRecordLocation: string;
+  private _rootHostedRecordLocation: string;
+  private _populatorLocation: string | null;
 
+  /**
+   * Creates an instance of module dns queries.
+   * @param moduleId
+   * @param numId
+   */
   constructor(moduleId: number, numId: string) {
     if (moduleId < 0) {
       throw new NumInvalidParameterException('moduleId cannot be negative');
@@ -44,10 +53,33 @@ export class ModuleDnsQueries {
       ? new UrlLookupGenerator(numId)
       : new DomainLookupGenerator(numId);
 
-    this.independentRecordLocation = lookupGenerator.getIndependentLocation(moduleId);
-    this.rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(moduleId);
-    this.hostedRecordLocation = lookupGenerator.getHostedLocation(moduleId);
-    this.rootHostedRecordLocation = lookupGenerator.getRootHostedLocation(moduleId);
+    this._independentRecordLocation = lookupGenerator.getIndependentLocation(moduleId);
+    this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(moduleId);
+    this._hostedRecordLocation = lookupGenerator.getHostedLocation(moduleId);
+    this._rootHostedRecordLocation = lookupGenerator.getRootHostedLocation(moduleId);
+
+    this._populatorLocation = lookupGenerator.isDomainRoot() ? lookupGenerator.getPopulatorLocation(moduleId) : null;
+  }
+
+  /**
+   * Gets populator location
+   */
+  get populatorLocation() {
+    return this._populatorLocation;
+  }
+
+  /**
+   * Gets independent record location
+   */
+  get independentRecordLocation() {
+    return this._independentRecordLocation;
+  }
+
+  /**
+   * Gets hosted record location
+   */
+  get hostedRecordLocation() {
+    return this._hostedRecordLocation;
   }
 
   /**
@@ -59,8 +91,8 @@ export class ModuleDnsQueries {
     if (this.numId.includes('@')) {
       // This only applies to email NUM IDs
       const generator = new EmailLookupGenerator(this.numId);
-      this.independentRecordLocation = generator.getDistributedIndependentLocation(this.moduleId, levels);
-      this.hostedRecordLocation = generator.getDistributedHostedLocation(this.moduleId, levels);
+      this._independentRecordLocation = generator.getDistributedIndependentLocation(this.moduleId, levels);
+      this._hostedRecordLocation = generator.getDistributedHostedLocation(this.moduleId, levels);
     } else {
       logger.warn('Attempt to distribute a non-email lookup using a Zone Distribution Record.');
     }
@@ -72,12 +104,12 @@ export class ModuleDnsQueries {
    * @return a path of the form '/a/b/c'
    */
   getHostedRecordPath(): string {
-    const index = this.hostedRecordLocation.indexOf(this.rootHostedRecordLocation);
+    const index = this._hostedRecordLocation.indexOf(this._rootHostedRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueries.toPath(this.hostedRecordLocation.substring(0, index));
+      return ModuleDnsQueries.toPath(this._hostedRecordLocation.substring(0, index));
     }
 
-    throw new NumInvalidDnsQueryException(`Invalid hosted record location: ${this.hostedRecordLocation}`);
+    throw new NumInvalidDnsQueryException(`Invalid hosted record location: ${this._hostedRecordLocation}`);
   }
 
   /**
@@ -86,12 +118,12 @@ export class ModuleDnsQueries {
    * @return a path of the form '/a/b/c'
    */
   getIndependentRecordPath(): string {
-    const index = this.independentRecordLocation.indexOf(this.rootIndependentRecordLocation);
+    const index = this._independentRecordLocation.indexOf(this._rootIndependentRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueries.toPath(this.independentRecordLocation.substring(0, index));
+      return ModuleDnsQueries.toPath(this._independentRecordLocation.substring(0, index));
     }
 
-    throw new NumInvalidDnsQueryException(`Invalid independent record location: ${this.independentRecordLocation}`);
+    throw new NumInvalidDnsQueryException(`Invalid independent record location: ${this._independentRecordLocation}`);
   }
 
   /**
@@ -114,12 +146,12 @@ export class ModuleDnsQueries {
    * @param {String} path the path String
    */
   redirectHostedPath(path: string): void {
-    const newLocation = '/' === path ? this.rootHostedRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this.rootHostedRecordLocation}`;
-    if (newLocation === this.hostedRecordLocation) {
+    const newLocation = '/' === path ? this._rootHostedRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this._rootHostedRecordLocation}`;
+    if (newLocation === this._hostedRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }
 
-    this.hostedRecordLocation = newLocation;
+    this._hostedRecordLocation = newLocation;
   }
 
   /**
@@ -128,12 +160,12 @@ export class ModuleDnsQueries {
    * @param  {String} path the path String
    */
   redirectIndependentPath(path: string): void {
-    const newLocation = '/' === path ? this.rootIndependentRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this.rootIndependentRecordLocation}`;
-    if (newLocation === this.independentRecordLocation) {
+    const newLocation = '/' === path ? this._rootIndependentRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this._rootIndependentRecordLocation}`;
+    if (newLocation === this._independentRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }
 
-    this.independentRecordLocation = newLocation;
+    this._independentRecordLocation = newLocation;
   }
 
   /**

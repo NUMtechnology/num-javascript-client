@@ -13,30 +13,73 @@
 // limitations under the License.
 //
 
+/**
+ * Num exception
+ */
 export class NumException extends Error {
   constructor(msg: string) {
     super(msg);
   }
 }
 
+/**
+ * Num invalid parameter exception
+ */
 export class NumInvalidParameterException extends NumException {
   constructor(msg: string) {
     super(msg);
   }
 }
 
+/**
+ * Num bad url exception
+ */
 export class NumBadUrlException extends NumException {
   constructor(msg: string, _cause: Error) {
     super(msg);
   }
 }
 
+/**
+ * Num invalid dns query exception
+ */
 export class NumInvalidDnsQueryException extends NumException {
   constructor(msg: string) {
     super(msg);
   }
 }
+
+/**
+ * Num not implemented exception
+ */
+export class NumNotImplementedException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+/**
+ * Num invalid redirect exception
+ */
 export class NumInvalidRedirectException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+/**
+ * Bad dns status exception
+ */
+export class BadDnsStatusException extends NumException {
+  constructor(readonly status: number, msg: string) {
+    super(msg);
+  }
+}
+
+/**
+ * Invalid dns response exception
+ */
+export class InvalidDnsResponseException extends NumException {
   constructor(msg: string) {
     super(msg);
   }

@@ -1,4 +1,5 @@
 import { LookupLocationStateMachine } from './lookupstatemachine';
+import { Context, Location } from './context';
 import log from 'loglevel';
 
 const DOMAIN_REGEX = new RegExp(/^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/);
@@ -14,6 +15,13 @@ const MAX_LOCAL_PART_LENGTH = 64;
 export interface NumClient {
   /**
    *
+   * @param numAddress
+   * @returns begin
+   */
+  begin(numAddress: NumUri): Context;
+
+  /**
+   *
    * @param ctx
    * @param handler
    * @returns num record
@@ -27,21 +35,6 @@ export interface NumClient {
    * @returns MODL record
    */
   retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
-}
-
-/**
- * Num client options
- */
-export class NumClientOptions {}
-
-/**
- * Location
- */
-export enum Location {
-  HOSTED,
-  INDEPENDENT,
-  POPULATOR,
-  NONE,
 }
 
 /**
@@ -65,14 +58,16 @@ export class NumUri {
     this.port = port ? port : MODULE_0;
     this.path = path ? path : NO_PATH;
   }
-}
 
-/**
- * Context
- */
-export class Context {
-  location: Location = Location.INDEPENDENT;
-  result: string | null = null;
+  /**
+   * Gets num id
+   */
+  get numId(): string {
+    if (this.userinfo.s !== '') {
+      return `${this.userinfo.s}@${this.host.s}${this.path.s}`;
+    }
+    return `${this.host.s}${this.path.s}`;
+  }
 }
 
 /**
@@ -223,6 +218,7 @@ export class UrlPath {
 }
 
 export const NO_PATH = new UrlPath('/');
+
 /**
  * Url user info
  */
@@ -256,25 +252,21 @@ export const NO_USER_INFO = new UrlUserInfo('');
  * Creates client
  * @returns client
  */
-export function createClient(numAddress: NumUri, options?: NumClientOptions): NumClient {
-  return new NumClientImpl(numAddress, options);
+export function createClient(): NumClient {
+  return new NumClientImpl();
 }
 
 /**
  * Num client impl
  */
 class NumClientImpl implements NumClient {
-  private numAddress: NumUri;
-  private options: NumClientOptions;
-
   /**
    * Creates an instance of num client impl.
    * @param numAddress
    * @param [options]
    */
-  constructor(numAddress: NumUri, options?: NumClientOptions) {
-    this.numAddress = numAddress;
-    this.options = options ? options : new NumClientOptions();
+  begin(numAddress: NumUri): Context {
+    return new Context(numAddress);
   }
 
   /**
@@ -287,7 +279,7 @@ class NumClientImpl implements NumClient {
     return new Promise<string | null>((resolve) => {
       const modl = this.retrieveModlRecordInternal(ctx, handler);
       if (modl) {
-        const json = this.interpret(modl, this.numAddress.port);
+        const json = this.interpret(modl, ctx.numAddress.port);
         if (json) {
           handler.setResult(json);
         }
@@ -323,32 +315,29 @@ class NumClientImpl implements NumClient {
    * @returns modl record internal
    */
   private retrieveModlRecordInternal(ctx: Context, handler: CallbackHandler): string | null {
-    if (this.options) {
-      const sm = new LookupLocationStateMachine();
+    const sm = new LookupLocationStateMachine();
 
-      // Use a lambda to query the DNS
-      const query = () => {
-        switch (ctx.location) {
-          case Location.INDEPENDENT:
-            return this.independentQuery(ctx);
-          case Location.HOSTED:
-            return this.hostedQuery(ctx);
-          case Location.POPULATOR:
-            return this.populatorQuery(ctx);
-          case Location.NONE:
-          default:
-            return 0;
-        }
-      };
-
-      // Step through the state machine, querying DNS as we go.
-      while (!sm.complete()) {
-        sm.step(query, ctx);
+    // Use a lambda to query the DNS
+    const query = () => {
+      switch (ctx.location) {
+        case Location.INDEPENDENT:
+          return this.independentQuery(ctx);
+        case Location.HOSTED:
+          return this.hostedQuery(ctx);
+        case Location.POPULATOR:
+          return this.populatorQuery(ctx);
+        case Location.NONE:
+        default:
+          return 0;
       }
+    };
 
-      return ctx.result;
+    // Step through the state machine, querying DNS as we go.
+    while (!sm.complete()) {
+      sm.step(query, ctx);
     }
-    return null;
+
+    return ctx.result;
   }
 
   /**
@@ -367,7 +356,7 @@ class NumClientImpl implements NumClient {
    */
   private independentQuery(ctx: Context) {
     log.info('independentQuery');
-    this.queryDns(this.numAddress.host.s); // TODO
+    this.queryDns(ctx.queries.independentRecordLocation);
     return 2; // TODO
   }
   /**
@@ -376,7 +365,7 @@ class NumClientImpl implements NumClient {
    */
   private hostedQuery(ctx: Context) {
     log.info('hostedQuery');
-    this.queryDns(this.numAddress.host.s); // TODO
+    this.queryDns(ctx.queries.hostedRecordLocation);
     return 3; // TODO
   }
   /**
@@ -385,10 +374,21 @@ class NumClientImpl implements NumClient {
    */
   private populatorQuery(ctx: Context) {
     log.info('populatorQuery');
+    const populatorLocation = ctx.queries.populatorLocation;
+
+    if (populatorLocation) {
+      this.queryDns(populatorLocation);
+    }
     return 1; // TODO
   }
 
+  /**
+   * Querys dns
+   * @param query
+   * @returns dns
+   */
   private queryDns(query: string): string {
+    log.info(`Querying: ${query}`);
     return 'TODO';
   }
 }

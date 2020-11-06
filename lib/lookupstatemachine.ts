@@ -1,4 +1,4 @@
-import { Context, Location } from './client';
+import { Context, Location } from './context';
 import delay from 'delay';
 
 /**
@@ -53,10 +53,18 @@ export class LookupLocationStateMachine {
     typeof result === 'boolean' ? this.success() : this.fail(result, ctx);
   }
 
+  /**
+   * Success lookup location state machine
+   */
   private success() {
     this.state = LookupState.SUCCESS;
   }
 
+  /**
+   * Fails lookup location state machines
+   * @param result
+   * @param ctx
+   */
   private async fail(result: number, ctx: Context) {
     switch (this.state) {
       case LookupState.INDY1:

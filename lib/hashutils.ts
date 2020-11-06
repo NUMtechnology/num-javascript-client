@@ -21,6 +21,9 @@ const DOT = '.';
 
 const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
+/**
+ * Hash utils
+ */
 export class HashUtils {
   /** Generate a SHA1 hash and base36 encode it, then return the first 3 chars separated by '.' and prefixed by '.'
    * The parameter is not checked and the caller must supply a correct value.
@@ -40,7 +43,7 @@ export class HashUtils {
    * @return {String} the hash value.
    */
   static hashByDepth(normalisedDomain: string, depth: number): string {
-    const hashed = CryptoJS.SHA1(normalisedDomain) as string;
+    const hashed = CryptoJS.SHA1(normalisedDomain);
 
     logger.debug(`Hashed ${normalisedDomain} to ${hashed}`);
 

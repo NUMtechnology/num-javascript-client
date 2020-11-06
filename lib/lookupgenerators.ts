@@ -9,65 +9,138 @@ const DNPREFIX = '_';
 const TLZ = 'num.net';
 const EMAIL_SEP = 'e';
 
+/**
+ * Lookup generator
+ */
 export interface LookupGenerator {
-  getIndependentLocation(moduleId: number);
+  /**
+   *
+   * @param moduleId
+   */
+  getIndependentLocation(moduleId: number): string;
 
-  getHostedLocation(moduleId: number);
+  /**
+   *
+   * @param moduleId
+   */
+  getHostedLocation(moduleId: number): string;
 
-  isDomainRoot();
+  /**
+   *
+   */
+  isDomainRoot(): boolean;
 
-  getPopulatorLocation(moduleId: number);
+  /**
+   *
+   * @param moduleId
+   */
+  getPopulatorLocation(moduleId: number): string | null;
 
-  getRootIndependentLocation(moduleId: number);
+  /**
+   *
+   * @param moduleId
+   */
+  getRootIndependentLocation(moduleId: number): string;
 
-  getRootHostedLocation(moduleId: number);
+  /**
+   *
+   * @param moduleId
+   */
+  getRootHostedLocation(moduleId: number): string;
 
-  validate(numId: string, moduleId: number);
+  /**
+   *
+   * @param numId
+   * @param moduleId
+   */
+  validate(numId: string, moduleId: number): void;
 }
 
+/**
+ * Base lookup generator
+ */
 class BaseLookupGenerator implements LookupGenerator {
   protected _numId: string;
   protected _branch: string | null;
   protected _domain: string;
 
+  /**
+   * Creates an instance of base lookup generator.
+   * @param numId
+   */
   constructor(numId: string) {
     this._numId = numId;
     this._branch = null;
     this._domain = '';
   }
 
+  /**
+   * Gets branch
+   */
   get branch() {
     return this._branch;
   }
 
+  /**
+   * Gets domain
+   */
   get domain() {
     return this._domain;
   }
 
+  /**
+   * Gets independent location
+   * @param moduleId
+   * @returns
+   */
   getIndependentLocation(moduleId: number) {
     const result = this.getRootIndependentLocation(moduleId);
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Gets hosted location
+   * @param moduleId
+   * @returns
+   */
   getHostedLocation(moduleId: number) {
     const result = this.getRootHostedLocation(moduleId);
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Determines whether domain root is
+   * @returns
+   */
   isDomainRoot() {
     return this._branch === null || this._branch === '';
   }
 
+  /**
+   * Gets populator location
+   * @param moduleId
+   * @returns
+   */
   getPopulatorLocation(moduleId: number) {
     this.validate(this._numId, moduleId);
     return this.isDomainRoot() ? `${moduleId}.${DNPREFIX}${this._domain}.populator.${TLZ}.` : null;
   }
 
+  /**
+   * Gets root independent location
+   * @param moduleId
+   * @returns
+   */
   getRootIndependentLocation(moduleId: number) {
     this.validate(this._numId, moduleId);
     return `${moduleId}${_NUM}${this._domain}.`;
   }
 
+  /**
+   * Gets root independent location no module number
+   * @param addTrailingDot
+   * @returns
+   */
   getRootIndependentLocationNoModuleNumber(addTrailingDot: boolean) {
     if (addTrailingDot) {
       return `_num.${this._domain}.`;
@@ -76,11 +149,21 @@ class BaseLookupGenerator implements LookupGenerator {
     }
   }
 
+  /**
+   * Gets root hosted location
+   * @param moduleId
+   * @returns
+   */
   getRootHostedLocation(moduleId: number) {
     this.validate(this._numId, moduleId);
     return `${moduleId}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
   }
 
+  /**
+   * Gets root hosted location no module number
+   * @param addTrailingDot
+   * @returns
+   */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean) {
     if (addTrailingDot) {
       return `${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
@@ -89,11 +172,21 @@ class BaseLookupGenerator implements LookupGenerator {
     }
   }
 
+  /**
+   * Validates base lookup generator
+   * @param _numId
+   * @param _moduleId
+   */
   validate(_numId: string, _moduleId: number) {
     throw new Error('Not implemented');
   }
 }
 
+/**
+ * Transforms branch
+ * @param s
+ * @returns branch
+ */
 function transformBranch(s: string): string | null {
   if (s === '/') {
     return null;
@@ -107,6 +200,11 @@ function transformBranch(s: string): string | null {
     .join('.');
 }
 
+/**
+ * Normalises domain name
+ * @param domainName
+ * @returns domain name
+ */
 function normaliseDomainName(domainName: string): string {
   if (!domainName) {
     throw new NumInvalidParameterException('Null domain name cannot be normalised');
@@ -148,6 +246,11 @@ function normaliseDomainName(domainName: string): string {
   return result;
 }
 
+/**
+ * Normalises path
+ * @param path
+ * @returns path
+ */
 function normalisePath(path: string): string {
   let result = '';
   if (path.length > 0) {
@@ -166,6 +269,10 @@ function normalisePath(path: string): string {
 
   return result;
 }
+
+/**
+ * Domain lookup generator
+ */
 export class DomainLookupGenerator extends BaseLookupGenerator {
   constructor(numId: string) {
     super(numId);
@@ -200,6 +307,9 @@ export class DomainLookupGenerator extends BaseLookupGenerator {
   }
 }
 
+/**
+ * Email lookup generator
+ */
 export class EmailLookupGenerator extends BaseLookupGenerator {
   private _localPart: string;
   constructor(numId: string) {
@@ -225,30 +335,58 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
     }
   }
 
+  /**
+   * Gets local part
+   */
   get localPart() {
     return this._localPart;
   }
 
+  /**
+   * Gets independent location
+   * @param moduleId
+   * @returns independent location
+   */
   getIndependentLocation(moduleId: number): string {
     const result = this.getRootIndependentLocation(moduleId);
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Gets hosted location
+   * @param moduleId
+   * @returns hosted location
+   */
   getHostedLocation(moduleId: number): string {
     const result = this.getRootHostedLocation(moduleId);
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Gets populator location
+   * @param moduleId
+   * @returns populator location
+   */
   getPopulatorLocation(moduleId: number): string {
     logger.info(`getPopulatorLocation called on email with ${moduleId}`);
     return '';
   }
 
+  /**
+   * Gets root independent location
+   * @param moduleId
+   * @returns root independent location
+   */
   getRootIndependentLocation(moduleId: number): string {
     this.validate(this._numId, moduleId);
     return `${moduleId}.${DNPREFIX}${this._localPart}.${EMAIL_SEP}${_NUM}${this._domain}.`;
   }
 
+  /**
+   * Gets root independent location no module number
+   * @param addTrailingDot
+   * @returns root independent location no module number
+   */
   getRootIndependentLocationNoModuleNumber(addTrailingDot: boolean): string {
     if (addTrailingDot) {
       return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}${_NUM}${this._domain}.`;
@@ -257,11 +395,21 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
     }
   }
 
+  /**
+   * Gets root hosted location
+   * @param moduleId
+   * @returns root hosted location
+   */
   getRootHostedLocation(moduleId: number): string {
     this.validate(this._numId, moduleId);
     return `${moduleId}.${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
   }
 
+  /**
+   * Gets root hosted location no module number
+   * @param addTrailingDot
+   * @returns root hosted location no module number
+   */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean): string {
     if (addTrailingDot) {
       return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
@@ -270,6 +418,12 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
     }
   }
 
+  /**
+   * Gets distributed independent location
+   * @param moduleId
+   * @param levels
+   * @returns distributed independent location
+   */
   getDistributedIndependentLocation(moduleId: number, levels: number): string {
     this.validate(this._numId, moduleId);
     const emailLocalPartHash = HashUtils.hashByDepth(this._localPart, levels);
@@ -277,6 +431,12 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Gets distributed hosted location
+   * @param moduleId
+   * @param levels
+   * @returns distributed hosted location
+   */
   getDistributedHostedLocation(moduleId: number, levels: number): string {
     this.validate(this._numId, moduleId);
     const emailLocalPartHash = HashUtils.hashByDepth(this._localPart, levels);
@@ -286,6 +446,11 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 
+  /**
+   * Validates email lookup generator
+   * @param numId
+   * @param moduleId
+   */
   validate(numId: string, moduleId: number) {
     if (numId.trim().length === 0) {
       throw new NumInvalidParameterException('The email address cannot be empty');
@@ -306,6 +471,9 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
   }
 }
 
+/**
+ * Url lookup generator
+ */
 export class UrlLookupGenerator extends BaseLookupGenerator {
   constructor(numId: string) {
     super(numId);
@@ -334,6 +502,11 @@ export class UrlLookupGenerator extends BaseLookupGenerator {
     }
   }
 
+  /**
+   * Validates url lookup generator
+   * @param numId
+   * @param moduleId
+   */
   validate(numId: string, moduleId: number) {
     if (moduleId < 0) {
       throw new NumInvalidParameterException('The moduleId cannot be less than 0');
