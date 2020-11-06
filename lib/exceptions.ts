@@ -30,3 +30,14 @@ export class NumBadUrlException extends NumException {
     super(msg);
   }
 }
+
+export class NumInvalidDnsQueryException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+export class NumInvalidRedirectException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
