@@ -20,7 +20,17 @@ import logger from 'loglevel';
 /**
  * Module dns queries
  */
-export class ModuleDnsQueries {
+export interface ModuleDnsQueries {
+  populatorLocation: string | null;
+  hostedRecordLocation: string;
+  independentRecordLocation: string;
+}
+
+export function createModuleDnsQueries(moduleId: number, numId: string) {
+  return new ModuleDnsQueriesImpl(moduleId, numId);
+}
+
+class ModuleDnsQueriesImpl implements ModuleDnsQueries {
   private readonly moduleId: number;
   private readonly numId: string;
   private _independentRecordLocation: string;
@@ -64,7 +74,7 @@ export class ModuleDnsQueries {
   /**
    * Gets populator location
    */
-  get populatorLocation() {
+  get populatorLocation(): string | null {
     return this._populatorLocation;
   }
 
@@ -106,7 +116,7 @@ export class ModuleDnsQueries {
   getHostedRecordPath(): string {
     const index = this._hostedRecordLocation.indexOf(this._rootHostedRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueries.toPath(this._hostedRecordLocation.substring(0, index));
+      return ModuleDnsQueriesImpl.toPath(this._hostedRecordLocation.substring(0, index));
     }
 
     throw new NumInvalidDnsQueryException(`Invalid hosted record location: ${this._hostedRecordLocation}`);
@@ -120,7 +130,7 @@ export class ModuleDnsQueries {
   getIndependentRecordPath(): string {
     const index = this._independentRecordLocation.indexOf(this._rootIndependentRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueries.toPath(this._independentRecordLocation.substring(0, index));
+      return ModuleDnsQueriesImpl.toPath(this._independentRecordLocation.substring(0, index));
     }
 
     throw new NumInvalidDnsQueryException(`Invalid independent record location: ${this._independentRecordLocation}`);
@@ -146,7 +156,7 @@ export class ModuleDnsQueries {
    * @param {String} path the path String
    */
   redirectHostedPath(path: string): void {
-    const newLocation = '/' === path ? this._rootHostedRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this._rootHostedRecordLocation}`;
+    const newLocation = '/' === path ? this._rootHostedRecordLocation : `${ModuleDnsQueriesImpl.fromPath(path)}${'.'}${this._rootHostedRecordLocation}`;
     if (newLocation === this._hostedRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }
@@ -160,7 +170,8 @@ export class ModuleDnsQueries {
    * @param  {String} path the path String
    */
   redirectIndependentPath(path: string): void {
-    const newLocation = '/' === path ? this._rootIndependentRecordLocation : `${ModuleDnsQueries.fromPath(path)}${'.'}${this._rootIndependentRecordLocation}`;
+    const newLocation =
+      '/' === path ? this._rootIndependentRecordLocation : `${ModuleDnsQueriesImpl.fromPath(path)}${'.'}${this._rootIndependentRecordLocation}`;
     if (newLocation === this._independentRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }

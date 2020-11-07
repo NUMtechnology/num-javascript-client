@@ -8,6 +8,7 @@ const _NUM = '._num.';
 const DNPREFIX = '_';
 const TLZ = 'num.net';
 const EMAIL_SEP = 'e';
+const POP_3LZ = 'populator';
 
 /**
  * Lookup generator
@@ -108,7 +109,7 @@ class BaseLookupGenerator implements LookupGenerator {
    */
   getPopulatorLocation(moduleId: number) {
     this.validate(this._numId, moduleId);
-    return this.isDomainRoot() ? `${moduleId}.${DNPREFIX}${this._domain}.populator.${TLZ}.` : null;
+    return this.isDomainRoot() ? `${moduleId}.${DNPREFIX}${this._domain}.${POP_3LZ}.${TLZ}.` : null;
   }
 
   /**

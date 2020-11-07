@@ -1,5 +1,5 @@
 import { NumUri } from './client';
-import { ModuleDnsQueries } from './modulednsqueries';
+import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
 
 /**
  * Location
@@ -26,7 +26,7 @@ export class Context {
    */
   constructor(numAddress: NumUri) {
     this._numAddress = numAddress;
-    this._queries = new ModuleDnsQueries(numAddress.port.n, numAddress.numId);
+    this._queries = createModuleDnsQueries(numAddress.port.n, numAddress.numId);
   }
 
   /**

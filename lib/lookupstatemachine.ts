@@ -28,7 +28,6 @@ enum LookupState {
  */
 export interface LookupLocationStateMachine {
   complete(): boolean;
-
   step(f: () => true | number, ctx: Context): void;
 }
 
