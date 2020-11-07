@@ -14,7 +14,7 @@
 //
 
 import { NumInvalidDnsQueryException, NumInvalidParameterException, NumInvalidRedirectException } from './exceptions';
-import { DomainLookupGenerator, EmailLookupGenerator, UrlLookupGenerator } from './lookupgenerators';
+import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator } from './lookupgenerators';
 import logger from 'loglevel';
 
 /**
@@ -48,10 +48,10 @@ export class ModuleDnsQueries {
 
     // Create a suitable LookupGenerator based on the type of the record specifier
     const lookupGenerator = this.numId.includes('@')
-      ? new EmailLookupGenerator(numId)
+      ? createEmailLookupGenerator(numId)
       : numId.startsWith('http')
-      ? new UrlLookupGenerator(numId)
-      : new DomainLookupGenerator(numId);
+      ? createUrlLookupGenerator(numId)
+      : createDomainLookupGenerator(numId);
 
     this._independentRecordLocation = lookupGenerator.getIndependentLocation(moduleId);
     this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(moduleId);
@@ -90,7 +90,7 @@ export class ModuleDnsQueries {
   setEmailRecordDistributionLevels(levels: number) {
     if (this.numId.includes('@')) {
       // This only applies to email NUM IDs
-      const generator = new EmailLookupGenerator(this.numId);
+      const generator = createEmailLookupGenerator(this.numId);
       this._independentRecordLocation = generator.getDistributedIndependentLocation(this.moduleId, levels);
       this._hostedRecordLocation = generator.getDistributedHostedLocation(this.moduleId, levels);
     } else {

@@ -13,47 +13,32 @@ const EMAIL_SEP = 'e';
  * Lookup generator
  */
 export interface LookupGenerator {
-  /**
-   *
-   * @param moduleId
-   */
+  getRootIndependentLocationNoModuleNumber(arg0: boolean): any;
+  getRootHostedLocationNoModuleNumber(arg0: boolean): any;
   getIndependentLocation(moduleId: number): string;
-
-  /**
-   *
-   * @param moduleId
-   */
   getHostedLocation(moduleId: number): string;
-
-  /**
-   *
-   */
   isDomainRoot(): boolean;
-
-  /**
-   *
-   * @param moduleId
-   */
   getPopulatorLocation(moduleId: number): string | null;
-
-  /**
-   *
-   * @param moduleId
-   */
   getRootIndependentLocation(moduleId: number): string;
-
-  /**
-   *
-   * @param moduleId
-   */
   getRootHostedLocation(moduleId: number): string;
-
-  /**
-   *
-   * @param numId
-   * @param moduleId
-   */
   validate(numId: string, moduleId: number): void;
+}
+
+export interface EmailLookupGenerator extends LookupGenerator {
+  getDistributedHostedLocation(moduleId: number, levels: number): string;
+  getDistributedIndependentLocation(moduleId: number, levels: number): string;
+}
+
+export function createDomainLookupGenerator(numId: string): LookupGenerator {
+  return new DomainLookupGenerator(numId);
+}
+
+export function createEmailLookupGenerator(numId: string): EmailLookupGenerator {
+  return new EmailLookupGeneratorImpl(numId);
+}
+
+export function createUrlLookupGenerator(numId: string): LookupGenerator {
+  return new UrlLookupGenerator(numId);
 }
 
 /**
@@ -273,7 +258,7 @@ function normalisePath(path: string): string {
 /**
  * Domain lookup generator
  */
-export class DomainLookupGenerator extends BaseLookupGenerator {
+class DomainLookupGenerator extends BaseLookupGenerator implements LookupGenerator {
   constructor(numId: string) {
     super(numId);
     const i = numId.indexOf('/');
@@ -310,7 +295,7 @@ export class DomainLookupGenerator extends BaseLookupGenerator {
 /**
  * Email lookup generator
  */
-export class EmailLookupGenerator extends BaseLookupGenerator {
+class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLookupGenerator {
   private readonly _localPart: string;
 
   constructor(numId: string) {
@@ -473,7 +458,7 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
 /**
  * Url lookup generator
  */
-export class UrlLookupGenerator extends BaseLookupGenerator {
+class UrlLookupGenerator extends BaseLookupGenerator implements LookupGenerator {
   constructor(numId: string) {
     super(numId);
     try {
