@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { createClient, DefaultCallbackHandler, Hostname, MODULE_1, NumUri } from '../lib/client';
+import { createClient, createDefaultCallbackHandler, Hostname, MODULE_1, NumUri } from '../lib/client';
 
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
@@ -10,7 +10,7 @@ describe('NUMClient', () => {
   it('should be able to lookup a NUM record using the NUMClient', async () => {
     const host = new Hostname('num.uk');
     const numUri = new NumUri(host, MODULE_1);
-    const handler = new DefaultCallbackHandler();
+    const handler = createDefaultCallbackHandler();
 
     const client = createClient();
     const ctx = client.begin(numUri);

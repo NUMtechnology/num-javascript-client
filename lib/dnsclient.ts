@@ -42,10 +42,23 @@ export class Question {
   }
 }
 
+/**
+ * Dns client
+ */
 export interface DnsClient {
+  /**
+   *
+   * @param question
+   * @returns query
+   */
   query(question: Question): Promise<Answer[]>;
 }
 
+/**
+ * Creates dns client
+ * @param [resolver]
+ * @returns dns client
+ */
 export function createDnsClient(resolver?: DoHResolver): DnsClient {
   return new DnsClientImpl(resolver);
 }

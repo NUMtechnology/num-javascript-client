@@ -26,10 +26,19 @@ export interface ModuleDnsQueries {
   independentRecordLocation: string;
 }
 
+/**
+ * Creates module dns queries
+ * @param moduleId
+ * @param numId
+ * @returns
+ */
 export function createModuleDnsQueries(moduleId: number, numId: string) {
   return new ModuleDnsQueriesImpl(moduleId, numId);
 }
 
+/**
+ * Module dns queries impl
+ */
 class ModuleDnsQueriesImpl implements ModuleDnsQueries {
   private readonly moduleId: number;
   private readonly numId: string;

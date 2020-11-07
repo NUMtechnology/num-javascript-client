@@ -20,17 +20,32 @@ import { NumException, RrSetHeaderFormatException, RrSetIncompleteException } fr
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
 const TXT = 16;
 
+/**
+ * Dns services
+ */
 export interface DnsServices {
   getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<Answer[]>;
 }
 
+/**
+ * Creates dns services
+ * @param [dnsClient]
+ * @returns dns services
+ */
 export function createDnsServices(dnsClient?: DnsClient): DnsServices {
   return new DnsServicesImpl(dnsClient);
 }
 
+/**
+ * Dns services impl
+ */
 class DnsServicesImpl implements DnsServices {
   private dnsClient: DnsClient;
 
+  /**
+   * Creates an instance of dns services impl.
+   * @param [dnsClient]
+   */
   constructor(dnsClient?: DnsClient) {
     this.dnsClient = dnsClient ? dnsClient : createDnsClient();
   }

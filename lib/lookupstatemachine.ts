@@ -31,10 +31,17 @@ export interface LookupLocationStateMachine {
   step(f: () => true | number, ctx: Context): void;
 }
 
+/**
+ * Creates lookup location state machine
+ * @returns lookup location state machine
+ */
 export function createLookupLocationStateMachine(): LookupLocationStateMachine {
   return new LookupLocationStateMachineImpl();
 }
 
+/**
+ * Lookup location state machine impl
+ */
 class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   private state: LookupState;
 

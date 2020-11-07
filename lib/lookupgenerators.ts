@@ -25,19 +25,37 @@ export interface LookupGenerator {
   validate(numId: string, moduleId: number): void;
 }
 
+/**
+ * Email lookup generator
+ */
 export interface EmailLookupGenerator extends LookupGenerator {
   getDistributedHostedLocation(moduleId: number, levels: number): string;
   getDistributedIndependentLocation(moduleId: number, levels: number): string;
 }
 
+/**
+ * Creates domain lookup generator
+ * @param numId
+ * @returns domain lookup generator
+ */
 export function createDomainLookupGenerator(numId: string): LookupGenerator {
   return new DomainLookupGenerator(numId);
 }
 
+/**
+ * Creates email lookup generator
+ * @param numId
+ * @returns email lookup generator
+ */
 export function createEmailLookupGenerator(numId: string): EmailLookupGenerator {
   return new EmailLookupGeneratorImpl(numId);
 }
 
+/**
+ * Creates url lookup generator
+ * @param numId
+ * @returns url lookup generator
+ */
 export function createUrlLookupGenerator(numId: string): LookupGenerator {
   return new UrlLookupGenerator(numId);
 }

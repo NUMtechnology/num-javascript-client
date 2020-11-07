@@ -89,9 +89,17 @@ export interface CallbackHandler {
 }
 
 /**
+ * Creates default callback handler
+ * @returns default callback handler
+ */
+export function createDefaultCallbackHandler(): CallbackHandler {
+  return new DefaultCallbackHandler();
+}
+
+/**
  * Default callback handler
  */
-export class DefaultCallbackHandler implements CallbackHandler {
+class DefaultCallbackHandler implements CallbackHandler {
   private location: Location | null = null;
   private result: string | null = null;
 
