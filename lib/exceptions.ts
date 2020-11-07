@@ -84,3 +84,15 @@ export class InvalidDnsResponseException extends NumException {
     super(msg);
   }
 }
+
+export class RrSetHeaderFormatException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+export class RrSetIncompleteException extends NumException {
+  constructor(msg: string) {
+    super(msg);
+  }
+}

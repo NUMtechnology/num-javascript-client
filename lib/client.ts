@@ -1,4 +1,4 @@
-import { LookupLocationStateMachine } from './lookupstatemachine';
+import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { Context, Location } from './context';
 import log from 'loglevel';
 
@@ -45,6 +45,7 @@ export class NumUri {
   readonly userinfo: UrlUserInfo;
   readonly port: PositiveInteger;
   readonly path: UrlPath;
+
   /**
    * Creates an instance of num uri.
    * @param userinfo
@@ -79,6 +80,7 @@ export interface CallbackHandler {
    * @param l
    */
   setLocation(l: Location): void;
+
   /**
    *
    * @param r
@@ -92,6 +94,7 @@ export interface CallbackHandler {
 export class DefaultCallbackHandler implements CallbackHandler {
   private location: Location | null = null;
   private result: string | null = null;
+
   /**
    * Sets location
    * @param l
@@ -99,6 +102,7 @@ export class DefaultCallbackHandler implements CallbackHandler {
   setLocation(l: Location): void {
     this.location = l;
   }
+
   /**
    * Sets result
    * @param r
@@ -263,7 +267,6 @@ class NumClientImpl implements NumClient {
   /**
    * Creates an instance of num client impl.
    * @param numAddress
-   * @param [options]
    */
   begin(numAddress: NumUri): Context {
     return new Context(numAddress);
@@ -314,8 +317,8 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns modl record internal
    */
-  private retrieveModlRecordInternal(ctx: Context, handler: CallbackHandler): string | null {
-    const sm = new LookupLocationStateMachine();
+  private retrieveModlRecordInternal(ctx: Context, _handler: CallbackHandler): string | null {
+    const sm = createLookupLocationStateMachine();
 
     // Use a lambda to query the DNS
     const query = () => {
@@ -346,7 +349,7 @@ class NumClientImpl implements NumClient {
    * @param port
    * @returns interpret
    */
-  private interpret(modl: string, port: PositiveInteger): string | null {
+  private interpret(_modl: string, _port: PositiveInteger): string | null {
     return null;
   }
 
@@ -359,6 +362,7 @@ class NumClientImpl implements NumClient {
     this.queryDns(ctx.queries.independentRecordLocation);
     return 2; // TODO
   }
+
   /**
    * Hosted query
    * @returns
@@ -368,6 +372,7 @@ class NumClientImpl implements NumClient {
     this.queryDns(ctx.queries.hostedRecordLocation);
     return 3; // TODO
   }
+
   /**
    * Populators query
    * @returns

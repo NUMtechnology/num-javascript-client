@@ -1,4 +1,4 @@
-import { HashUtils } from './hashutils';
+import { hash, hashByDepth } from './hashutils';
 import punycode from 'punycode';
 import logger from 'loglevel';
 import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
@@ -156,7 +156,7 @@ class BaseLookupGenerator implements LookupGenerator {
    */
   getRootHostedLocation(moduleId: number) {
     this.validate(this._numId, moduleId);
-    return `${moduleId}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
+    return `${moduleId}.${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}.`;
   }
 
   /**
@@ -166,9 +166,9 @@ class BaseLookupGenerator implements LookupGenerator {
    */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean) {
     if (addTrailingDot) {
-      return `${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
+      return `${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}.`;
     } else {
-      return `${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}`;
+      return `${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}`;
     }
   }
 
@@ -311,7 +311,8 @@ export class DomainLookupGenerator extends BaseLookupGenerator {
  * Email lookup generator
  */
 export class EmailLookupGenerator extends BaseLookupGenerator {
-  private _localPart: string;
+  private readonly _localPart: string;
+
   constructor(numId: string) {
     super(numId);
 
@@ -402,7 +403,7 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
    */
   getRootHostedLocation(moduleId: number): string {
     this.validate(this._numId, moduleId);
-    return `${moduleId}.${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
+    return `${moduleId}.${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}.`;
   }
 
   /**
@@ -412,9 +413,9 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
    */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean): string {
     if (addTrailingDot) {
-      return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}.`;
+      return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}.`;
     } else {
-      return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(this._domain)}.${TLZ}`;
+      return `${DNPREFIX}${this._localPart}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}`;
     }
   }
 
@@ -426,7 +427,7 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
    */
   getDistributedIndependentLocation(moduleId: number, levels: number): string {
     this.validate(this._numId, moduleId);
-    const emailLocalPartHash = HashUtils.hashByDepth(this._localPart, levels);
+    const emailLocalPartHash = hashByDepth(this._localPart, levels);
     const result = `${moduleId}.${DNPREFIX}${this._localPart}${emailLocalPartHash}.${EMAIL_SEP}${_NUM}${this._domain}.`;
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
@@ -439,10 +440,8 @@ export class EmailLookupGenerator extends BaseLookupGenerator {
    */
   getDistributedHostedLocation(moduleId: number, levels: number): string {
     this.validate(this._numId, moduleId);
-    const emailLocalPartHash = HashUtils.hashByDepth(this._localPart, levels);
-    const result = `${moduleId}.${DNPREFIX}${this._localPart}${emailLocalPartHash}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${HashUtils.hash(
-      this._domain
-    )}.${TLZ}.`;
+    const emailLocalPartHash = hashByDepth(this._localPart, levels);
+    const result = `${moduleId}.${DNPREFIX}${this._localPart}${emailLocalPartHash}.${EMAIL_SEP}.${DNPREFIX}${this._domain}${hash(this._domain)}.${TLZ}.`;
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
 

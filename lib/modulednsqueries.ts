@@ -14,20 +14,20 @@
 //
 
 import { NumInvalidDnsQueryException, NumInvalidParameterException, NumInvalidRedirectException } from './exceptions';
-import { EmailLookupGenerator, DomainLookupGenerator, UrlLookupGenerator } from './lookupgenerators';
+import { DomainLookupGenerator, EmailLookupGenerator, UrlLookupGenerator } from './lookupgenerators';
 import logger from 'loglevel';
 
 /**
  * Module dns queries
  */
 export class ModuleDnsQueries {
-  private moduleId: number;
-  private numId: string;
+  private readonly moduleId: number;
+  private readonly numId: string;
   private _independentRecordLocation: string;
-  private _rootIndependentRecordLocation: string;
+  private readonly _rootIndependentRecordLocation: string;
   private _hostedRecordLocation: string;
-  private _rootHostedRecordLocation: string;
-  private _populatorLocation: string | null;
+  private readonly _rootHostedRecordLocation: string;
+  private readonly _populatorLocation: string | null;
 
   /**
    * Creates an instance of module dns queries.

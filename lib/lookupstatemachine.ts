@@ -26,8 +26,19 @@ enum LookupState {
 /**
  * Lookup location state machine
  */
-export class LookupLocationStateMachine {
+export interface LookupLocationStateMachine {
+  complete(): boolean;
+
+  step(f: () => true | number, ctx: Context): void;
+}
+
+export function createLookupLocationStateMachine(): LookupLocationStateMachine {
+  return new LookupLocationStateMachineImpl();
+}
+
+class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   private state: LookupState;
+
   /**
    * Creates an instance of lookup location state machine.
    */
@@ -46,8 +57,9 @@ export class LookupLocationStateMachine {
   /**
    * Steps lookup location state machine
    * @param f
+   * @param ctx
    */
-  step(f: () => true | number, ctx: Context) {
+  step(f: () => true | number, ctx: Context): void {
     // f is a function supplied by the caller and its result controls the state machine.
     const result = f();
     typeof result === 'boolean' ? this.success() : this.fail(result, ctx);
@@ -136,6 +148,7 @@ export class LookupLocationStateMachine {
   /**
    * Checks status
    * @param result
+   * @param ctx
    */
   private async checkStatus(result: number, ctx: Context) {
     switch (result) {

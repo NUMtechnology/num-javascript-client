@@ -27,8 +27,6 @@ export class DoHResolver {
   constructor(readonly name: string, readonly url: string, readonly params: string[]) {}
 }
 
-const GOOGLE_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
-
 /**
  * Question
  */
@@ -36,18 +34,39 @@ export class Question {
   readonly name: string;
   readonly type: number;
   readonly dnssec: boolean;
+
   constructor(name: string, type: number, dnssec: boolean) {
     this.name = punycode.toASCII(name);
     this.type = type;
-    this.dnssec = false;
+    this.dnssec = dnssec;
   }
 }
+
+export interface DnsClient {
+  query(question: Question): Promise<Answer[]>;
+}
+
+export function createDnsClient(resolver?: DoHResolver): DnsClient {
+  return new DnsClientImpl(resolver);
+}
+
+/**
+ * Answer
+ */
+export interface Answer {
+  name: string;
+  type: number;
+  data: string;
+  TTL: number;
+}
+
+const GOOGLE_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
 
 /**
  * Dns client
  */
-export default class DnsClient {
-  private resolver: DoHResolver;
+class DnsClientImpl implements DnsClient {
+  private readonly resolver: DoHResolver;
 
   /**
    * Creates an instance of dns client.
@@ -55,12 +74,11 @@ export default class DnsClient {
    */
   constructor(resolver?: DoHResolver) {
     this.resolver = resolver ? resolver : GOOGLE_RESOLVER;
-
     logger.info(`DNS client configured with resolver: ${this.resolver.url}`);
   }
 
   /**
-   * Querys dns client
+   * Queries dns client
    * @param question
    * @returns query
    */
@@ -82,7 +100,7 @@ export default class DnsClient {
     }
 
     if (data.length === 0) {
-      // All resolvers tried. No data obtained
+      // No data obtained
       logger.warn('Resolver failed or aborted.');
       throw new Error('Resolver failed or aborted.');
     }
@@ -97,76 +115,52 @@ export default class DnsClient {
    * @returns {Object} any answers
    */
   async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<Answer[]> {
-    if (resolver) {
-      logger.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
+    logger.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
 
-      try {
-        const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
-        const url = `${resolver.url}?${params}`;
-        const response = await axios.get(url);
+    const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
+    const url = `${resolver.url}?${params}`;
 
-        if (response.data) {
-          if (response.data.Status === 0) {
-            if (response.data.Answer) {
-              const data = response.data.Answer as Answer[];
+    const response = await axios.get(url);
 
-              for (const item of data) {
-                if (item.type === 5) {
-                  throw new InvalidDnsResponseException('Found CNAME');
-                }
+    if (response.data) {
+      if (response.data.Status === 0) {
+        if (response.data.Answer) {
+          const data = response.data.Answer as Answer[];
 
-                if (item.data.startsWith('v=spf') || item.data.startsWith('"v=spf')) {
-                  throw new InvalidDnsResponseException('Found spf');
-                }
-
-                item.data = item.data
-                  .split('"')
-                  .filter((i) => i.trim().length > 0)
-                  .join('')
-                  .split('\\;')
-                  .join(';')
-                  .split('\\ ')
-                  .join(' ');
-
-                logger.info(`Joined data ${item.data}`);
-              }
-              return data;
-            } else {
-              throw new Error('Domain was resolved but no records were found');
+          for (const item of data) {
+            if (item.type === 5) {
+              throw new InvalidDnsResponseException('Found CNAME');
             }
-          } else if (response.data.AD && question.dnssec) {
-            // NOTE... since this is done by the resolver this should be dsnsec failed
-            throw new NumNotImplementedException('DNSSEC checks not implemented.');
-          } else if (response.data.Status === NXDOMAIN) {
-            logger.info('Received NXDOMAIN response');
-            return [];
-          } else {
-            throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
-          }
-        } else {
-          throw new Error('Response was empty');
-        }
-      } catch (err) {
-        // We've received an answer, but sometimes when querying domains that include some characters
-        // e.g. the ampersand, the JSON response is invalid.
-        logger.warn(`Error resolving question ${JSON.stringify(question)}: ${JSON.stringify(err)}`);
 
-        throw err;
+            if (item.data.startsWith('v=spf') || item.data.startsWith('"v=spf')) {
+              throw new InvalidDnsResponseException('Found spf');
+            }
+
+            item.data = item.data
+              .split('"')
+              .filter((i) => i.trim().length > 0)
+              .join('')
+              .split('\\;')
+              .join(';')
+              .split('\\ ')
+              .join(' ');
+
+            logger.info(`Joined data ${item.data}`);
+          }
+          return data;
+        } else {
+          throw new Error('Domain was resolved but no records were found');
+        }
+      } else if (response.data.AD && question.dnssec) {
+        throw new NumNotImplementedException('DNSSEC checks not implemented.');
+      } else if (response.data.Status === NXDOMAIN) {
+        logger.info('Received NXDOMAIN response');
+        return [];
+      } else {
+        throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }
     } else {
-      logger.error('Resolver is null');
+      throw new Error('Response was empty');
     }
-
-    return [];
   }
-}
-
-/**
- * Answer
- */
-interface Answer {
-  name: string;
-  type: number;
-  data: string;
-  TTL: number;
 }
