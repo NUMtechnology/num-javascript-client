@@ -103,12 +103,12 @@ class DnsClientImpl implements DnsClient {
     } catch (err) {
       if (err instanceof BadDnsStatusException) {
         if (err.status === NXDOMAIN) {
-          logger.error('Bad DNS status - NXDOMAIN', err);
+          logger.error('Bad DNS status - NXDOMAIN');
         } else {
-          logger.error(`Error resolving ${question.name} with ${this.resolver.name}`, err);
+          logger.error(`Error resolving ${question.name} with ${this.resolver.name}`);
         }
       } else {
-        logger.error(`Error resolving ${question.name} with ${this.resolver.name}.`, err);
+        logger.error(`Error resolving ${question.name} with ${this.resolver.name}.`);
       }
     }
 

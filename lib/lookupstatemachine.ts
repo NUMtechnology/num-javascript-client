@@ -1,4 +1,4 @@
-import { Context, Location } from './context';
+import { Location } from './context';
 import delay from 'delay';
 
 /**
@@ -28,7 +28,7 @@ enum LookupState {
  */
 export interface LookupLocationStateMachine {
   complete(): boolean;
-  step(result: boolean | number, ctx: Context): Promise<void>;
+  step(result: boolean | number): Promise<Location>;
 }
 
 /**
@@ -49,6 +49,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   private delays: number[];
   /**
    * Creates an instance of lookup location state machine.
+   * @param delays An array of up to 9 delay values in milliseconds to override DEFAULT_DELAYS
    */
   constructor(delays?: number[]) {
     this.state = LookupState.INDY1;
@@ -68,15 +69,33 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param f
    * @param ctx
    */
-  async step(result: boolean | number, ctx: Context): Promise<void> {
-    return typeof result === 'boolean' && result === true ? this.success() : await this.fail(result, ctx);
+  async step(result: boolean | number): Promise<Location> {
+    return typeof result === 'boolean' && result === true ? this.success() : await this.fail(result);
   }
 
   /**
    * Success lookup location state machine
    */
-  private success() {
+  private success(): Location {
+    let result: Location;
+    switch (this.state) {
+      case LookupState.INDY1:
+      case LookupState.INDY2:
+        result = Location.INDEPENDENT;
+        break;
+      case LookupState.HOSTED1:
+      case LookupState.HOSTED2:
+        result = Location.HOSTED;
+        break;
+      case LookupState.ERROR:
+        result = Location.NONE;
+        break;
+      default:
+        result = Location.POPULATOR;
+    }
     this.state = LookupState.SUCCESS;
+
+    return result;
   }
 
   /**
@@ -84,60 +103,49 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param result
    * @param ctx
    */
-  private async fail(result: number | false, ctx: Context) {
+  private async fail(result: number | false): Promise<Location> {
     switch (this.state) {
       case LookupState.INDY1:
         this.state = LookupState.HOSTED1;
-        ctx.location = Location.HOSTED;
-        break;
+        return Location.HOSTED;
       case LookupState.HOSTED1:
         this.state = LookupState.POP0;
-        ctx.location = Location.POPULATOR;
-        break;
+        return Location.POPULATOR;
       case LookupState.POP0:
-        await this.checkStatus(result, ctx);
-        ctx.location = Location.POPULATOR;
-        break;
+        await this.checkStatus(result);
+        return Location.POPULATOR;
       case LookupState.POP1:
         this.state = LookupState.POP2;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[0]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP2:
         this.state = LookupState.POP3;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[1]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP3:
         this.state = LookupState.POP4;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[2]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP4:
         this.state = LookupState.POP5;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[4]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP5:
         this.state = LookupState.POP6;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[5]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP6:
         this.state = LookupState.POP7;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[6]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP7:
         this.state = LookupState.POP8;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[7]);
-        break;
+        return Location.POPULATOR;
       case LookupState.POP8:
         this.state = LookupState.POP9;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[8]);
-        break;
+        return Location.POPULATOR;
       case LookupState.SUCCESS:
         break;
       case LookupState.POP9:
@@ -145,11 +153,11 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
       case LookupState.HOSTED2:
       case LookupState.ERROR:
         this.state = LookupState.ERROR;
-        ctx.location = Location.NONE;
-        break;
+        return Location.NONE;
       default:
         throw new Error(`Invalid LookupState status: ${this.state}`);
     }
+    return Location.NONE;
   }
 
   /**
@@ -157,25 +165,21 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param result
    * @param ctx
    */
-  private async checkStatus(result: number | false, ctx: Context) {
+  private async checkStatus(result: number | false): Promise<Location> {
     switch (result) {
       case 1:
         this.state = LookupState.POP1;
-        ctx.location = Location.POPULATOR;
         await delay(this.delays[3]);
-        break;
+        return Location.POPULATOR;
       case 2:
         this.state = LookupState.INDY2;
-        ctx.location = Location.INDEPENDENT;
-        break;
+        return Location.INDEPENDENT;
       case 3:
         this.state = LookupState.HOSTED2;
-        ctx.location = Location.HOSTED;
-        break;
+        return Location.HOSTED;
       case false:
         this.state = LookupState.ERROR;
-        ctx.location = Location.NONE;
-        break;
+        return Location.NONE;
       default:
         throw new Error(`Invalid populator status: ${result}`);
     }

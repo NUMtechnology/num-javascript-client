@@ -339,14 +339,14 @@ class NumClientImpl implements NumClient {
           return await this.populatorQuery(ctx);
         case Location.NONE:
         default:
-          return 0;
+          return false;
       }
     };
 
     // Step through the state machine, querying DNS as we go.
     while (!sm.complete()) {
       const result = await query();
-      await sm.step(result, ctx);
+      ctx.location = await sm.step(result);
     }
 
     return ctx.result;
@@ -367,10 +367,9 @@ class NumClientImpl implements NumClient {
    * @returns
    */
   private async independentQuery(ctx: Context) {
-    log.info('independentQuery');
     const result = await this.queryDns(ctx.queries.independentRecordLocation);
     if (result.length > 0) {
-      ctx.result = result;
+      ctx.result = this.interpret(result, ctx.numAddress.port);
       return true;
     }
     return false;
@@ -381,10 +380,9 @@ class NumClientImpl implements NumClient {
    * @returns
    */
   private async hostedQuery(ctx: Context) {
-    log.info('hostedQuery');
     const result = await this.queryDns(ctx.queries.hostedRecordLocation);
     if (result.length > 0) {
-      ctx.result = result;
+      ctx.result = this.interpret(result, ctx.numAddress.port);
       return true;
     }
     return false;
@@ -395,11 +393,12 @@ class NumClientImpl implements NumClient {
    * @returns
    */
   private async populatorQuery(ctx: Context) {
-    log.info('populatorQuery');
     const populatorLocation = ctx.queries.populatorLocation;
 
     if (populatorLocation) {
       const result = await this.queryDns(populatorLocation);
+
+      // Return the status_ code or false for error_ otherwise true
       if (result.includes('status_')) {
         if (result.includes('code=1')) {
           return 1;
@@ -410,6 +409,11 @@ class NumClientImpl implements NumClient {
         } else {
           return false;
         }
+      } else if (result.includes('error_')) {
+        return false;
+      } else {
+        ctx.result = this.interpret(result, ctx.numAddress.port);
+        return true;
       }
     }
     return false;

@@ -19,7 +19,7 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      await sm.step(true, ctx);
+      ctx.location = await sm.step(true);
       count++;
       log.debug('ctx.location: ', ctx.location);
       expect(count).to.be.lessThan(20);
@@ -33,7 +33,7 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      await sm.step(1, ctx);
+      ctx.location = await sm.step(1);
       count++;
       log.debug('ctx.location: ', ctx.location);
       expect(count).to.be.lessThan(20);
@@ -47,7 +47,7 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      await sm.step(2, ctx);
+      ctx.location = await sm.step(2);
       count++;
       log.debug('ctx.location: ', ctx.location);
       expect(count).to.be.lessThan(20);
@@ -61,7 +61,7 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      await sm.step(3, ctx);
+      ctx.location = await sm.step(3);
       count++;
       log.debug('ctx.location: ', ctx.location);
       expect(count).to.be.lessThan(20);
