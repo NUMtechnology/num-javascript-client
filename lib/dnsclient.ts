@@ -17,6 +17,7 @@ import axios from 'axios';
 import logger from 'loglevel';
 import { BadDnsStatusException, InvalidDnsResponseException, NumNotImplementedException } from './exceptions';
 import punycode from 'punycode';
+import log from 'loglevel';
 
 const NXDOMAIN = 3;
 
@@ -32,13 +33,16 @@ export class DoHResolver {
  */
 export class Question {
   readonly name: string;
-  readonly type: number;
+  readonly type: number | string;
   readonly dnssec: boolean;
 
-  constructor(name: string, type: number, dnssec: boolean) {
+  constructor(name: string, type: number | string, dnssec: boolean) {
     this.name = punycode.toASCII(name);
     this.type = type;
     this.dnssec = dnssec;
+    if (this.name !== name) {
+      log.debug(`Query ${name} punycode ${this.name}`);
+    }
   }
 }
 
@@ -51,7 +55,7 @@ export interface DnsClient {
    * @param question
    * @returns query
    */
-  query(question: Question): Promise<Answer[]>;
+  query(question: Question): Promise<string[]>;
 }
 
 /**
@@ -66,7 +70,7 @@ export function createDnsClient(resolver?: DoHResolver): DnsClient {
 /**
  * Answer
  */
-export interface Answer {
+interface Answer {
   name: string;
   type: number;
   data: string;
@@ -95,8 +99,8 @@ class DnsClientImpl implements DnsClient {
    * @param question
    * @returns query
    */
-  async query(question: Question): Promise<Answer[]> {
-    let data: Answer[] = [];
+  async query(question: Question): Promise<string[]> {
+    let data: string[] = [];
 
     try {
       data = await this.queryUsingResolver(question, this.resolver);
@@ -126,7 +130,7 @@ class DnsClientImpl implements DnsClient {
    * @param resolver
    * @returns using resolver
    */
-  async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<Answer[]> {
+  async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<string[]> {
     logger.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
 
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
@@ -139,27 +143,7 @@ class DnsClientImpl implements DnsClient {
         if (response.data.Answer) {
           const data = response.data.Answer as Answer[];
 
-          for (const item of data) {
-            if (item.type === 5) {
-              throw new InvalidDnsResponseException('Found CNAME');
-            }
-
-            if (item.data.startsWith('v=spf') || item.data.startsWith('"v=spf')) {
-              throw new InvalidDnsResponseException('Found spf');
-            }
-
-            item.data = item.data
-              .split('"')
-              .filter((i) => i.trim().length > 0)
-              .join('')
-              .split('\\;')
-              .join(';')
-              .split('\\ ')
-              .join(' ');
-
-            logger.info(`Joined data ${item.data}`);
-          }
-          return data;
+          return data.map(joinParts);
         } else {
           throw new Error('Domain was resolved but no records were found');
         }
@@ -174,4 +158,31 @@ class DnsClientImpl implements DnsClient {
       throw new Error('Response was empty');
     }
   }
+}
+
+/**
+ * Joins partss
+ * @param item
+ * @returns parts
+ */
+function joinParts(item: Answer): string {
+  if (item.type === 5) {
+    throw new InvalidDnsResponseException('Found CNAME');
+  }
+
+  if (item.data.startsWith('v=spf') || item.data.startsWith('"v=spf')) {
+    throw new InvalidDnsResponseException('Found spf');
+  }
+
+  const joined = item.data
+    .split('"')
+    .filter((i) => i.trim().length > 0)
+    .join('')
+    .split('\\;')
+    .join(';')
+    .split('\\ ')
+    .join(' ');
+
+  logger.info(`Joined data ${joined}`);
+  return joined;
 }
