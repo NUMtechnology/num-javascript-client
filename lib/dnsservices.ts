@@ -15,7 +15,7 @@
 
 import { Answer, createDnsClient, DnsClient, Question } from './dnsclient';
 import log from 'loglevel';
-import { NumException, RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
+import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
 const TXT = 16;
@@ -147,23 +147,16 @@ class DnsServicesImpl implements DnsServices {
    */
   async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<Answer[]> {
     log.info(`Skipping checkDnsSecValidity (value): ${checkDnsSecValidity}`);
-    try {
-      const question = new Question(query, TXT, checkDnsSecValidity);
 
-      if (question.name !== query) {
-        log.debug(`Query ${query} punycode ${question.name}`);
-      }
+    const question = new Question(query, TXT, checkDnsSecValidity);
 
-      const result = await this.dnsClient.query(question);
-
-      log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
-      return result;
-    } catch (e) {
-      if (e instanceof NumException) {
-        throw e;
-      }
-      log.warn('Unknown exception.', e);
+    if (question.name !== query) {
+      log.debug(`Query ${query} punycode ${question.name}`);
     }
-    return [];
+
+    const result = await this.dnsClient.query(question);
+
+    log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
+    return result;
   }
 }

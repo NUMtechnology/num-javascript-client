@@ -346,7 +346,7 @@ class NumClientImpl implements NumClient {
     // Step through the state machine, querying DNS as we go.
     while (!sm.complete()) {
       const result = await query();
-      sm.step(result, ctx);
+      await sm.step(result, ctx);
     }
 
     return ctx.result;
@@ -358,8 +358,8 @@ class NumClientImpl implements NumClient {
    * @param port
    * @returns interpret
    */
-  private interpret(_modl: string, _port: PositiveInteger): string | null {
-    return null;
+  private interpret(modl: string, _port: PositiveInteger): string | null {
+    return modl;
   }
 
   /**
@@ -368,8 +368,12 @@ class NumClientImpl implements NumClient {
    */
   private async independentQuery(ctx: Context) {
     log.info('independentQuery');
-    await this.queryDns(ctx.queries.independentRecordLocation);
-    return 2; // TODO
+    const result = await this.queryDns(ctx.queries.independentRecordLocation);
+    if (result.length > 0) {
+      ctx.result = result;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -378,8 +382,12 @@ class NumClientImpl implements NumClient {
    */
   private async hostedQuery(ctx: Context) {
     log.info('hostedQuery');
-    await this.queryDns(ctx.queries.hostedRecordLocation);
-    return 3; // TODO
+    const result = await this.queryDns(ctx.queries.hostedRecordLocation);
+    if (result.length > 0) {
+      ctx.result = result;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -391,9 +399,12 @@ class NumClientImpl implements NumClient {
     const populatorLocation = ctx.queries.populatorLocation;
 
     if (populatorLocation) {
-      await this.queryDns(populatorLocation);
+      const result = await this.queryDns(populatorLocation);
+      if (result.length > 0) {
+        return 2; // TODO - process the populator responses properly
+      }
     }
-    return 1; // TODO
+    return 1;
   }
 
   /**

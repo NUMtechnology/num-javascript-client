@@ -30,6 +30,7 @@
   },
   "scripts": {
     "test": "mocha --require ts-node/register 'test/**/*.ts'",
+    "test-integration": "mocha --require ts-node/register 'test-integration/**/*.ts'",
     "debug": "mocha --require ts-node/register 'test/**/*.ts'",
     "debug-trace": "mocha --trace-warnings --require ts-node/register 'test/**/*.ts'",
     "version": "git add -A .",
@@ -39,7 +40,7 @@
     "doc": "typedoc",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "tslint --fix -p tsconfig.json",
-    "prepublish": "npm test",
+    "prepare": "npm test",
     "publish": "git push && git push --tags"
   },
   "author": "NUM Technology Ltd",
