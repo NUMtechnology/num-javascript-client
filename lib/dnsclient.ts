@@ -103,7 +103,7 @@ class DnsClientImpl implements DnsClient {
     } catch (err) {
       if (err instanceof BadDnsStatusException) {
         if (err.status === NXDOMAIN) {
-          logger.error('Bad DNS status - NXDOMAIN - skipping other services', err);
+          logger.error('Bad DNS status - NXDOMAIN', err);
         } else {
           logger.error(`Error resolving ${question.name} with ${this.resolver.name}`, err);
         }
@@ -115,7 +115,6 @@ class DnsClientImpl implements DnsClient {
     if (data.length === 0) {
       // No data obtained
       logger.warn('Resolver failed or aborted.');
-      throw new Error('Resolver failed or aborted.');
     }
 
     return data;
@@ -167,8 +166,7 @@ class DnsClientImpl implements DnsClient {
       } else if (response.data.AD && question.dnssec) {
         throw new NumNotImplementedException('DNSSEC checks not implemented.');
       } else if (response.data.Status === NXDOMAIN) {
-        logger.info('Received NXDOMAIN response');
-        return [];
+        throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
       } else {
         throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }

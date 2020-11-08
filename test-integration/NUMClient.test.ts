@@ -23,4 +23,15 @@ describe('NUMClient', () => {
     expect(result).not.to.be.null;
     expect(result).to.equal("@n=1;o(n=NUM;c[(tw(v=NUMprotocol));(li(v=company/20904983))];s=Organising the world's open data)");
   });
+
+  it('should fail to lookup a NUM record using the NUMClient', async () => {
+    const host = new Hostname('ldskfhlskdhflkdsjhfkdhlsdhflasdh.uk');
+    const numUri = new NumUri(host, MODULE_1);
+    const handler = createDefaultCallbackHandler();
+
+    const client = createClient();
+    const ctx = client.begin(numUri);
+    const result = await client.retrieveNumRecord(ctx, handler);
+    expect(result).to.be.null;
+  });
 });

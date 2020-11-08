@@ -24,7 +24,7 @@ const TXT = 16;
  * Dns services
  */
 export interface DnsServices {
-  getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<Answer[]>;
+  getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string>;
 }
 
 /**
@@ -145,7 +145,7 @@ class DnsServicesImpl implements DnsServices {
    * @param checkDnsSecValidity
    * @returns record from dns
    */
-  async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<Answer[]> {
+  async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string> {
     log.info(`Skipping checkDnsSecValidity (value): ${checkDnsSecValidity}`);
 
     const question = new Question(query, TXT, checkDnsSecValidity);
@@ -157,6 +157,6 @@ class DnsServicesImpl implements DnsServices {
     const result = await this.dnsClient.query(question);
 
     log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
-    return result;
+    return this.rebuildTxtRecordContent(result);
   }
 }

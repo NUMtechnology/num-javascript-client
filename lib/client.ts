@@ -400,11 +400,19 @@ class NumClientImpl implements NumClient {
 
     if (populatorLocation) {
       const result = await this.queryDns(populatorLocation);
-      if (result.length > 0) {
-        return 2; // TODO - process the populator responses properly
+      if (result.includes('status_')) {
+        if (result.includes('code=1')) {
+          return 1;
+        } else if (result.includes('code=2')) {
+          return 2;
+        } else if (result.includes('code=3')) {
+          return 3;
+        } else {
+          return false;
+        }
       }
     }
-    return 1;
+    return false;
   }
 
   /**
@@ -414,7 +422,6 @@ class NumClientImpl implements NumClient {
    */
   private async queryDns(query: string): Promise<string> {
     log.info(`Querying: ${query}`);
-    const answers = await this.dnsServices.getRecordFromDns(query, false);
-    return answers.map((a) => a.data).join();
+    return await this.dnsServices.getRecordFromDns(query, false);
   }
 }

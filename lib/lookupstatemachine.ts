@@ -69,7 +69,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param ctx
    */
   async step(result: boolean | number, ctx: Context): Promise<void> {
-    return typeof result === 'boolean' ? this.success() : await this.fail(result, ctx);
+    return typeof result === 'boolean' && result === true ? this.success() : await this.fail(result, ctx);
   }
 
   /**
@@ -84,7 +84,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param result
    * @param ctx
    */
-  private async fail(result: number, ctx: Context) {
+  private async fail(result: number | false, ctx: Context) {
     switch (this.state) {
       case LookupState.INDY1:
         this.state = LookupState.HOSTED1;
@@ -157,7 +157,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param result
    * @param ctx
    */
-  private async checkStatus(result: number, ctx: Context) {
+  private async checkStatus(result: number | false, ctx: Context) {
     switch (result) {
       case 1:
         this.state = LookupState.POP1;
@@ -171,6 +171,10 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
       case 3:
         this.state = LookupState.HOSTED2;
         ctx.location = Location.HOSTED;
+        break;
+      case false:
+        this.state = LookupState.ERROR;
+        ctx.location = Location.NONE;
         break;
       default:
         throw new Error(`Invalid populator status: ${result}`);
