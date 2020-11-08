@@ -21,7 +21,7 @@ import punycode from 'punycode';
 const NXDOMAIN = 3;
 
 /**
- * Do hresolver
+ * DoHresolver
  */
 export class DoHResolver {
   constructor(readonly name: string, readonly url: string, readonly params: string[]) {}
@@ -82,7 +82,7 @@ class DnsClientImpl implements DnsClient {
   private readonly resolver: DoHResolver;
 
   /**
-   * Creates an instance of dns client.
+   * Creates an instance of dns client impl.
    * @param [resolver]
    */
   constructor(resolver?: DoHResolver) {
@@ -91,7 +91,7 @@ class DnsClientImpl implements DnsClient {
   }
 
   /**
-   * Queries dns client
+   * Querys dns client impl
    * @param question
    * @returns query
    */
@@ -122,10 +122,10 @@ class DnsClientImpl implements DnsClient {
   }
 
   /**
-   * Query using resolver
-   * @param {Question} question
-   * @param {Object} resolver
-   * @returns {Object} any answers
+   * Querys using resolver
+   * @param question
+   * @param resolver
+   * @returns using resolver
    */
   async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<Answer[]> {
     logger.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);

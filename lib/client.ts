@@ -1,6 +1,8 @@
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { Context, Location } from './context';
 import log from 'loglevel';
+import { createDnsServices, DnsServices } from './dnsservices';
+import { DnsClient } from './dnsclient';
 
 const DOMAIN_REGEX = new RegExp(/^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/);
 const USERINFO_REGEX = new RegExp(/^(?!\s)[^@\f\t\r\b\n]+?(?<!\s)$/);
@@ -272,6 +274,11 @@ export function createClient(): NumClient {
  * Num client impl
  */
 class NumClientImpl implements NumClient {
+  readonly dnsServices: DnsServices;
+
+  constructor(dnsClient?: DnsClient) {
+    this.dnsServices = createDnsServices(dnsClient);
+  }
   /**
    * Creates an instance of num client impl.
    * @param numAddress
@@ -287,19 +294,15 @@ class NumClientImpl implements NumClient {
    * @returns num record
    */
   async retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    return new Promise<string | null>((resolve) => {
-      const modl = this.retrieveModlRecordInternal(ctx, handler);
-      if (modl) {
-        const json = this.interpret(modl, ctx.numAddress.port);
-        if (json) {
-          handler.setResult(json);
-        }
-        resolve(json);
-        return json;
+    const modl = await this.retrieveModlRecordInternal(ctx, handler);
+    if (modl) {
+      const json = this.interpret(modl, ctx.numAddress.port);
+      if (json) {
+        handler.setResult(json);
       }
-      resolve(null);
-      return null;
-    });
+      return json;
+    }
+    return null;
   }
 
   /**
@@ -309,14 +312,11 @@ class NumClientImpl implements NumClient {
    * @returns modl record
    */
   async retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    return new Promise<string | null>((resolve) => {
-      const modl = this.retrieveModlRecordInternal(ctx, handler);
-      if (modl) {
-        handler.setResult(modl);
-      }
-      resolve(modl);
-      return modl;
-    });
+    const modl = await this.retrieveModlRecordInternal(ctx, handler);
+    if (modl) {
+      handler.setResult(modl);
+    }
+    return modl;
   }
 
   /**
@@ -325,18 +325,18 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns modl record internal
    */
-  private retrieveModlRecordInternal(ctx: Context, _handler: CallbackHandler): string | null {
+  private async retrieveModlRecordInternal(ctx: Context, _handler: CallbackHandler): Promise<string | null> {
     const sm = createLookupLocationStateMachine();
 
     // Use a lambda to query the DNS
-    const query = () => {
+    const query = async () => {
       switch (ctx.location) {
         case Location.INDEPENDENT:
-          return this.independentQuery(ctx);
+          return await this.independentQuery(ctx);
         case Location.HOSTED:
-          return this.hostedQuery(ctx);
+          return await this.hostedQuery(ctx);
         case Location.POPULATOR:
-          return this.populatorQuery(ctx);
+          return await this.populatorQuery(ctx);
         case Location.NONE:
         default:
           return 0;
@@ -345,7 +345,8 @@ class NumClientImpl implements NumClient {
 
     // Step through the state machine, querying DNS as we go.
     while (!sm.complete()) {
-      sm.step(query, ctx);
+      const result = await query();
+      sm.step(result, ctx);
     }
 
     return ctx.result;
@@ -365,9 +366,9 @@ class NumClientImpl implements NumClient {
    * Independents query
    * @returns
    */
-  private independentQuery(ctx: Context) {
+  private async independentQuery(ctx: Context) {
     log.info('independentQuery');
-    this.queryDns(ctx.queries.independentRecordLocation);
+    await this.queryDns(ctx.queries.independentRecordLocation);
     return 2; // TODO
   }
 
@@ -375,9 +376,9 @@ class NumClientImpl implements NumClient {
    * Hosted query
    * @returns
    */
-  private hostedQuery(ctx: Context) {
+  private async hostedQuery(ctx: Context) {
     log.info('hostedQuery');
-    this.queryDns(ctx.queries.hostedRecordLocation);
+    await this.queryDns(ctx.queries.hostedRecordLocation);
     return 3; // TODO
   }
 
@@ -385,12 +386,12 @@ class NumClientImpl implements NumClient {
    * Populators query
    * @returns
    */
-  private populatorQuery(ctx: Context) {
+  private async populatorQuery(ctx: Context) {
     log.info('populatorQuery');
     const populatorLocation = ctx.queries.populatorLocation;
 
     if (populatorLocation) {
-      this.queryDns(populatorLocation);
+      await this.queryDns(populatorLocation);
     }
     return 1; // TODO
   }
@@ -400,8 +401,9 @@ class NumClientImpl implements NumClient {
    * @param query
    * @returns dns
    */
-  private queryDns(query: string): string {
+  private async queryDns(query: string): Promise<string> {
     log.info(`Querying: ${query}`);
-    return 'TODO';
+    const answers = await this.dnsServices.getRecordFromDns(query, false);
+    return answers.map((a) => a.data).join();
   }
 }

@@ -28,7 +28,7 @@ enum LookupState {
  */
 export interface LookupLocationStateMachine {
   complete(): boolean;
-  step(f: () => true | number, ctx: Context): void;
+  step(result: boolean | number, ctx: Context): void;
 }
 
 /**
@@ -65,9 +65,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param f
    * @param ctx
    */
-  step(f: () => true | number, ctx: Context): void {
-    // f is a function supplied by the caller and its result controls the state machine.
-    const result = f();
+  step(result: boolean | number, ctx: Context): void {
     typeof result === 'boolean' ? this.success() : this.fail(result, ctx);
   }
 

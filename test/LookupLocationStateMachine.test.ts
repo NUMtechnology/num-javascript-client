@@ -6,7 +6,7 @@ import { Hostname, MODULE_1, NumUri } from '../lib/client';
 
 const log = loglevel as Logger;
 
-log.setLevel('warn');
+log.setLevel('trace');
 
 const testUri = new NumUri(new Hostname('example.com'), MODULE_1);
 
@@ -17,9 +17,10 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      sm.step(() => true, ctx);
+      sm.step(true, ctx);
       count++;
       log.debug('ctx.location: ', ctx.location);
+      expect(count).to.be.lessThan(20);
     }
     expect(count).to.equal(1);
   });
@@ -30,9 +31,10 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      sm.step(() => 1, ctx);
+      sm.step(1, ctx);
       count++;
       log.debug('ctx.location: ', ctx.location);
+      expect(count).to.be.lessThan(20);
     }
     expect(count).to.equal(12);
   });
@@ -43,9 +45,10 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      sm.step(() => 2, ctx);
+      sm.step(2, ctx);
       count++;
       log.debug('ctx.location: ', ctx.location);
+      expect(count).to.be.lessThan(20);
     }
     expect(count).to.equal(4);
   });
@@ -56,9 +59,10 @@ describe('LookupLocationStateMachine', () => {
 
     let count = 0;
     while (!sm.complete()) {
-      sm.step(() => 3, ctx);
+      sm.step(3, ctx);
       count++;
       log.debug('ctx.location: ', ctx.location);
+      expect(count).to.be.lessThan(20);
     }
     expect(count).to.equal(4);
   });

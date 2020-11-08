@@ -51,20 +51,18 @@ class DnsServicesImpl implements DnsServices {
   }
 
   /**
-   * Check if the query is valid
-   *
-   * @param {String} query
-   * @returns {Boolean}
+   * Determines whether query valid is
+   * @param query
+   * @returns true if query valid
    */
   isQueryValid(query: string): boolean {
     return query.trim().length !== 0;
   }
 
   /**
-   * Concatenate an array of TXT record values to a single String
-   *
-   * @param {Array} records The array of Records
-   * @returns {String} The concatenated result.
+   * Rebuilds txt record content
+   * @param records
+   * @returns txt record content
    */
   rebuildTxtRecordContent(records: Answer[]): string {
     const ordered = new Map<number, string>();
@@ -142,11 +140,10 @@ class DnsServicesImpl implements DnsServices {
   }
 
   /**
-   * Get a NUM record from DNS.
-   *
-   * @param {String} query The NUM formatted DNS query.
-   * @param {Boolean} checkDnsSecValidity true if the result should be checked for DNSSEC validity.
-   * @returns {Array} An array of Records
+   * Gets record from dns
+   * @param query
+   * @param checkDnsSecValidity
+   * @returns record from dns
    */
   async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<Answer[]> {
     log.info(`Skipping checkDnsSecValidity (value): ${checkDnsSecValidity}`);
