@@ -1,4 +1,4 @@
-import { NumUri } from './client';
+import { NumUri } from './numuri';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
 
 /**

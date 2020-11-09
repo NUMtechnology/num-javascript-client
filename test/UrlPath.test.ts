@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { UrlPath } from '../lib/client';
+import { UrlPath } from '../lib/numuri';
 
 const validPaths = ['/', '/a', '/a/b', '/例', '/例/例'];
 

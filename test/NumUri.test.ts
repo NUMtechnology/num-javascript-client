@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { NO_USER_INFO, parseNumUri } from '../lib/client';
+import { NO_USER_INFO, parseNumUri } from '../lib/numuri';
 
 describe('NumUri Parsing', () => {
   it('can parse a full NUM URI', () => {

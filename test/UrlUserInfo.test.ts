@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { UrlUserInfo } from '../lib/client';
+import { UrlUserInfo } from '../lib/numuri';
 
 const validUserInfoStrings = [
   'john.smith',

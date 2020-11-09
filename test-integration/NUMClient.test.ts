@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { createClient, createDefaultCallbackHandler, Hostname, MODULE_1, NumUri } from '../lib/client';
+import { createClient, createDefaultCallbackHandler } from '../lib/client';
+import { Hostname, MODULE_1, NumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
 
 const log = loglevel as Logger;

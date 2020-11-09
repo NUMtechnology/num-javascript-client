@@ -1,7 +1,7 @@
 import { createLookupLocationStateMachine } from '../lib/lookupstatemachine';
 import { expect } from 'chai';
 import { Context } from '../lib/context';
-import { Hostname, MODULE_1, NumUri } from '../lib/client';
+import { Hostname, MODULE_1, NumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
 
 const log = loglevel as Logger;

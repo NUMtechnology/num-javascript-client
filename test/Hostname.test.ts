@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Hostname } from '../lib/client';
+import { Hostname } from '../lib/numuri';
 
 const validUriStrings = [
   'test_$*&.example.com',

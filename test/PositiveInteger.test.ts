@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PositiveInteger } from '../lib/client';
+import { PositiveInteger } from '../lib/numuri';
 
 describe('PositiveInteger', () => {
   it('should be able to create a PositiveInteger', () => {
