@@ -18,7 +18,6 @@ enum LookupState {
   POP6,
   POP7,
   POP8,
-  POP9,
   ERROR,
   SUCCESS,
 }
@@ -39,7 +38,7 @@ export function createLookupLocationStateMachine(delays?: number[]): LookupLocat
   return new LookupLocationStateMachineImpl(delays);
 }
 
-const DEFAULT_DELAYS = [2000, 2000, 2000, 2000, 5000, 5000, 5000, 5000, 5000];
+const DEFAULT_DELAYS = [2000, 2000, 2000, 2000, 5000, 5000, 5000, 5000];
 
 /**
  * Lookup location state machine impl
@@ -49,7 +48,7 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   private delays: number[];
   /**
    * Creates an instance of lookup location state machine.
-   * @param delays An array of up to 9 delay values in milliseconds to override DEFAULT_DELAYS
+   * @param delays An array of up to 8 delay values in milliseconds to override DEFAULT_DELAYS
    */
   constructor(delays?: number[]) {
     this.state = LookupState.INDY1;
@@ -142,13 +141,9 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
         this.state = LookupState.POP8;
         await delay(this.delays[7]);
         return Location.POPULATOR;
-      case LookupState.POP8:
-        this.state = LookupState.POP9;
-        await delay(this.delays[8]);
-        return Location.POPULATOR;
       case LookupState.SUCCESS:
         break;
-      case LookupState.POP9:
+      case LookupState.POP8:
       case LookupState.INDY2:
       case LookupState.HOSTED2:
       case LookupState.ERROR:

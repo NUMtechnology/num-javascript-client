@@ -13,9 +13,10 @@
 // limitations under the License.
 //
 
-import { NumInvalidDnsQueryException, NumInvalidParameterException, NumInvalidRedirectException } from './exceptions';
+import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
 import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator } from './lookupgenerators';
 import logger from 'loglevel';
+import { NumUri, PositiveInteger } from './numuri';
 
 /**
  * Module dns queries
@@ -29,11 +30,11 @@ export interface ModuleDnsQueries {
 /**
  * Creates module dns queries
  * @param moduleId
- * @param numId
+ * @param numUri
  * @returns
  */
-export function createModuleDnsQueries(moduleId: number, numId: string) {
-  return new ModuleDnsQueriesImpl(moduleId, numId);
+export function createModuleDnsQueries(moduleId: PositiveInteger, numUri: NumUri) {
+  return new ModuleDnsQueriesImpl(moduleId, numUri);
 }
 
 /**
@@ -51,33 +52,25 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
   /**
    * Creates an instance of module dns queries.
    * @param moduleId
-   * @param numId
+   * @param numUri
    */
-  constructor(moduleId: number, numId: string) {
-    if (moduleId < 0) {
-      throw new NumInvalidParameterException('moduleId cannot be negative');
-    }
-
-    if (numId.trim().length === 0) {
-      throw new NumInvalidParameterException('numId cannot be null or empty');
-    }
-
-    this.moduleId = moduleId;
-    this.numId = numId;
+  constructor(moduleId: PositiveInteger, numUri: NumUri) {
+    this.moduleId = moduleId.n;
+    this.numId = numUri.numId;
 
     // Create a suitable LookupGenerator based on the type of the record specifier
     const lookupGenerator = this.numId.includes('@')
-      ? createEmailLookupGenerator(numId)
-      : numId.startsWith('http')
-      ? createUrlLookupGenerator(numId)
-      : createDomainLookupGenerator(numId);
+      ? createEmailLookupGenerator(this.numId)
+      : this.numId.startsWith('http')
+      ? createUrlLookupGenerator(this.numId)
+      : createDomainLookupGenerator(this.numId);
 
-    this._independentRecordLocation = lookupGenerator.getIndependentLocation(moduleId);
-    this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(moduleId);
-    this._hostedRecordLocation = lookupGenerator.getHostedLocation(moduleId);
-    this._rootHostedRecordLocation = lookupGenerator.getRootHostedLocation(moduleId);
+    this._independentRecordLocation = lookupGenerator.getIndependentLocation(this.moduleId);
+    this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(this.moduleId);
+    this._hostedRecordLocation = lookupGenerator.getHostedLocation(this.moduleId);
+    this._rootHostedRecordLocation = lookupGenerator.getRootHostedLocation(this.moduleId);
 
-    this._populatorLocation = lookupGenerator.isDomainRoot() ? lookupGenerator.getPopulatorLocation(moduleId) : null;
+    this._populatorLocation = lookupGenerator.isDomainRoot() ? lookupGenerator.getPopulatorLocation(this.moduleId) : null;
   }
 
   /**
@@ -125,7 +118,7 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
   getHostedRecordPath(): string {
     const index = this._hostedRecordLocation.indexOf(this._rootHostedRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueriesImpl.toPath(this._hostedRecordLocation.substring(0, index));
+      return toPath(this._hostedRecordLocation.substring(0, index));
     }
 
     throw new NumInvalidDnsQueryException(`Invalid hosted record location: ${this._hostedRecordLocation}`);
@@ -139,24 +132,10 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
   getIndependentRecordPath(): string {
     const index = this._independentRecordLocation.indexOf(this._rootIndependentRecordLocation);
     if (index > -1) {
-      return ModuleDnsQueriesImpl.toPath(this._independentRecordLocation.substring(0, index));
+      return toPath(this._independentRecordLocation.substring(0, index));
     }
 
     throw new NumInvalidDnsQueryException(`Invalid independent record location: ${this._independentRecordLocation}`);
-  }
-
-  /**
-   * Convert a domain path to a URL path, e.g. `manager.sales` becomes `/sales/manager`
-   *
-   * @param {String} domainPath a String
-   * @return a URL path String
-   */
-  private static toPath(domainPath: string): string {
-    if (domainPath.includes('.')) {
-      const parts = domainPath.split('.').reverse();
-      return `/${parts.join('/')}`;
-    }
-    return `/${domainPath}`;
   }
 
   /**
@@ -165,7 +144,7 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
    * @param {String} path the path String
    */
   redirectHostedPath(path: string): void {
-    const newLocation = '/' === path ? this._rootHostedRecordLocation : `${ModuleDnsQueriesImpl.fromPath(path)}${'.'}${this._rootHostedRecordLocation}`;
+    const newLocation = '/' === path ? this._rootHostedRecordLocation : `${fromPath(path)}${'.'}${this._rootHostedRecordLocation}`;
     if (newLocation === this._hostedRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }
@@ -179,30 +158,42 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
    * @param  {String} path the path String
    */
   redirectIndependentPath(path: string): void {
-    const newLocation =
-      '/' === path ? this._rootIndependentRecordLocation : `${ModuleDnsQueriesImpl.fromPath(path)}${'.'}${this._rootIndependentRecordLocation}`;
+    const newLocation = '/' === path ? this._rootIndependentRecordLocation : `${fromPath(path)}${'.'}${this._rootIndependentRecordLocation}`;
     if (newLocation === this._independentRecordLocation) {
       throw new NumInvalidRedirectException('Cannot redirect back to the same location.');
     }
 
     this._independentRecordLocation = newLocation;
   }
+}
 
-  /**
-   * Convert a URL path to a domain path , e.g. `/sales/manager` becomes `manager.sales`
-   *
-   * @param {String} path  a String
-   * @return a domain path String
-   */
-  private static fromPath(path: string): string {
-    if (path.includes('/')) {
-      return path
-        .split('/')
-        .reverse()
-        .filter((i) => i.trim().length > 0)
-        .join('.');
-    }
-
-    return path;
+/**
+ * Convert a domain path to a URL path, e.g. `manager.sales` becomes `/sales/manager`
+ *
+ * @param {String} domainPath a String
+ * @return a URL path String
+ */
+function toPath(domainPath: string): string {
+  if (domainPath.includes('.')) {
+    return '/' + domainPath.split('.').reverse().join('/');
   }
+  return `/${domainPath}`;
+}
+
+/**
+ * Convert a URL path to a domain path , e.g. `/sales/manager` becomes `manager.sales`
+ *
+ * @param {String} path  a String
+ * @return a domain path String
+ */
+function fromPath(path: string): string {
+  if (path.includes('/')) {
+    return path
+      .split('/')
+      .reverse()
+      .filter((i) => i.trim().length > 0)
+      .join('.');
+  }
+
+  return path;
 }

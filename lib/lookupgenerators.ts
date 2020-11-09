@@ -220,8 +220,7 @@ function normaliseDomainName(domainName: string): string {
 
   if (domainName.startsWith('http')) {
     try {
-      const url = new URL(domainName);
-      const host = url.host;
+      const host = new URL(domainName).hostname;
       return normaliseDomainName(host);
     } catch (e) {
       if (e instanceof NumException) {

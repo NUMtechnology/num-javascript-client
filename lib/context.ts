@@ -26,7 +26,7 @@ export class Context {
    */
   constructor(numAddress: NumUri) {
     this._numAddress = numAddress;
-    this._queries = createModuleDnsQueries(numAddress.port.n, numAddress.numId);
+    this._queries = createModuleDnsQueries(numAddress.port, numAddress);
   }
 
   /**

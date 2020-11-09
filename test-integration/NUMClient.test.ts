@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { createClient, createDefaultCallbackHandler } from '../lib/client';
-import { Hostname, MODULE_1, NumUri } from '../lib/numuri';
+import { parseNumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
 
 const log = loglevel as Logger;
@@ -14,8 +14,7 @@ describe('NUMClient', () => {
   });
 
   it('should be able to lookup a NUM record using the NUMClient', async () => {
-    const host = new Hostname('num.uk');
-    const numUri = new NumUri(host, MODULE_1);
+    const numUri = parseNumUri('num.uk:1');
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
@@ -26,8 +25,7 @@ describe('NUMClient', () => {
   });
 
   it('should fail to lookup a NUM record using the NUMClient', async () => {
-    const host = new Hostname('ldskfhlskdhflkdsjhfkdhlsdhflasdh.uk');
-    const numUri = new NumUri(host, MODULE_1);
+    const numUri = parseNumUri('ldskfhlskdhflkdsjhfkdhlsdhflasdh.uk:1');
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
