@@ -61,23 +61,34 @@ export function buildNumUri(host: string, port?: number, userinfo?: string, path
  */
 export function parseNumUri(uri: string): NumUri {
   const protocolPrefix = uri.indexOf('://');
-  const withoutProtocol = protocolPrefix > -1 ? uri.substr(protocolPrefix + 3) : uri;
+  const withoutProtocol = isPositive(protocolPrefix) ? uri.substr(protocolPrefix + 3) : uri;
   const indexOfAt = withoutProtocol.indexOf('@');
-  const withoutUserInfo = indexOfAt > -1 ? withoutProtocol.substr(indexOfAt + 1) : withoutProtocol;
+  const withoutUserInfo = isPositive(indexOfAt) ? withoutProtocol.substr(indexOfAt + 1) : withoutProtocol;
   const pathSeparator = withoutUserInfo.indexOf('/');
-  const withoutPath = pathSeparator > -1 ? withoutUserInfo.substr(0, pathSeparator) : withoutUserInfo;
+  const withoutPath = isPositive(pathSeparator) ? withoutUserInfo.substr(0, pathSeparator) : withoutUserInfo;
   const portSeparator = withoutPath.indexOf(':');
-  const withoutPort = portSeparator > -1 ? withoutPath.substr(0, portSeparator) : withoutPath;
-
+  const withoutPort = isPositive(portSeparator) ? withoutPath.substr(0, portSeparator) : withoutPath;
   const portString = withoutPath.substr(portSeparator + 1);
-  const portNumber = portString.length > 0 ? Number.parseInt(portString, 10) : 0;
-  const port = portSeparator > -1 ? new PositiveInteger(portNumber) : MODULE_0;
-  const userInfo = indexOfAt > -1 ? new UrlUserInfo(withoutProtocol.substr(0, indexOfAt)) : NO_USER_INFO;
+  const portNumber = notEmpty(portString) ? Number.parseInt(portString, 10) : 0;
+
   const host = new Hostname(withoutPort);
-  const path = pathSeparator > -1 ? new UrlPath(withoutUserInfo.substr(pathSeparator)) : NO_PATH;
+  const port = isPositive(portSeparator) ? new PositiveInteger(portNumber) : MODULE_0;
+  const userInfo = isPositive(indexOfAt) ? new UrlUserInfo(withoutProtocol.substr(0, indexOfAt)) : NO_USER_INFO;
+  const path = isPositive(pathSeparator) ? new UrlPath(withoutUserInfo.substr(pathSeparator)) : NO_PATH;
 
   return new NumUri(host, port, userInfo, path);
 }
+
+/**
+ * N positive
+ * @param n
+ */
+const isPositive = (n: number) => n > -1;
+/**
+ * S not empty
+ * @param s
+ */
+const notEmpty = (s: string) => s.length > 0;
 
 /**
  * Positive integer
@@ -88,7 +99,8 @@ export class PositiveInteger {
    * @param n
    */
   constructor(readonly n: number) {
-    if (n < 0 || !Number.isInteger(n)) {
+    // n must be a positive integer
+    if (!(isPositive(n) && Number.isInteger(n))) {
       throw new Error(`Value should be zero or a positive integer: ${n}`);
     }
   }
@@ -184,7 +196,7 @@ export class UrlUserInfo {
    */
   constructor(readonly s: string) {
     if (
-      (s && s.length > 0 && !s.match(USERINFO_REGEX)) ||
+      (s && notEmpty(s) && !s.match(USERINFO_REGEX)) ||
       s.length > MAX_LOCAL_PART_LENGTH ||
       s.startsWith('.') ||
       s.endsWith('.') ||

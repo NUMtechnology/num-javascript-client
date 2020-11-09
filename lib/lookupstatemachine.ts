@@ -177,11 +177,11 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
       case 3:
         this.state = LookupState.HOSTED2;
         return Location.HOSTED;
+      case 4:
       case false:
+      default:
         this.state = LookupState.ERROR;
         return Location.NONE;
-      default:
-        throw new Error(`Invalid populator status: ${result}`);
     }
   }
 }
