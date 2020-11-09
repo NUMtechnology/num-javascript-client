@@ -16,7 +16,7 @@
 import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
 import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator } from './lookupgenerators';
 import logger from 'loglevel';
-import { NumUri, PositiveInteger } from './numuri';
+import { NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
 
 /**
  * Module dns queries
@@ -41,8 +41,8 @@ export function createModuleDnsQueries(moduleId: PositiveInteger, numUri: NumUri
  * Module dns queries impl
  */
 class ModuleDnsQueriesImpl implements ModuleDnsQueries {
-  private readonly moduleId: number;
-  private readonly numId: string;
+  private readonly moduleId: PositiveInteger;
+  private readonly numUri: NumUri;
   private _independentRecordLocation: string;
   private readonly _rootIndependentRecordLocation: string;
   private _hostedRecordLocation: string;
@@ -55,15 +55,16 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
    * @param numUri
    */
   constructor(moduleId: PositiveInteger, numUri: NumUri) {
-    this.moduleId = moduleId.n;
-    this.numId = numUri.numId;
+    this.moduleId = moduleId;
+    this.numUri = numUri;
 
     // Create a suitable LookupGenerator based on the type of the record specifier
-    const lookupGenerator = this.numId.includes('@')
-      ? createEmailLookupGenerator(this.numId)
-      : this.numId.startsWith('http')
-      ? createUrlLookupGenerator(this.numId)
-      : createDomainLookupGenerator(this.numId);
+    const lookupGenerator =
+      this.numUri.userinfo !== NO_USER_INFO
+        ? createEmailLookupGenerator(this.numUri)
+        : this.numUri.protocol.startsWith('http')
+        ? createUrlLookupGenerator(this.numUri)
+        : createDomainLookupGenerator(this.numUri);
 
     this._independentRecordLocation = lookupGenerator.getIndependentLocation(this.moduleId);
     this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(this.moduleId);
@@ -99,10 +100,10 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
    *
    * @param {int} levels     the number of levels to use for zone distribution
    */
-  setEmailRecordDistributionLevels(levels: number) {
-    if (this.numId.includes('@')) {
+  setEmailRecordDistributionLevels(levels: PositiveInteger) {
+    if (this.numUri.userinfo !== NO_USER_INFO) {
       // This only applies to email NUM IDs
-      const generator = createEmailLookupGenerator(this.numId);
+      const generator = createEmailLookupGenerator(this.numUri);
       this._independentRecordLocation = generator.getDistributedIndependentLocation(this.moduleId, levels);
       this._hostedRecordLocation = generator.getDistributedHostedLocation(this.moduleId, levels);
     } else {

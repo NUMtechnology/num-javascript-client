@@ -39,6 +39,42 @@ export class NumUri {
     }
     return `${this.host.s}${this.path.s}`;
   }
+
+  /**
+   * Withs host
+   * @param host
+   * @returns host
+   */
+  withHost(host: Hostname): NumUri {
+    return new NumUri(host, this.port, this.userinfo, this.path);
+  }
+
+  /**
+   * Withs port
+   * @param port
+   * @returns port
+   */
+  withPort(port: PositiveInteger): NumUri {
+    return new NumUri(this.host, port, this.userinfo, this.path);
+  }
+
+  /**
+   * Withs path
+   * @param path
+   * @returns path
+   */
+  withPath(path: UrlPath): NumUri {
+    return new NumUri(this.host, this.port, this.userinfo, path);
+  }
+
+  /**
+   * Withs userinfo
+   * @param userinfo
+   * @returns userinfo
+   */
+  withUserinfo(userinfo: UrlUserInfo): NumUri {
+    return new NumUri(this.host, this.port, userinfo, this.path);
+  }
 }
 
 /**
