@@ -1,6 +1,5 @@
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { Context, Location } from './context';
-import log from 'loglevel';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { DnsClient } from './dnsclient';
 
@@ -71,6 +70,46 @@ export class NumUri {
     }
     return `${this.host.s}${this.path.s}`;
   }
+}
+
+/**
+ * Creates num uri
+ * @param host
+ * @param [port]
+ * @param [userinfo]
+ * @param [path]
+ * @returns num uri
+ */
+export function buildNumUri(host: string, port?: number, userinfo?: string, path?: string): NumUri {
+  const thePort = port ? new PositiveInteger(port) : MODULE_0;
+  const theUserInfo = userinfo ? new UrlUserInfo(userinfo) : NO_USER_INFO;
+  const thePath = path ? new UrlPath(path) : NO_PATH;
+  return new NumUri(new Hostname(host), thePort, theUserInfo, thePath);
+}
+
+/**
+ * Parses num uri
+ * @param uri
+ * @returns num uri
+ */
+export function parseNumUri(uri: string): NumUri {
+  const protocolPrefix = uri.indexOf('://');
+  const withoutProtocol = protocolPrefix > -1 ? uri.substr(protocolPrefix + 3) : uri;
+  const indexOfAt = withoutProtocol.indexOf('@');
+  const withoutUserInfo = indexOfAt > -1 ? withoutProtocol.substr(indexOfAt + 1) : withoutProtocol;
+  const pathSeparator = withoutUserInfo.indexOf('/');
+  const withoutPath = pathSeparator > -1 ? withoutUserInfo.substr(0, pathSeparator) : withoutUserInfo;
+  const portSeparator = withoutPath.indexOf(':');
+  const withoutPort = portSeparator > -1 ? withoutPath.substr(0, portSeparator) : withoutPath;
+
+  const portString = withoutPath.substr(portSeparator + 1);
+  const portNumber = portString.length > 0 ? Number.parseInt(portString, 10) : 0;
+  const port = portSeparator > -1 ? new PositiveInteger(portNumber) : MODULE_0;
+  const userInfo = indexOfAt > -1 ? new UrlUserInfo(withoutProtocol.substr(0, indexOfAt)) : NO_USER_INFO;
+  const host = new Hostname(withoutPort);
+  const path = pathSeparator > -1 ? new UrlPath(withoutUserInfo.substr(pathSeparator)) : NO_PATH;
+
+  return new NumUri(host, port, userInfo, path);
 }
 
 /**
@@ -175,11 +214,11 @@ export class Hostname {
    */
   constructor(readonly s: string) {
     if (s.length > MAX_DOMAIN_NAME_LENGTH || !s.match(DOMAIN_REGEX)) {
-      throw new Error(`Invalid domain name: ${s}`);
+      throw new Error(`Invalid domain name: '${s}'`);
     }
     s.split('.').forEach((i) => {
       if (i.length > MAX_LABEL_LENGTH) {
-        throw new Error(`Invalid domain name: ${s}`);
+        throw new Error(`Invalid domain name: '${s}'`);
       }
     });
   }
@@ -195,7 +234,7 @@ export class UrlPath {
    */
   constructor(readonly s: string) {
     if (!s.startsWith('/') || !s.match(PATH_REGEX)) {
-      throw new Error(`Invalid URL path: ${s}`);
+      throw new Error(`Invalid URL path: '${s}'`);
     }
     if (s !== '/') {
       // Check each path component
@@ -203,28 +242,28 @@ export class UrlPath {
         .split('/')
         .forEach((pc) => {
           if (pc.length === 0) {
-            throw new Error(`Invalid URL path: ${s} - zero length path component`);
+            throw new Error(`Invalid URL path: '${s}' - zero length path component`);
           }
           if (pc.length > MAX_LABEL_LENGTH) {
-            throw new Error(`Invalid URL path: ${pc} - path component too long`);
+            throw new Error(`Invalid URL path: '${pc}' - path component too long`);
           }
           if (pc.includes(' ')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains space`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains space`);
           }
           if (pc.includes('\n')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains newline`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains newline`);
           }
           if (pc.includes('\r')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains carriage return`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains carriage return`);
           }
           if (pc.includes('\t')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains tab`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains tab`);
           }
           if (pc.includes('\b')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains backspace`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains backspace`);
           }
           if (pc.includes('\f')) {
-            throw new Error(`Invalid URL path: ${pc} - path component contains formfeed`);
+            throw new Error(`Invalid URL path: '${pc}' - path component contains formfeed`);
           }
         });
     }
@@ -332,9 +371,9 @@ class NumClientImpl implements NumClient {
     const query = async () => {
       switch (ctx.location) {
         case Location.INDEPENDENT:
-          return await this.independentQuery(ctx);
+          return await this.dnsQuery(ctx.queries.independentRecordLocation, ctx);
         case Location.HOSTED:
-          return await this.hostedQuery(ctx);
+          return await this.dnsQuery(ctx.queries.hostedRecordLocation, ctx);
         case Location.POPULATOR:
           return await this.populatorQuery(ctx);
         case Location.NONE:
@@ -363,11 +402,11 @@ class NumClientImpl implements NumClient {
   }
 
   /**
-   * Independents query
+   * Independent or Hosted query
    * @returns
    */
-  private async independentQuery(ctx: Context) {
-    const result = await this.queryDns(ctx.queries.independentRecordLocation);
+  private async dnsQuery(query: string, ctx: Context) {
+    const result = await this.dnsServices.getRecordFromDns(query, false);
     if (result.length > 0) {
       ctx.result = this.interpret(result, ctx.numAddress.port);
       return true;
@@ -376,27 +415,14 @@ class NumClientImpl implements NumClient {
   }
 
   /**
-   * Hosted query
-   * @returns
-   */
-  private async hostedQuery(ctx: Context) {
-    const result = await this.queryDns(ctx.queries.hostedRecordLocation);
-    if (result.length > 0) {
-      ctx.result = this.interpret(result, ctx.numAddress.port);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Populators query
+   * Populator query
    * @returns
    */
   private async populatorQuery(ctx: Context) {
     const populatorLocation = ctx.queries.populatorLocation;
 
     if (populatorLocation) {
-      const result = await this.queryDns(populatorLocation);
+      const result = await this.dnsServices.getRecordFromDns(populatorLocation, false);
 
       // Return the status_ code or false for error_ otherwise true
       if (result.includes('status_')) {
@@ -417,15 +443,5 @@ class NumClientImpl implements NumClient {
       }
     }
     return false;
-  }
-
-  /**
-   * Querys dns
-   * @param query
-   * @returns dns
-   */
-  private async queryDns(query: string): Promise<string> {
-    log.info(`Querying: ${query}`);
-    return await this.dnsServices.getRecordFromDns(query, false);
   }
 }

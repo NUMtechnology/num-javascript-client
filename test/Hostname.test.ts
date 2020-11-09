@@ -67,7 +67,7 @@ describe('Hostname', () => {
 
   it('should not be able to create an invalid Hostname', () => {
     for (const domain of invalidUriStrings) {
-      expect(() => new Hostname(domain)).to.throw(`Invalid domain name: ${domain}`, `Expected an Error for: ${domain}`);
+      expect(() => new Hostname(domain)).to.throw(`Invalid domain name: '${domain}'`, `Expected an Error for: ${domain}`);
     }
   });
 });
