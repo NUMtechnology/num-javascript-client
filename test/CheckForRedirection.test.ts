@@ -15,4 +15,13 @@ describe('checkForRedirection', () => {
     };
     expect(() => checkForRedirection(obj)).not.to.throw();
   });
+
+  it('Can succeed if the parameter is not an object', () => {
+    expect(() => checkForRedirection(null)).not.to.throw();
+    expect(() => checkForRedirection(undefined)).not.to.throw();
+    expect(() => checkForRedirection(true)).not.to.throw();
+    expect(() => checkForRedirection(1)).not.to.throw();
+    expect(() => checkForRedirection([])).not.to.throw();
+    expect(() => checkForRedirection({})).not.to.throw();
+  });
 });

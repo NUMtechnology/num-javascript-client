@@ -52,23 +52,13 @@ class ModlServicesImpl implements ModlServices {
   }
 }
 
-export function checkForRedirection(obj: any): void {
-  if (typeof obj === 'object') {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        findRedirect(obj[key]);
-      }
-    }
-  }
-}
-
 /**
  * Look for a redirect instruction in the interpreted NUM record, recursively.
  *
  * @param obj the ModlValue to check.
  * @throws NumLookupRedirect on error
  */
-function findRedirect(obj: any): void {
+export function checkForRedirection(obj: any): void {
   // Check the pairs in a Map
   if (typeof obj === 'object') {
     for (const key in obj) {
@@ -79,7 +69,7 @@ function findRedirect(obj: any): void {
             throw new NumLookupRedirect(value);
           }
         }
-        findRedirect(obj[key]);
+        checkForRedirection(obj[key]);
       }
     }
   }
