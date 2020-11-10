@@ -25,6 +25,10 @@ export interface ModuleDnsQueries {
   populatorLocation: string | null;
   hostedRecordLocation: string;
   independentRecordLocation: string;
+  redirectHostedPath(path: string): void;
+  redirectIndependentPath(path: string): void;
+  getHostedRecordPath(): string;
+  getIndependentRecordPath(): string;
 }
 
 /**

@@ -326,9 +326,9 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
    * @param moduleId
    * @returns populator location
    */
-  getPopulatorLocation(moduleId: PositiveInteger): string {
+  getPopulatorLocation(moduleId: PositiveInteger): string | null {
     logger.info(`getPopulatorLocation called on email with ${moduleId.n}`);
-    return '';
+    return null;
   }
 
   /**

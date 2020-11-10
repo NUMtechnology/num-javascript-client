@@ -105,7 +105,7 @@ export function parseNumUri(uri: string): NumUri {
   const host = new Hostname(hostname);
   const port = isPositive(portNumber) ? new PositiveInteger(portNumber) : MODULE_0;
   const userInfo = notEmpty(u.auth) ? new UrlUserInfo(u.auth as string) : NO_USER_INFO;
-  const path = notEmpty(u.pathname) ? new UrlPath(u.pathname as string) : NO_PATH;
+  const path = notEmpty(u.path) ? new UrlPath(u.path as string) : NO_PATH;
 
   return new NumUri(host, port, userInfo, path);
 }
@@ -158,7 +158,7 @@ export class Hostname {
    * @param s
    */
   constructor(readonly s: string) {
-    if (s.length > MAX_DOMAIN_NAME_LENGTH || !s.match(DOMAIN_REGEX)) {
+    if (!Hostname.isValid(s)) {
       throw new Error(`Invalid domain name: '${s}'`);
     }
     s.split('.').forEach((i) => {
@@ -166,6 +166,11 @@ export class Hostname {
         throw new Error(`Invalid domain name: '${s}'`);
       }
     });
+  }
+
+  static isValid(s: string): boolean {
+    const matches = s.match(DOMAIN_REGEX);
+    return s.length <= MAX_DOMAIN_NAME_LENGTH && matches !== null && matches.length > 0;
   }
 }
 

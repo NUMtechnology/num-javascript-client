@@ -16,7 +16,6 @@
 import CryptoJS from 'crypto-js';
 // @ts-ignore
 import anyBase from 'any-base';
-import logger from 'loglevel';
 
 const DOT = '.';
 
@@ -44,8 +43,6 @@ export function hash(normalisedDomain: string): string {
 export function hashByDepth(normalisedDomain: string, depth: number): string {
   const hashed = CryptoJS.SHA1(normalisedDomain).toString();
   const converted = hexToBase36(hashed).toLowerCase();
-
-  logger.debug(`Base36ed hash ${hashed} from ${normalisedDomain} to ${converted}`);
 
   let dottedHashByDepth = '';
   for (let i = depth - 1; i >= 0; i--) {

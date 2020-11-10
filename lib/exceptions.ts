@@ -17,7 +17,7 @@
  * Num exception
  */
 export class NumException extends Error {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -26,7 +26,7 @@ export class NumException extends Error {
  * Num invalid parameter exception
  */
 export class NumInvalidParameterException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -44,7 +44,7 @@ export class NumBadUrlException extends NumException {
  * Num invalid dns query exception
  */
 export class NumInvalidDnsQueryException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -53,7 +53,7 @@ export class NumInvalidDnsQueryException extends NumException {
  * Num not implemented exception
  */
 export class NumNotImplementedException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -62,7 +62,7 @@ export class NumNotImplementedException extends NumException {
  * Num invalid redirect exception
  */
 export class NumInvalidRedirectException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -80,7 +80,7 @@ export class BadDnsStatusException extends NumException {
  * Invalid dns response exception
  */
 export class InvalidDnsResponseException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -89,7 +89,7 @@ export class InvalidDnsResponseException extends NumException {
  * Rr set header format exception
  */
 export class RrSetHeaderFormatException extends NumException {
-  constructor(msg: string) {
+  constructor(msg?: string) {
     super(msg);
   }
 }
@@ -99,6 +99,24 @@ export class RrSetHeaderFormatException extends NumException {
  */
 export class RrSetIncompleteException extends NumException {
   constructor(msg: string) {
+    super(msg);
+  }
+}
+
+/**
+ * Num maximum redirects exceeded exception
+ */
+export class NumMaximumRedirectsExceededException extends NumException {
+  constructor(msg?: string) {
+    super(msg);
+  }
+}
+
+/**
+ * Relative path exception
+ */
+export class RelativePathException extends NumException {
+  constructor(msg?: string) {
     super(msg);
   }
 }
