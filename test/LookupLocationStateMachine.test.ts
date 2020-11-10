@@ -6,8 +6,6 @@ import loglevel, { Logger } from 'loglevel';
 
 const log = loglevel as Logger;
 
-log.setLevel('warn');
-
 const TEST_DELAYS = [100, 100, 100, 100, 100, 100, 100, 100];
 
 const testUri = parseNumUri('example.com:1');

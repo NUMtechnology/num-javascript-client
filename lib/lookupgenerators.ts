@@ -1,6 +1,6 @@
 import { hash, hashByDepth } from './hashutils';
 import punycode from 'punycode';
-import logger from 'loglevel';
+import log from 'loglevel';
 import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
 import { URL } from 'url';
 import { Hostname, NO_USER_INFO, NumUri, PositiveInteger, UrlUserInfo } from './numuri';
@@ -265,7 +265,7 @@ class DomainLookupGenerator extends BaseLookupGenerator implements LookupGenerat
     this._branch = branch !== '' ? punycode.toASCII(branch) : branch;
 
     if (this._branch !== branch) {
-      logger.debug(`Query ${this._branch} punycode ${branch}`);
+      log.debug(`Query ${this._branch} punycode ${branch}`);
     }
 
     this._numUri = this._numUri.withHost(new Hostname(normaliseDomainName(numUri.host.s)));
@@ -290,7 +290,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
     this._branch = branch !== '' ? punycode.toASCII(branch) : branch;
 
     if (branch !== this._branch) {
-      logger.debug(`Query ${branch} punycode ${this._branch}`);
+      log.debug(`Query ${branch} punycode ${this._branch}`);
     }
   }
 
@@ -327,7 +327,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
    * @returns populator location
    */
   getPopulatorLocation(moduleId: PositiveInteger): string | null {
-    logger.info(`getPopulatorLocation called on email with ${moduleId.n}`);
+    log.warn(`getPopulatorLocation called on email with ${moduleId.n}`);
     return null;
   }
 
@@ -414,7 +414,7 @@ class UrlLookupGenerator extends BaseLookupGenerator implements LookupGenerator 
     this._branch = branch !== '' ? punycode.toASCII(branch) : branch;
 
     if (branch !== this._branch) {
-      logger.debug(`Query ${branch} punycode ${this._branch}`);
+      log.debug(`Query ${branch} punycode ${this._branch}`);
     }
   }
 }

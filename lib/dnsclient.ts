@@ -14,7 +14,6 @@
 //
 
 import axios from 'axios';
-import logger from 'loglevel';
 import { BadDnsStatusException, InvalidDnsResponseException, NumNotImplementedException } from './exceptions';
 import punycode from 'punycode';
 import log from 'loglevel';
@@ -91,7 +90,7 @@ class DnsClientImpl implements DnsClient {
    */
   constructor(resolver?: DoHResolver) {
     this.resolver = resolver ? resolver : GOOGLE_RESOLVER;
-    logger.info(`DNS client configured with resolver: ${this.resolver.url}`);
+    log.info(`DNS client configured with resolver: ${this.resolver.url}`);
   }
 
   /**
@@ -107,18 +106,13 @@ class DnsClientImpl implements DnsClient {
     } catch (err) {
       if (err instanceof BadDnsStatusException) {
         if (err.status === NXDOMAIN) {
-          logger.error('Bad DNS status - NXDOMAIN');
+          log.warn('Bad DNS status - NXDOMAIN');
         } else {
-          logger.error(`Error resolving ${question.name} with ${this.resolver.name}`);
+          log.warn(`Error resolving ${question.name} with ${this.resolver.name}`);
         }
       } else {
-        logger.error(`Error resolving ${question.name} with ${this.resolver.name}.`);
+        log.warn(`Error resolving ${question.name} with ${this.resolver.name}.`);
       }
-    }
-
-    if (data.length === 0) {
-      // No data obtained
-      logger.warn('Resolver failed or aborted.');
     }
 
     return data;
@@ -131,7 +125,7 @@ class DnsClientImpl implements DnsClient {
    * @returns using resolver
    */
   async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<string[]> {
-    logger.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
+    log.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
 
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
     const url = `${resolver.url}?${params}`;
@@ -183,6 +177,6 @@ function joinParts(item: Answer): string {
     .split('\\ ')
     .join(' ');
 
-  logger.info(`Joined data ${joined}`);
+  log.debug(`Joined data ${joined}`);
   return joined;
 }

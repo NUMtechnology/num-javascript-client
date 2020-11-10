@@ -104,7 +104,7 @@ export class Context {
     log.info('Query Redirected to: {}', redirect);
     const redirectCount = this.incrementRedirectCount();
     if (redirectCount >= MAX_NUM_REDIRECTS) {
-      log.error('Maximum Redirects Exceeded. (max={})', MAX_NUM_REDIRECTS);
+      log.debug('Maximum Redirects Exceeded. (max={})', MAX_NUM_REDIRECTS);
       throw new NumMaximumRedirectsExceededException();
     }
 

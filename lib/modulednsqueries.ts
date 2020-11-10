@@ -15,7 +15,7 @@
 
 import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
 import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator } from './lookupgenerators';
-import logger from 'loglevel';
+import log from 'loglevel';
 import { NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
 
 /**
@@ -111,7 +111,7 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
       this._independentRecordLocation = generator.getDistributedIndependentLocation(this.moduleId, levels);
       this._hostedRecordLocation = generator.getDistributedHostedLocation(this.moduleId, levels);
     } else {
-      logger.warn('Attempt to distribute a non-email lookup using a Zone Distribution Record.');
+      log.warn('Attempt to distribute a non-email lookup using a Zone Distribution Record.');
     }
   }
 

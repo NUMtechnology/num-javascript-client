@@ -46,7 +46,7 @@ class ModlServicesImpl implements ModlServices {
       if (e instanceof NumLookupRedirect) {
         throw e;
       }
-      log.error(e.message);
+      log.warn(e.message);
     }
     return '';
   }

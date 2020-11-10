@@ -5,7 +5,7 @@ import loglevel, { Logger } from 'loglevel';
 
 const log = loglevel as Logger;
 
-log.setLevel('debug');
+log.setLevel('info');
 
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {

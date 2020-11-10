@@ -25,7 +25,7 @@ export interface NumClient {
   begin(numAddress: NumUri): Context;
 
   /**
-   *
+   * Returns a fully interpreted NUM record as a JSON string
    * @param ctx
    * @param handler
    * @returns num record
@@ -33,7 +33,7 @@ export interface NumClient {
   retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
 
   /**
-   *
+   * Returns the raw MODL record, after redirection if appropriate
    * @param ctx
    * @param handler
    * @returns MODL record

@@ -1,25 +1,26 @@
 import { Location } from './context';
+import log from 'loglevel';
 import delay from 'delay';
 
 /**
  * Lookup location state machine state
  */
 enum LookupState {
-  INDY1,
-  INDY2,
-  HOSTED1,
-  HOSTED2,
-  POP0,
-  POP1,
-  POP2,
-  POP3,
-  POP4,
-  POP5,
-  POP6,
-  POP7,
-  POP8,
-  ERROR,
-  SUCCESS,
+  INDY1 = 'INDY1',
+  INDY2 = 'INDY2',
+  HOSTED1 = 'HOSTED1',
+  HOSTED2 = 'HOSTED2',
+  POP0 = 'POP0',
+  POP1 = 'POP1',
+  POP2 = 'POP2',
+  POP3 = 'POP3',
+  POP4 = 'POP4',
+  POP5 = 'POP5',
+  POP6 = 'POP6',
+  POP7 = 'POP7',
+  POP8 = 'POP8',
+  ERROR = 'ERROR',
+  SUCCESS = 'SUCCESS',
 }
 
 /**
@@ -68,8 +69,11 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
    * @param f
    * @param ctx
    */
-  async step(result: boolean | number): Promise<Location> {
-    return typeof result === 'boolean' && result === true ? this.success() : await this.fail(result);
+  async step(lookupResult: boolean | number): Promise<Location> {
+    log.debug('LookupLocationStateMachine - before step: ' + this.state);
+    const result = typeof lookupResult === 'boolean' && lookupResult === true ? this.success() : await this.fail(lookupResult);
+    log.debug('LookupLocationStateMachine - after step: ' + this.state);
+    return result;
   }
 
   /**
