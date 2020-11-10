@@ -12,6 +12,7 @@
     "crypto-js": "^4.0.0",
     "delay": "^4.4.0",
     "loglevel": "^1.7.0",
+    "loglevel-plugin-prefix": "^0.8.4",
     "punycode": "^2.1.1",
     "ts-loader": "^7.0.5",
     "typescript": "^4.0.2"

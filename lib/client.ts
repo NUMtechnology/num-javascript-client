@@ -6,6 +6,8 @@ import { NumUri, PositiveInteger } from './numuri';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
 import { createModlServices, ModlServices } from './modlservices';
 import log from 'loglevel';
+import chalk from 'chalk';
+import prefix from 'loglevel-plugin-prefix';
 
 const INTERPRETER_TIMEOUT_MS = 2000;
 const MODULE_PREFIX = '*load=`https://modules.numprotocol.com/';
@@ -63,7 +65,41 @@ export interface CallbackHandler {
 export function createDefaultCallbackHandler(): CallbackHandler {
   return new DefaultCallbackHandler();
 }
+//------------------------------------------------------------------------------------------------------------------------
+// Set up logging
+//------------------------------------------------------------------------------------------------------------------------
 
+const colors: any = {
+  TRACE: chalk.magenta,
+  DEBUG: chalk.cyan,
+  INFO: chalk.blue,
+  WARN: chalk.yellow,
+  ERROR: chalk.red,
+};
+
+const levels: any = {
+  TRACE: 'TRACE',
+  DEBUG: 'DEBUG',
+  INFO: 'INFO ',
+  WARN: 'WARN ',
+  ERROR: 'ERROR',
+};
+
+prefix.reg(log);
+
+prefix.apply(log, {
+  format(level, name, timestamp) {
+    return `${chalk.gray(`[${timestamp}]`)} ${colors[level](levels[level])} ${chalk.green(`${name}:`)}`;
+  },
+});
+
+prefix.apply(log.getLogger('critical'), {
+  format(level, name, timestamp) {
+    return chalk.red.bold(`[${timestamp}] ${level} ${name}:`);
+  },
+});
+
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Default callback handler
  */
