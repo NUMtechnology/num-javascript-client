@@ -3,6 +3,13 @@ import { Context, Location } from './context';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { DnsClient } from './dnsclient';
 import { NumUri, PositiveInteger } from './numuri';
+import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
+import { createModlServices, ModlServices } from './modlservices';
+import log from 'loglevel';
+
+const INTERPRETER_TIMEOUT_MS = 2000;
+const MODULE_PREFIX = '*load=`https://modules.numprotocol.com/';
+const MODULE_SUFFIX = '/rcf.txt`';
 
 /**
  * Num client
@@ -101,8 +108,8 @@ class DefaultCallbackHandler implements CallbackHandler {
  * Creates client
  * @returns client
  */
-export function createClient(): NumClient {
-  return new NumClientImpl();
+export function createClient(dnsClient?: DnsClient): NumClient {
+  return new NumClientImpl(dnsClient);
 }
 
 /**
@@ -110,9 +117,11 @@ export function createClient(): NumClient {
  */
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
+  readonly modlServices: ModlServices;
 
   constructor(dnsClient?: DnsClient) {
     this.dnsServices = createDnsServices(dnsClient);
+    this.modlServices = createModlServices();
   }
   /**
    * Creates an instance of num client impl.
@@ -129,15 +138,29 @@ class NumClientImpl implements NumClient {
    * @returns num record
    */
   async retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    const modl = await this.retrieveModlRecordInternal(ctx, handler);
-    if (modl) {
-      const json = this.interpret(modl, ctx.numAddress.port);
-      if (json) {
-        handler.setResult(json);
+    while (true) {
+      try {
+        const modl = await this.retrieveModlRecordInternal(ctx, handler);
+        if (modl) {
+          const json = await this.interpret(modl, ctx.numAddress.port);
+          if (json) {
+            handler.setResult(json);
+          }
+          return json;
+        }
+        return null;
+      } catch (e) {
+        if (e instanceof NumMaximumRedirectsExceededException) {
+          log.warn('Too many redirects. Aborting the lookup.');
+          ctx.result = null;
+          ctx.location = Location.NONE;
+          return null;
+        } else if (e instanceof NumLookupRedirect) {
+          ctx.location = Location.INDEPENDENT;
+          ctx.handleQueryRedirect(e.message);
+        }
       }
-      return json;
     }
-    return null;
   }
 
   /**
@@ -147,11 +170,28 @@ class NumClientImpl implements NumClient {
    * @returns modl record
    */
   async retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
-    const modl = await this.retrieveModlRecordInternal(ctx, handler);
-    if (modl) {
-      handler.setResult(modl);
+    while (true) {
+      try {
+        const modl = await this.retrieveModlRecordInternal(ctx, handler);
+        if (modl) {
+          // We need to interpret the record to check for redirects, but we ignore the result.
+          await this.interpret(modl, ctx.numAddress.port);
+          handler.setResult(modl);
+          return modl;
+        }
+        return null;
+      } catch (e) {
+        if (e instanceof NumMaximumRedirectsExceededException) {
+          log.warn('Too many redirects. Aborting the lookup.');
+          ctx.result = null;
+          ctx.location = Location.NONE;
+          return null;
+        } else if (e instanceof NumLookupRedirect) {
+          ctx.location = Location.INDEPENDENT;
+          ctx.handleQueryRedirect(e.message);
+        }
+      }
     }
-    return modl;
   }
 
   /**
@@ -161,8 +201,6 @@ class NumClientImpl implements NumClient {
    * @returns modl record internal
    */
   private async retrieveModlRecordInternal(ctx: Context, _handler: CallbackHandler): Promise<string | null> {
-    const sm = createLookupLocationStateMachine();
-
     // Use a lambda to query the DNS
     const query = async () => {
       switch (ctx.location) {
@@ -179,6 +217,7 @@ class NumClientImpl implements NumClient {
     };
 
     // Step through the state machine, querying DNS as we go.
+    const sm = createLookupLocationStateMachine();
     while (!sm.complete()) {
       const result = await query();
       ctx.location = await sm.step(result);
@@ -193,8 +232,9 @@ class NumClientImpl implements NumClient {
    * @param port
    * @returns interpret
    */
-  private interpret(modl: string, _port: PositiveInteger): string | null {
-    return modl;
+  private async interpret(modl: string, port: PositiveInteger): Promise<string | null> {
+    const enhancedModl = `${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
+    return await this.modlServices.interpretNumRecord(enhancedModl, INTERPRETER_TIMEOUT_MS);
   }
 
   /**
@@ -204,7 +244,7 @@ class NumClientImpl implements NumClient {
   private async dnsQuery(query: string, ctx: Context) {
     const result = await this.dnsServices.getRecordFromDns(query, false);
     if (result.length > 0) {
-      ctx.result = this.interpret(result, ctx.numAddress.port);
+      ctx.result = result;
       return true;
     }
     return false;
@@ -234,7 +274,7 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = this.interpret(result, ctx.numAddress.port);
+        ctx.result = await this.interpret(result, ctx.numAddress.port);
         return true;
       }
     }

@@ -120,3 +120,12 @@ export class RelativePathException extends NumException {
     super(msg);
   }
 }
+
+/**
+ * Num lookup redirect
+ */
+export class NumLookupRedirect extends NumException {
+  constructor(msg?: string) {
+    super(msg);
+  }
+}
