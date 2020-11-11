@@ -1,5 +1,5 @@
 import { createLookupLocationStateMachine } from './lookupstatemachine';
-import { Context, Location } from './context';
+import { Context, Location, UserVariable } from './context';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { DnsClient } from './dnsclient';
 import { NumUri, PositiveInteger } from './numuri';
@@ -189,7 +189,7 @@ class NumClientImpl implements NumClient {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx, handler);
         if (modl) {
-          const json = await this.interpret(modl, ctx.numAddress.port);
+          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (json) {
             handler.setResult(json);
           }
@@ -222,7 +222,7 @@ class NumClientImpl implements NumClient {
         const modl = await this.retrieveModlRecordInternal(ctx, handler);
         if (modl) {
           // We need to interpret the record to check for redirects, but we ignore the result.
-          await this.interpret(modl, ctx.numAddress.port);
+          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           handler.setResult(modl);
           return modl;
         }
@@ -280,10 +280,15 @@ class NumClientImpl implements NumClient {
    * Interprets a MODL record for the given module
    * @param modl
    * @param port
+   * @param userVariables
    * @returns interpret
    */
-  private async interpret(modl: string, port: PositiveInteger): Promise<string | null> {
-    const enhancedModl = `${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
+  private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
+    let uv = '';
+    for (const k of userVariables.keys()) {
+      uv += `${k}=${userVariables.get(k)};`;
+    }
+    const enhancedModl = `${uv}${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
     return await this.modlServices.interpretNumRecord(enhancedModl, INTERPRETER_TIMEOUT_MS);
   }
 
@@ -326,7 +331,7 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = await this.interpret(result, ctx.numAddress.port);
+        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables);
         return true;
       }
     }

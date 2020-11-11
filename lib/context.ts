@@ -9,6 +9,8 @@ const MAX_NUM_REDIRECTS = 3;
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
+export type UserVariable = string | number | boolean;
+
 /**
  * Location
  */
@@ -28,7 +30,7 @@ export class Context {
   public readonly numAddress: NumUri;
   _queries: ModuleDnsQueries;
   redirectCount: number = 0;
-  userVariables: Map<string, string | number | boolean>;
+  userVariables: Map<string, UserVariable>;
   /**
    * Dnssec is checked if this is `true` - NOT YET IMPLEMENTED
    */
@@ -41,15 +43,15 @@ export class Context {
   constructor(numAddress: NumUri) {
     this.numAddress = numAddress;
     this._queries = createModuleDnsQueries(numAddress.port, numAddress);
-    this.userVariables = new Map<string, string | number | boolean>();
+    this.userVariables = new Map<string, UserVariable>();
   }
 
   /**
-   * Sets user varaible
+   * Sets user variable
    * @param name
    * @param value
    */
-  setUserVaraible(name: string, value: string | number | boolean) {
+  setUserVariable(name: string, value: UserVariable) {
     this.userVariables.set(name, value);
   }
 
