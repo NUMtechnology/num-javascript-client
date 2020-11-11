@@ -17,21 +17,13 @@ import CryptoJS from 'crypto-js';
 // @ts-ignore
 import anyBase from 'any-base';
 
-const DOT = '.';
-
 type AnyBase = (s: string) => string;
 
 const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') as AnyBase;
 
-/** Generate a SHA1 hash and base36 encode it, then return the first 3 chars separated by '.' and prefixed by '.'
- * The parameter is not checked and the caller must supply a correct value.
- * @param normalisedDomain
- */
-
-export function hash(normalisedDomain: string): string {
-  return hashByDepth(normalisedDomain, 3);
-}
-
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Generate a SHA1 hash and base36 encode it, then return the first 3 chars separated by '.' and prefixed by '.'
  * The parameter is not checked and the caller must supply a correct value.
@@ -46,7 +38,7 @@ export function hashByDepth(normalisedDomain: string, depth: number): string {
 
   let dottedHashByDepth = '';
   for (let i = depth - 1; i >= 0; i--) {
-    dottedHashByDepth += `${DOT}${converted[i]}`;
+    dottedHashByDepth += `.${converted[i]}`;
   }
 
   return dottedHashByDepth;

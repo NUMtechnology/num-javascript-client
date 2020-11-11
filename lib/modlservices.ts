@@ -4,6 +4,9 @@ import { NumLookupRedirect } from './exceptions';
 
 const INTERPRETER_URL = 'https://api.apps.num.uk/v1/mtoj';
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Modl services
  */
@@ -19,6 +22,32 @@ export function createModlServices(): ModlServices {
   return new ModlServicesImpl();
 }
 
+/**
+ * Look for a redirect instruction in the interpreted NUM record, recursively.
+ *
+ * @param obj the ModlValue to check.
+ * @throws NumLookupRedirect on error
+ */
+export function checkForRedirection(obj: any): void {
+  // Check the pairs in a Map
+  if (typeof obj === 'object') {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if ('@R' === key) {
+          const value = obj[key];
+          if (typeof value === 'string') {
+            throw new NumLookupRedirect(value);
+          }
+        }
+        checkForRedirection(obj[key]);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Modl services impl
  */
@@ -49,28 +78,5 @@ class ModlServicesImpl implements ModlServices {
       log.warn(e.message);
     }
     return '';
-  }
-}
-
-/**
- * Look for a redirect instruction in the interpreted NUM record, recursively.
- *
- * @param obj the ModlValue to check.
- * @throws NumLookupRedirect on error
- */
-export function checkForRedirection(obj: any): void {
-  // Check the pairs in a Map
-  if (typeof obj === 'object') {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        if ('@R' === key) {
-          const value = obj[key];
-          if (typeof value === 'string') {
-            throw new NumLookupRedirect(value);
-          }
-        }
-        checkForRedirection(obj[key]);
-      }
-    }
   }
 }

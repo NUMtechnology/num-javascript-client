@@ -14,12 +14,15 @@
 //
 
 import axios from 'axios';
-import { BadDnsStatusException, InvalidDnsResponseException, NumNotImplementedException } from './exceptions';
+import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
 import punycode from 'punycode';
 import log from 'loglevel';
 
 const NXDOMAIN = 3;
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * DoHresolver
  */
@@ -66,17 +69,20 @@ export function createDnsClient(resolver?: DoHResolver): DnsClient {
   return new DnsClientImpl(resolver);
 }
 
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Answer
  */
 interface Answer {
-  name: string;
-  type: number;
-  data: string;
-  TTL: number;
+  readonly name: string;
+  readonly type: number;
+  readonly data: string;
+  readonly TTL: number;
 }
 
-const GOOGLE_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
+const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
 
 /**
  * Dns client
@@ -89,7 +95,7 @@ class DnsClientImpl implements DnsClient {
    * @param [resolver]
    */
   constructor(resolver?: DoHResolver) {
-    this.resolver = resolver ? resolver : GOOGLE_RESOLVER;
+    this.resolver = resolver ? resolver : DEFAULT_RESOLVER;
     log.info(`DNS client configured with resolver: ${this.resolver.url}`);
   }
 
@@ -142,7 +148,8 @@ class DnsClientImpl implements DnsClient {
           throw new Error('Domain was resolved but no records were found');
         }
       } else if (response.data.AD && question.dnssec) {
-        throw new NumNotImplementedException('DNSSEC checks not implemented.');
+        log.warn('DNSSEC checks not implemented.');
+        return [];
       } else if (response.data.Status === NXDOMAIN) {
         throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
       } else {
@@ -155,7 +162,7 @@ class DnsClientImpl implements DnsClient {
 }
 
 /**
- * Joins partss
+ * Joins parts
  * @param item
  * @returns parts
  */

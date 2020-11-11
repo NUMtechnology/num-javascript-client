@@ -13,6 +13,17 @@ const INTERPRETER_TIMEOUT_MS = 2000;
 const MODULE_PREFIX = '*load=`https://modules.numprotocol.com/';
 const MODULE_SUFFIX = '/rcf.txt`';
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
+/**
+ * Creates client
+ * @returns client
+ */
+export function createClient(dnsClient?: DnsClient): NumClient {
+  return new NumClientImpl(dnsClient);
+}
+
 /**
  * Num client
  */
@@ -42,7 +53,7 @@ export interface NumClient {
 }
 
 /**
- * Callback handler
+ * Callback handler - these methods are invoked when the lookup is complete.
  */
 export interface CallbackHandler {
   /**
@@ -65,6 +76,9 @@ export interface CallbackHandler {
 export function createDefaultCallbackHandler(): CallbackHandler {
   return new DefaultCallbackHandler();
 }
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
 //------------------------------------------------------------------------------------------------------------------------
@@ -100,6 +114,7 @@ prefix.apply(log.getLogger('critical'), {
 });
 
 //------------------------------------------------------------------------------------------------------------------------
+
 /**
  * Default callback handler
  */
@@ -141,20 +156,16 @@ class DefaultCallbackHandler implements CallbackHandler {
 }
 
 /**
- * Creates client
- * @returns client
- */
-export function createClient(dnsClient?: DnsClient): NumClient {
-  return new NumClientImpl(dnsClient);
-}
-
-/**
  * Num client impl
  */
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
 
+  /**
+   * Creates an instance of num client impl.
+   * @param [dnsClient]
+   */
   constructor(dnsClient?: DnsClient) {
     this.dnsServices = createDnsServices(dnsClient);
     this.modlServices = createModlServices();
@@ -255,9 +266,12 @@ class NumClientImpl implements NumClient {
     // Step through the state machine, querying DNS as we go.
     const sm = createLookupLocationStateMachine();
     while (!sm.complete()) {
+      log.info(`Checking location: '${ctx.location}'`);
       const result = await query();
       ctx.location = await sm.step(result);
     }
+
+    log.info(`Lookup result: '${ctx.result}', location: '${ctx.location}'`);
 
     return ctx.result;
   }
@@ -278,7 +292,7 @@ class NumClientImpl implements NumClient {
    * @returns
    */
   private async dnsQuery(query: string, ctx: Context) {
-    const result = await this.dnsServices.getRecordFromDns(query, false);
+    const result = await this.dnsServices.getRecordFromDns(query, ctx.dnssec);
     if (result.length > 0) {
       ctx.result = result;
       return true;
@@ -297,6 +311,8 @@ class NumClientImpl implements NumClient {
       const result = await this.dnsServices.getRecordFromDns(populatorLocation, false);
 
       // Return the status_ code or false for error_ otherwise true
+      // Warning: potentially fragile since it relies on the format of the populator response.
+      // TODO: Ideally we would parse the response MODL to JSON and inspect that instead.
       if (result.includes('status_')) {
         if (result.includes('code=1')) {
           return 1;

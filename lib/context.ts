@@ -5,82 +5,52 @@ import { NumInvalidRedirectException, NumMaximumRedirectsExceededException } fro
 import { resolvePath } from './urlrelativepathresolver';
 
 const MAX_NUM_REDIRECTS = 3;
+
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Location
  */
 export enum Location {
-  HOSTED,
-  INDEPENDENT,
-  POPULATOR,
-  NONE,
+  HOSTED = 'HOSTED',
+  INDEPENDENT = 'INDEPENDENT',
+  POPULATOR = 'POPULATOR',
+  NONE = 'NONE',
 }
 
 /**
  * Context
  */
 export class Context {
-  _location: Location = Location.INDEPENDENT;
-  _result: string | null = null;
-  _numAddress: NumUri;
+  public location: Location = Location.INDEPENDENT;
+  public result: string | null = null;
+  public readonly numAddress: NumUri;
   _queries: ModuleDnsQueries;
   redirectCount: number = 0;
+  userVariables: Map<string, string | number | boolean>;
+  /**
+   * Dnssec is checked if this is `true` - NOT YET IMPLEMENTED
+   */
+  dnssec: boolean = false;
 
   /**
    * Creates an instance of context.
    * @param numAddress
    */
   constructor(numAddress: NumUri) {
-    this._numAddress = numAddress;
+    this.numAddress = numAddress;
     this._queries = createModuleDnsQueries(numAddress.port, numAddress);
+    this.userVariables = new Map<string, string | number | boolean>();
   }
 
   /**
-   * Gets location
+   * Sets user varaible
+   * @param name
+   * @param value
    */
-  get location() {
-    return this._location;
-  }
-
-  /**
-   * Sets location
-   */
-  set location(l: Location) {
-    this._location = l;
-  }
-
-  /**
-   * Gets result
-   */
-  get result(): string | null {
-    return this._result;
-  }
-
-  /**
-   * Sets result
-   */
-  set result(r: string | null) {
-    this._result = r;
-  }
-
-  /**
-   * Gets num address
-   */
-  get numAddress(): NumUri {
-    return this._numAddress;
-  }
-
-  /**
-   * Sets num address
-   */
-  set numAddress(a: NumUri) {
-    this._numAddress = a;
-  }
-
-  /**
-   * Gets queries
-   */
-  get queries(): ModuleDnsQueries {
-    return this._queries;
+  setUserVaraible(name: string, value: string | number | boolean) {
+    this.userVariables.set(name, value);
   }
 
   /**
@@ -90,6 +60,13 @@ export class Context {
    */
   incrementRedirectCount(): number {
     return ++this.redirectCount;
+  }
+
+  /**
+   * Gets queries
+   */
+  get queries() {
+    return this._queries;
   }
 
   /**
@@ -116,7 +93,7 @@ export class Context {
         throw new NumInvalidRedirectException(e.message);
       }
     } else {
-      switch (this._location) {
+      switch (this.location) {
         case Location.INDEPENDENT:
           this.handleIndependentQueryRedirect(redirect);
           break;

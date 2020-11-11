@@ -2,6 +2,28 @@ import { Location } from './context';
 import log from 'loglevel';
 import delay from 'delay';
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
+/**
+ * Lookup location state machine
+ */
+export interface LookupLocationStateMachine {
+  complete(): boolean;
+  step(result: boolean | number): Promise<Location>;
+}
+
+/**
+ * Creates lookup location state machine
+ * @returns lookup location state machine
+ */
+export function createLookupLocationStateMachine(delays?: number[]): LookupLocationStateMachine {
+  return new LookupLocationStateMachineImpl(delays);
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Lookup location state machine state
  */
@@ -21,22 +43,6 @@ enum LookupState {
   POP8 = 'POP8',
   ERROR = 'ERROR',
   SUCCESS = 'SUCCESS',
-}
-
-/**
- * Lookup location state machine
- */
-export interface LookupLocationStateMachine {
-  complete(): boolean;
-  step(result: boolean | number): Promise<Location>;
-}
-
-/**
- * Creates lookup location state machine
- * @returns lookup location state machine
- */
-export function createLookupLocationStateMachine(delays?: number[]): LookupLocationStateMachine {
-  return new LookupLocationStateMachineImpl(delays);
 }
 
 const DEFAULT_DELAYS = [2000, 2000, 2000, 2000, 5000, 5000, 5000, 5000];

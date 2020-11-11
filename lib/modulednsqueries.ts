@@ -18,6 +18,9 @@ import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLooku
 import log from 'loglevel';
 import { NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Module dns queries
  */
@@ -41,6 +44,9 @@ export function createModuleDnsQueries(moduleId: PositiveInteger, numUri: NumUri
   return new ModuleDnsQueriesImpl(moduleId, numUri);
 }
 
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Module dns queries impl
  */

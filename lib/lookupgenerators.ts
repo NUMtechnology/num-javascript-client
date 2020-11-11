@@ -1,4 +1,4 @@
-import { hash, hashByDepth } from './hashutils';
+import { hashByDepth } from './hashutils';
 import punycode from 'punycode';
 import log from 'loglevel';
 import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
@@ -10,13 +10,17 @@ const DNPREFIX = '_';
 const TLZ = 'num.net';
 const EMAIL_SEP = 'e';
 const POP_3LZ = 'populator';
+const DEFAULT_DEPTH = 3;
 
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Lookup generator
  */
 export interface LookupGenerator {
-  getRootIndependentLocationNoModuleNumber(arg0: boolean): any;
-  getRootHostedLocationNoModuleNumber(arg0: boolean): any;
+  getRootIndependentLocationNoModuleNumber(arg0: boolean): string;
+  getRootHostedLocationNoModuleNumber(arg0: boolean): string;
   getIndependentLocation(moduleId: PositiveInteger): string;
   getHostedLocation(moduleId: PositiveInteger): string;
   isDomainRoot(): boolean;
@@ -60,6 +64,9 @@ export function createUrlLookupGenerator(numUri: NumUri): LookupGenerator {
   return new UrlLookupGenerator(numUri);
 }
 
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
 /**
  * Base lookup generator
  */
@@ -141,7 +148,7 @@ class BaseLookupGenerator implements LookupGenerator {
    * @returns
    */
   getRootHostedLocation(moduleId: PositiveInteger) {
-    return `${moduleId.n}.${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}.`;
+    return `${moduleId.n}.${DNPREFIX}${this._numUri.host.s}${hashByDepth(this._numUri.host.s, DEFAULT_DEPTH)}.${TLZ}.`;
   }
 
   /**
@@ -151,9 +158,9 @@ class BaseLookupGenerator implements LookupGenerator {
    */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean) {
     if (addTrailingDot) {
-      return `${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}.`;
+      return `${DNPREFIX}${this._numUri.host.s}${hashByDepth(this._numUri.host.s, DEFAULT_DEPTH)}.${TLZ}.`;
     } else {
-      return `${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}`;
+      return `${DNPREFIX}${this._numUri.host.s}${hashByDepth(this._numUri.host.s, DEFAULT_DEPTH)}.${TLZ}`;
     }
   }
 
@@ -359,7 +366,10 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
    * @returns root hosted location
    */
   getRootHostedLocation(moduleId: PositiveInteger): string {
-    return `${moduleId.n}.${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}.`;
+    return `${moduleId.n}.${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hashByDepth(
+      this._numUri.host.s,
+      DEFAULT_DEPTH
+    )}.${TLZ}.`;
   }
 
   /**
@@ -369,9 +379,9 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
    */
   getRootHostedLocationNoModuleNumber(addTrailingDot: boolean): string {
     if (addTrailingDot) {
-      return `${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}.`;
+      return `${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hashByDepth(this._numUri.host.s, DEFAULT_DEPTH)}.${TLZ}.`;
     } else {
-      return `${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hash(this._numUri.host.s)}.${TLZ}`;
+      return `${DNPREFIX}${this.localPart}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hashByDepth(this._numUri.host.s, DEFAULT_DEPTH)}.${TLZ}`;
     }
   }
 
@@ -395,8 +405,9 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
    */
   getDistributedHostedLocation(moduleId: PositiveInteger, levels: PositiveInteger): string {
     const emailLocalPartHash = hashByDepth(this._numUri.userinfo.s, levels.n);
-    const result = `${moduleId.n}.${DNPREFIX}${this.localPart}${emailLocalPartHash}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hash(
-      this._numUri.host.s
+    const result = `${moduleId.n}.${DNPREFIX}${this.localPart}${emailLocalPartHash}.${EMAIL_SEP}.${DNPREFIX}${this._numUri.host.s}${hashByDepth(
+      this._numUri.host.s,
+      DEFAULT_DEPTH
     )}.${TLZ}.`;
     return this.isDomainRoot() ? result : `${this._branch}.${result}`;
   }
