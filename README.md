@@ -11,7 +11,7 @@ The NUM protocol supports a range of [modules](https://www.numprotocol.com/modul
 The NUM protocol uses the familiar URL format for its URIs and allows [modules](https://www.numprotocol.com/modules) to interpret data in a variety of ways.
 
 The data stored in a NUM Record is converted to JSON String format that can be parsed into JSON objects and Java
-objects for straightforward incorporation into Java programs. Here are some example NUM URIs with module `1` - the Contacts module. The default module is `0` (zero) if no module is specified, which has no module schema.
+objects for straightforward incorporation into Java programs. Here are some example NUM URIs with [module `1` - the Contacts module](https://www.numprotocol.com/modules/1). The default module is `0` (zero) if no module is specified, which has no module schema.
 
 - `num://numexample.com:1`
 - `num://jo.smith@numexample.com:1`
@@ -23,21 +23,20 @@ objects for straightforward incorporation into Java programs. Here are some exam
 - `num://numexample.com:1/support/delivery`
 - `num://numexample.com:1/enquiries`
 - `num://numexample.com:1/sales`
-- `num://numexample.com:1`
 
-As you can see from the examples above, data can be associated with domains and email addresses, and can be organised hierarchically if desired. In future, the protocol will support more than just domains and email addresses.
+As you can see from the examples above, data can be associated with domains and email addresses, and can be organised hierarchically if desired. In the future, the protocol will support more than just domains and email addresses.
 
 Additional modules can be referenced in the same way as `ports` in other URIs:
 
-- `num://numexample.com:2` for the `WhoHas` module.
-- `num://numexample.com:3` for the `Images` module.
-- `num://numexample.com:4` for the `Custodians` module.
-- `num://numexample.com:5` for the `Payments` module.
-- `num://numexample.com:6` for the `Regulatory` module.
-- `num://numexample.com:7` for the `Public Key` module.
-- `num://numexample.com:8` for the `Intellectual Property` module.
-- `num://numexample.com:9` for the `Terms` module.
-- `num://numexample.com:10` for the `Bugs` module.
+- `num://numexample.com:2` for the [`Registrant` module](https://www.numprotocol.com/modules/2).
+- `num://numexample.com:3` for the [`Images` module](https://www.numprotocol.com/modules/3).
+- `num://numexample.com:4` for the [`Custodians` module](https://www.numprotocol.com/modules/4).
+- `num://numexample.com:5` for the [`Payments` module](https://www.numprotocol.com/modules/5).
+- `num://numexample.com:6` for the [`Regulatory` module](https://www.numprotocol.com/modules/6).
+- `num://numexample.com:7` for the [`Public Key` module](https://www.numprotocol.com/modules/7).
+- `num://numexample.com:8` for the [`Intellectual Property` module](https://www.numprotocol.com/modules/8).
+- `num://numexample.com:9` for the [`Terms` module](https://www.numprotocol.com/modules/9).
+- `num://numexample.com:10` for the [`Bugs` module](https://www.numprotocol.com/modules/10).
 - `num://numexample.com:nn` for your own module?
 
 ## Adding Support for the NUM Protocol
@@ -48,11 +47,12 @@ Additional modules can be referenced in the same way as `ports` in other URIs:
 "dependencies": {
     "num-client": "git+ssh://git@github.com:NUMtechnology/num-javascript-client.git#v0.0.1",
     ...
+}
 ```
 
 2. Run `npm install` or equivalent for your project
 
-Note: keep an eye on the releases and update the version number as neccessary to get the latest version
+_Note: keep an eye on the releases and update the version number as neccessary to get the latest version_
 
 # Examples
 
@@ -101,7 +101,6 @@ By default the `NUMClient` uses the Google DoH resolver, but it can be changed i
 import { createClient } from '../lib/client';
 import { createDnsClient, DoHResolver } from '../lib/dnsclient';
 import { parseNumUri } from '../lib/numuri';
-
 
 const lookup = async () => {
   // ...
