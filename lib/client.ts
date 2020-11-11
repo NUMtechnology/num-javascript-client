@@ -1,3 +1,17 @@
+// Copyright 2020 NUM Technology Ltd
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { Context, Location, UserVariable } from './context';
 import { createDnsServices, DnsServices } from './dnsservices';
@@ -41,7 +55,7 @@ export interface NumClient {
    * @param handler
    * @returns num record
    */
-  retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
+  retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
 
   /**
    * Returns the raw MODL record, after redirection if appropriate
@@ -49,7 +63,7 @@ export interface NumClient {
    * @param handler
    * @returns MODL record
    */
-  retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null>;
+  retrieveModlRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
 }
 
 /**
@@ -184,14 +198,16 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns num record
    */
-  async retrieveNumRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
+  async retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
     while (true) {
       try {
-        const modl = await this.retrieveModlRecordInternal(ctx, handler);
+        const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
           const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (json) {
-            handler.setResult(json);
+            if (handler) {
+              handler.setResult(json);
+            }
           }
           return json;
         }
@@ -216,14 +232,16 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns modl record
    */
-  async retrieveModlRecord(ctx: Context, handler: CallbackHandler): Promise<string | null> {
+  async retrieveModlRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
     while (true) {
       try {
-        const modl = await this.retrieveModlRecordInternal(ctx, handler);
+        const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
           // We need to interpret the record to check for redirects, but we ignore the result.
           await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
-          handler.setResult(modl);
+          if (handler) {
+            handler.setResult(modl);
+          }
           return modl;
         }
         return null;
@@ -247,7 +265,7 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns modl record internal
    */
-  private async retrieveModlRecordInternal(ctx: Context, _handler: CallbackHandler): Promise<string | null> {
+  private async retrieveModlRecordInternal(ctx: Context): Promise<string | null> {
     // Use a lambda to query the DNS
     const query = async () => {
       switch (ctx.location) {

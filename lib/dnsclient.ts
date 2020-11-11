@@ -27,7 +27,7 @@ const NXDOMAIN = 3;
  * DoHresolver
  */
 export class DoHResolver {
-  constructor(readonly name: string, readonly url: string, readonly params: string[]) {}
+  constructor(readonly name: string, readonly url: string) {}
 }
 
 /**
@@ -82,7 +82,7 @@ interface Answer {
   readonly TTL: number;
 }
 
-const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
+const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
 
 /**
  * Dns client

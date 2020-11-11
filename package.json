@@ -1,5 +1,5 @@
 {
-  "name": "javascript_interpreter",
+  "name": "num-javascript-client",
   "version": "0.0.1",
   "description": "A MODL interpreter in TypeScript",
   "main": "dist/index.js",
@@ -45,7 +45,11 @@
     "publish": "git push && git push --tags"
   },
   "author": "NUM Technology Ltd",
-  "license": "ISC",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NUMtechnology/num-javascript-client.git"
+  },
   "files": [
     "lib/**/*",
     "gen/**/*"

@@ -1,3 +1,17 @@
+// Copyright 2020 NUM Technology Ltd
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 import { expect } from 'chai';
 import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../lib/client';
 import { parseNumUri } from '../lib/numuri';
@@ -9,7 +23,7 @@ const log = loglevel as Logger;
 
 log.setLevel('info');
 
-const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve', ['name', 'type', 'dnssec']);
+const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
 const dnsClient = createDnsClient(DEFAULT_RESOLVER);
 
 describe('NUMClient', () => {
@@ -22,11 +36,10 @@ describe('NUMClient', () => {
     const numUri = parseNumUri('num.uk:1');
     const handler = createDefaultCallbackHandler();
 
-    const client = createClient(dnsClient);
+    const client = createClient();
     const ctx = client.begin(numUri);
-    ctx.dnssec = true;
-
     const result = await client.retrieveNumRecord(ctx, handler);
+
     expect(result).not.to.be.null;
     expect(result).to.equal(
       '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organisation","description_default":"View Organisation"}}'
@@ -78,5 +91,27 @@ describe('NUMClient', () => {
     const ctx = client.begin(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).to.be.null;
+  });
+
+  it('should be able to do multiple parallel lookups for a NUM record using the NUMClient', async () => {
+    const numUri1 = parseNumUri('num.uk:1');
+    const numUri2 = parseNumUri('num.uk:1');
+    const numUri3 = parseNumUri('num.uk:1');
+
+    const client = createClient();
+    const ctx1 = client.begin(numUri1);
+    const ctx2 = client.begin(numUri2);
+    const ctx3 = client.begin(numUri3);
+
+    const result1 = client.retrieveNumRecord(ctx1);
+    const result2 = client.retrieveNumRecord(ctx2);
+    const result3 = client.retrieveNumRecord(ctx3);
+
+    const result = await Promise.all([result1, result2, result3]);
+
+    expect(result).not.to.be.null;
+    expect(result[0]).not.to.be.null;
+    expect(result[1]).not.to.be.null;
+    expect(result[2]).not.to.be.null;
   });
 });
