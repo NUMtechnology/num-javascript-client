@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
@@ -49,6 +49,7 @@
     "url": "https://github.com/NUMtechnology/num-javascript-client.git"
   },
   "files": [
+    "dist/**/*",
     "lib/**/*",
     "index.d.ts",
     "index.js"
