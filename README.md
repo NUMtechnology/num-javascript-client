@@ -176,23 +176,11 @@ This example shows how to use all features of the client, including
 ```javascript
 const num = require('num-client');
 
-function lookup(uri1, uri2) {
-  const numUri1 = num.parseNumUri(uri1);
-  const numUri2 = num.parseNumUri(uri2);
-
+function lookup(...uris) {
   const DEFAULT_RESOLVER = new num.DoHResolver('Google', 'https://dns.google.com/resolve');
   const dnsClient = num.createDnsClient(DEFAULT_RESOLVER);
-
+  
   const client = num.createClient(dnsClient);          // Use a custom DNS client
-
-  const ctx1 = client.createContext(numUri1);
-  const ctx2 = client.createContext(numUri2);
-
-  ctx1.setUserVariable('_L', 'en');                    // Set the user's language
-  ctx1.setUserVariable('_C', 'gb');                    // Set the user's country
-
-  ctx2.setUserVariable('_L', 'en');                    // Set the user's language
-  ctx2.setUserVariable('_C', 'us');                    // Set the user's country
 
   const handler = {                                    // Provide a custom CallbackHandler
     setLocation: (l) => {
@@ -203,10 +191,18 @@ function lookup(uri1, uri2) {
     },
   };
 
-  const result1 = client.retrieveNumRecord(ctx1, handler);
-  const result2 = client.retrieveNumRecord(ctx2, handler);
+  const results = [];
 
-  return Promise.all([result1, result2]);
+  for (const uri of uris) {
+    const numUri = num.parseNumUri(uri);
+    const ctx = client.createContext(numUri);
+    ctx.setUserVariable('_L', 'en');                   // Set the user's language
+    ctx.setUserVariable('_C', 'gb');                   // Set the user's country
+    const result = client.retrieveNumRecord(ctx, handler);
+    results.push(result);
+  }
+
+  return Promise.all(results);
 }
 
 lookup('num.uk:1', 'numexample.com:1').then((result) => {
