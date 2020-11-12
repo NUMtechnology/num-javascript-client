@@ -1,7 +1,7 @@
 {
   "name": "num-client",
-  "version": "0.0.1",
-  "description": "A MODL interpreter in TypeScript",
+  "version": "0.0.2",
+  "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
     "@types/crypto-js": "^4.0.1",
@@ -49,7 +49,6 @@
     "url": "https://github.com/NUMtechnology/num-javascript-client.git"
   },
   "files": [
-    "dist/**/*",
     "lib/**/*",
     "index.d.ts",
     "index.js"

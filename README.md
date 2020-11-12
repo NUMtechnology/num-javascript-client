@@ -40,18 +40,10 @@ Additional modules can be referenced in the same way as `ports` in other URIs:
 
 ## Adding Support for the NUM Protocol
 
-1. Add the following line to your `package.json` file in your TypeScript, JavaScript or Flutter project:
-
-```json
-"dependencies": {
-    "num-client": "git+ssh://git@github.com:NUMtechnology/num-javascript-client.git#v0.0.1",
-    ...
-}
+Install using:
+```shell
+npm install -s num-client
 ```
-
-2. Run `npm install` or equivalent for your project
-
-**Note**: keep an eye on the releases and update the version number as neccessary to get the latest version. The package will be available at `npmjs.org` shortly.
 
 # TypeScript Examples
 ## Importing the Client
