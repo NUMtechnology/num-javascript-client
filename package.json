@@ -50,6 +50,7 @@
     "url": "https://github.com/NUMtechnology/num-javascript-client.git"
   },
   "files": [
+    "dist/**/*",
     "lib/**/*",
     "index.d.ts",
     "index.js"
