@@ -45,9 +45,9 @@ export interface NumClient {
   /**
    *
    * @param numAddress
-   * @returns begin
+   * @returns Context
    */
-  begin(numAddress: NumUri): Context;
+  createContext(numAddress: NumUri): Context;
 
   /**
    * Returns a fully interpreted NUM record as a JSON string
@@ -188,7 +188,7 @@ class NumClientImpl implements NumClient {
    * Creates an instance of num client impl.
    * @param numAddress
    */
-  begin(numAddress: NumUri): Context {
+  createContext(numAddress: NumUri): Context {
     return new Context(numAddress);
   }
 

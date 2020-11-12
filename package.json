@@ -2,8 +2,7 @@
   "name": "num-javascript-client",
   "version": "0.0.1",
   "description": "A MODL interpreter in TypeScript",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "index.d.ts",
   "dependencies": {
     "@types/crypto-js": "^4.0.1",
     "antlr4": "^4.7.2",
@@ -52,6 +51,6 @@
   },
   "files": [
     "lib/**/*",
-    "gen/**/*"
+    "index.d.ts"
   ]
 }

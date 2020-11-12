@@ -37,7 +37,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    const ctx = client.begin(numUri);
+    const ctx = client.createContext(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
 
     expect(result).not.to.be.null;
@@ -51,7 +51,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(dnsClient);
-    const ctx = client.begin(numUri);
+    const ctx = client.createContext(numUri);
     ctx.setUserVariable('_L', 'en-us');
     ctx.setUserVariable('_C', 'us');
 
@@ -77,7 +77,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(dnsClient);
-    const ctx = client.begin(numUri);
+    const ctx = client.createContext(numUri);
     client.retrieveNumRecord(ctx, handler).then((_result) => {
       // Ignore because the callback handler will handle it
     });
@@ -88,7 +88,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(dnsClient);
-    const ctx = client.begin(numUri);
+    const ctx = client.createContext(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).to.be.null;
   });
@@ -99,9 +99,9 @@ describe('NUMClient', () => {
     const numUri3 = parseNumUri('num.uk:1');
 
     const client = createClient();
-    const ctx1 = client.begin(numUri1);
-    const ctx2 = client.begin(numUri2);
-    const ctx3 = client.begin(numUri3);
+    const ctx1 = client.createContext(numUri1);
+    const ctx2 = client.createContext(numUri2);
+    const ctx3 = client.createContext(numUri3);
 
     const result1 = client.retrieveNumRecord(ctx1);
     const result2 = client.retrieveNumRecord(ctx2);
