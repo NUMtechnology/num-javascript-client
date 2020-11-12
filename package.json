@@ -1,7 +1,7 @@
 {
   "name": "num-client",
-  "version": "0.0.1",
-  "description": "A MODL interpreter in TypeScript",
+  "version": "0.0.3",
+  "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
     "@types/crypto-js": "^4.0.1",
