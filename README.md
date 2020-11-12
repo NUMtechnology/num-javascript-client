@@ -58,18 +58,17 @@ Additional modules can be referenced in the same way as `ports` in other URIs:
 Use this import to make the client available for use:
 ```Typescript
 import { 
-  createClient, 
-  createDefaultCallbackHandler, 
-  createDnsClient, 
-  parseNumUri, 
-  CallbackHandler, 
-  DoHResolver, 
-  Location 
+  createClient,     // required for creating the `NUMClient`
+  createDnsClient,  // optional unless you need to override the default DoH endpoint
+  parseNumUri,      // required for converting the NUM URI string into a valid `NumUri` object
+  CallbackHandler,  // optional unless you need to provide a custom callback handler implementation
+  DoHResolver,      // optional unless you need to override the default DoH endpoint
+  Location          // optional unless you need to provide a custom callback handler implementation
 } from 'num-client';
 ```
 
 ## The Simplest Usage
-If NUM protocol parameters are not needed then the programming interface is very simple.
+The programming interface is very simple:
 
 ```typescript
 const lookup = async () => {
@@ -77,7 +76,7 @@ const lookup = async () => {
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
   const result = await client.retrieveNumRecord(ctx); // Use the context to retrieve a NUM record
-  console.log(result)                                 // Handle the result
+  console.log(result);                                // Handle the result
 }
 ```
 ## Reusing the `NUMClient`
@@ -138,10 +137,10 @@ const lookup = async () => {
 
   const handler: CallbackHandler = {                  // Provide a custom CallbackHandler
     setLocation: (l: Location): void => {
-      console.log(l);
+      console.log(l);                                 // `l` is the `Location` where the result was found
     },
     setResult: (r: string): void => {
-      console.log(r);
+      console.log(r);                                 // `r` is the NUM record as a JSON string
     },
   };
 
@@ -196,10 +195,10 @@ function lookup(uri1, uri2) {
 
   const handler = {                                    // Provide a custom CallbackHandler
     setLocation: (l) => {
-      console.log(l);
+      console.log(l);                                  // `l` is the `Location` where the result was found
     },
     setResult: (r) => {
-      console.log(r);
+      console.log(r);                                 // `r` is the NUM record as a JSON string
     },
   };
 
