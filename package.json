@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
@@ -42,7 +42,7 @@
     "lint": "tslint --fix -p tsconfig.json",
     "prepare": "npm test",
     "publish": "git push && git push --tags --force",
-    "browserify": "mkdir -p web && browserify -r ./index.js:num-client >web/${npm_package_name}-${npm_package_version}.js"
+    "browserify": "mkdir -p web && browserify -r ./index.js:num-client >web/${npm_package_name}-${npm_package_version}.js && cp web/${npm_package_name}-${npm_package_version}.js web/${npm_package_name}-latest.js"
   },
   "author": "NUM Technology Ltd",
   "license": "Apache-2.0",
