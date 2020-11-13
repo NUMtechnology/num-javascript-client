@@ -303,9 +303,10 @@ class NumClientImpl implements NumClient {
    */
   private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
     let uv = '';
-    for (const k of userVariables.keys()) {
-      uv += `${k}=${userVariables.get(k)};`;
-    }
+    userVariables.forEach((v, k) => {
+      uv += `${k}=${v};`;
+    });
+
     const enhancedModl = `${uv}${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
     return await this.modlServices.interpretNumRecord(enhancedModl, INTERPRETER_TIMEOUT_MS);
   }

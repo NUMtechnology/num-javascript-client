@@ -116,11 +116,15 @@ class DnsServicesImpl implements DnsServices {
         throw new RrSetIncompleteException(msg);
       }
 
-      const sortedKeys = [...ordered.keys()].sort((a, b) => a - b);
+      const sortedKeys = Array.from(ordered.keys());
+      sortedKeys.sort((a, b) => a - b);
+
       let buffer = '';
-      for (const k of sortedKeys) {
+
+      sortedKeys.forEach((k) => {
         buffer += ordered.get(k);
-      }
+      });
+
       return buffer;
     }
 

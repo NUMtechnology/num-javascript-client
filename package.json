@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
