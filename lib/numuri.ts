@@ -15,7 +15,7 @@
 import { parse } from 'url';
 
 const DOMAIN_REGEX = new RegExp(/^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/);
-const USERINFO_REGEX = new RegExp(/^(?!\s)[^@\f\t\r\b\n]+?(?<!\s)$/);
+const USERINFO_REGEX = new RegExp(/^(?!\s)[^@\f\t\r\b\s\\]+$/);
 const PATH_REGEX = new RegExp(/^(\/[^;,/\\?:@&=+$.#\s]+)*\/?$/);
 const MAX_LABEL_LENGTH = 63;
 const MAX_DOMAIN_NAME_LENGTH = 253;

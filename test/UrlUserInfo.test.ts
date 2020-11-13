@@ -18,7 +18,6 @@ import { UrlUserInfo } from '../lib/numuri';
 const validUserInfoStrings = [
   'john.smith',
   'test',
-  'test with spaces',
   'test=test',
   '',
   'firstname+lastname',
