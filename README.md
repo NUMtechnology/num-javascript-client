@@ -217,7 +217,7 @@ This simple example can be modified as necessary by following the previous examp
 </head>
 
 <body>
-  <script src="https://unpkg.com/num-client@0.0.9/web/num-client-0.0.9.js"></script>
+  <script src="https://unpkg.com/num-client/web/num-client-latest.js"></script>
   <h1>num.uk:1</h1>
   <pre id='num'></pre>
 </body>
