@@ -204,3 +204,46 @@ lookup('num.uk:1', 'numexample.com:1').then((result) => {
   // Ignore because the callback handler will handle the results.
 });
 ```
+# HTML and JavaScript Example
+## The Simplest Usage
+This simple example can be modified as necessary by following the previous examples above.
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>NUM Protocol Example</title>
+</head>
+
+<body>
+  <script src="../web/num-client-0.0.4.js"></script>
+  <h1>num.uk:1</h1>
+  <pre id='num'></pre>
+</body>
+<script>
+
+  window.addEventListener('load', function () {
+
+    const num = require('num-client');
+
+    function lookup(uri) {
+      const numUri = num.parseNumUri(uri);
+
+      const client = num.createClient();
+      const ctx = client.createContext(numUri);
+
+      return client.retrieveNumRecord(ctx);
+    }
+
+    lookup('num.uk:1').then((result) => {
+      const pretty = JSON.stringify(JSON.parse(result), null, 4);
+      
+      document.getElementById('num').innerHTML = pretty;
+    });
+  });
+
+</script>
+
+</html>
+```
