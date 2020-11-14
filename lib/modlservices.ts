@@ -30,11 +30,10 @@ export interface ModlServices {
 
 /**
  * Creates modl services
+ *
  * @returns modl services
  */
-export function createModlServices(): ModlServices {
-  return new ModlServicesImpl();
-}
+export const createModlServices = (): ModlServices => new ModlServicesImpl();
 
 /**
  * Look for a redirect instruction in the interpreted NUM record, recursively.
@@ -42,22 +41,26 @@ export function createModlServices(): ModlServices {
  * @param obj the ModlValue to check.
  * @throws NumLookupRedirect on error
  */
-export function checkForRedirection(obj: any): void {
-  // Check the pairs in a Map
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const checkForRedirection = (obj: any): void => {
   if (typeof obj === 'object') {
+    // Check the pairs in a Map
     for (const key in obj) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       if (obj.hasOwnProperty(key)) {
         if ('@R' === key) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
           const value = obj[key];
           if (typeof value === 'string') {
             throw new NumLookupRedirect(value);
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         checkForRedirection(obj[key]);
       }
     }
   }
-}
+};
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -68,6 +71,7 @@ export function checkForRedirection(obj: any): void {
 class ModlServicesImpl implements ModlServices {
   /**
    * Interprets num record
+   *
    * @param modl
    * @param timeout
    * @returns num record
@@ -89,7 +93,7 @@ class ModlServicesImpl implements ModlServices {
       if (e instanceof NumLookupRedirect) {
         throw e;
       }
-      log.warn(e.message);
+      log.warn((e as Error).message);
     }
     return '';
   }

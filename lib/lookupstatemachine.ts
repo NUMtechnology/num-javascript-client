@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { Location } from './context';
+import { NumLocation } from './context';
 import log from 'loglevel';
 import delay from 'delay';
 
@@ -24,16 +24,15 @@ import delay from 'delay';
  */
 export interface LookupLocationStateMachine {
   complete(): boolean;
-  step(result: boolean | number): Promise<Location>;
+  step(result: boolean | number): Promise<NumLocation>;
 }
 
 /**
  * Creates lookup location state machine
+ *
  * @returns lookup location state machine
  */
-export function createLookupLocationStateMachine(delays?: number[]): LookupLocationStateMachine {
-  return new LookupLocationStateMachineImpl(delays);
-}
+export const createLookupLocationStateMachine = (delays?: number[]): LookupLocationStateMachine => new LookupLocationStateMachineImpl(delays);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -41,22 +40,23 @@ export function createLookupLocationStateMachine(delays?: number[]): LookupLocat
 /**
  * Lookup location state machine state
  */
+// eslint-disable-next-line no-shadow
 enum LookupState {
-  INDY1 = 'INDY1',
-  INDY2 = 'INDY2',
-  HOSTED1 = 'HOSTED1',
-  HOSTED2 = 'HOSTED2',
-  POP0 = 'POP0',
-  POP1 = 'POP1',
-  POP2 = 'POP2',
-  POP3 = 'POP3',
-  POP4 = 'POP4',
-  POP5 = 'POP5',
-  POP6 = 'POP6',
-  POP7 = 'POP7',
-  POP8 = 'POP8',
-  ERROR = 'ERROR',
-  SUCCESS = 'SUCCESS',
+  indy1 = 'INDY1',
+  indy2 = 'INDY2',
+  hosted1 = 'HOSTED1',
+  hosted2 = 'HOSTED2',
+  pop0 = 'POP0',
+  pop1 = 'POP1',
+  pop2 = 'POP2',
+  pop3 = 'POP3',
+  pop4 = 'POP4',
+  pop5 = 'POP5',
+  pop6 = 'POP6',
+  pop7 = 'POP7',
+  pop8 = 'POP8',
+  failed = 'ERROR',
+  success = 'SUCCESS',
 }
 
 const DEFAULT_DELAYS = [2000, 2000, 2000, 2000, 5000, 5000, 5000, 5000];
@@ -69,27 +69,30 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   private delays: number[];
   /**
    * Creates an instance of lookup location state machine.
+   *
    * @param delays An array of up to 8 delay values in milliseconds to override DEFAULT_DELAYS
    */
   constructor(delays?: number[]) {
-    this.state = LookupState.INDY1;
+    this.state = LookupState.indy1;
     this.delays = delays ? DEFAULT_DELAYS.map((n, i) => (i < delays.length ? delays[i] : n)) : DEFAULT_DELAYS;
   }
 
   /**
    * Completes lookup location state machine
+   *
    * @returns true if complete
    */
   complete(): boolean {
-    return this.state === LookupState.SUCCESS || this.state === LookupState.ERROR;
+    return this.state === LookupState.success || this.state === LookupState.failed;
   }
 
   /**
    * Steps lookup location state machine
+   *
    * @param f
    * @param ctx
    */
-  async step(lookupResult: boolean | number): Promise<Location> {
+  async step(lookupResult: boolean | number): Promise<NumLocation> {
     log.debug('LookupLocationStateMachine - before step: ' + this.state);
     const result = typeof lookupResult === 'boolean' && lookupResult === true ? this.success() : await this.fail(lookupResult);
     log.debug('LookupLocationStateMachine - after step: ' + this.state);
@@ -99,108 +102,111 @@ class LookupLocationStateMachineImpl implements LookupLocationStateMachine {
   /**
    * Success lookup location state machine
    */
-  private success(): Location {
-    let result: Location;
+  private success(): NumLocation {
+    let result: NumLocation;
     switch (this.state) {
-      case LookupState.INDY1:
-      case LookupState.INDY2:
-        result = Location.INDEPENDENT;
+      case LookupState.indy1:
+      case LookupState.indy2:
+        result = NumLocation.independent;
         break;
-      case LookupState.HOSTED1:
-      case LookupState.HOSTED2:
-        result = Location.HOSTED;
+      case LookupState.hosted1:
+      case LookupState.hosted2:
+        result = NumLocation.hosted;
         break;
-      case LookupState.ERROR:
-        result = Location.NONE;
+      case LookupState.failed:
+        result = NumLocation.none;
         break;
       default:
-        result = Location.POPULATOR;
+        result = NumLocation.populator;
     }
-    this.state = LookupState.SUCCESS;
+    this.state = LookupState.success;
 
     return result;
   }
 
   /**
    * Fails lookup location state machines
+   *
    * @param result
    * @param ctx
    */
-  private async fail(result: number | false): Promise<Location> {
+  private async fail(result: number | false): Promise<NumLocation> {
     switch (this.state) {
-      case LookupState.INDY1:
-        this.state = LookupState.HOSTED1;
-        return Location.HOSTED;
-      case LookupState.HOSTED1:
-        this.state = LookupState.POP0;
-        return Location.POPULATOR;
-      case LookupState.POP0:
+      case LookupState.indy1:
+        this.state = LookupState.hosted1;
+        return NumLocation.hosted;
+      case LookupState.hosted1:
+        this.state = LookupState.pop0;
+        return NumLocation.populator;
+      case LookupState.pop0:
         await this.checkStatus(result);
-        return Location.POPULATOR;
-      case LookupState.POP1:
-        this.state = LookupState.POP2;
+        return NumLocation.populator;
+      case LookupState.pop1:
+        this.state = LookupState.pop2;
         await delay(this.delays[0]);
-        return Location.POPULATOR;
-      case LookupState.POP2:
-        this.state = LookupState.POP3;
+        return NumLocation.populator;
+      case LookupState.pop2:
+        this.state = LookupState.pop3;
         await delay(this.delays[1]);
-        return Location.POPULATOR;
-      case LookupState.POP3:
-        this.state = LookupState.POP4;
+        return NumLocation.populator;
+      case LookupState.pop3:
+        this.state = LookupState.pop4;
         await delay(this.delays[2]);
-        return Location.POPULATOR;
-      case LookupState.POP4:
-        this.state = LookupState.POP5;
+        return NumLocation.populator;
+      case LookupState.pop4:
+        this.state = LookupState.pop5;
         await delay(this.delays[4]);
-        return Location.POPULATOR;
-      case LookupState.POP5:
-        this.state = LookupState.POP6;
+        return NumLocation.populator;
+      case LookupState.pop5:
+        this.state = LookupState.pop6;
         await delay(this.delays[5]);
-        return Location.POPULATOR;
-      case LookupState.POP6:
-        this.state = LookupState.POP7;
+        return NumLocation.populator;
+      case LookupState.pop6:
+        this.state = LookupState.pop7;
         await delay(this.delays[6]);
-        return Location.POPULATOR;
-      case LookupState.POP7:
-        this.state = LookupState.POP8;
+        return NumLocation.populator;
+      case LookupState.pop7:
+        this.state = LookupState.pop8;
         await delay(this.delays[7]);
-        return Location.POPULATOR;
-      case LookupState.SUCCESS:
+        return NumLocation.populator;
+      case LookupState.success:
         break;
-      case LookupState.POP8:
-      case LookupState.INDY2:
-      case LookupState.HOSTED2:
-      case LookupState.ERROR:
-        this.state = LookupState.ERROR;
-        return Location.NONE;
+      case LookupState.pop8:
+      case LookupState.indy2:
+      case LookupState.hosted2:
+      case LookupState.failed:
+        this.state = LookupState.failed;
+        return NumLocation.none;
       default:
-        throw new Error(`Invalid LookupState status: ${this.state}`);
+        const state: string = this.state;
+        throw new Error(`Invalid LookupState status: ${state}`);
     }
-    return Location.NONE;
+    return NumLocation.none;
   }
 
   /**
    * Checks status
+   *
    * @param result
    * @param ctx
    */
-  private async checkStatus(result: number | false): Promise<Location> {
+  private async checkStatus(result: number | false): Promise<NumLocation> {
     switch (result) {
       case 1:
-        this.state = LookupState.POP1;
+        this.state = LookupState.pop1;
         await delay(this.delays[3]);
-        return Location.POPULATOR;
+        return NumLocation.populator;
       case 2:
-        this.state = LookupState.INDY2;
-        return Location.INDEPENDENT;
+        this.state = LookupState.indy2;
+        return NumLocation.independent;
       case 3:
-        this.state = LookupState.HOSTED2;
-        return Location.HOSTED;
+        this.state = LookupState.hosted2;
+        return NumLocation.hosted;
       case 4:
       case false:
       default:
-        this.state = LookupState.ERROR;
-        return Location.NONE;
+        this.state = LookupState.failed;
+        return NumLocation.none;
     }
   }
 }

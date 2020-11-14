@@ -53,30 +53,27 @@ export interface EmailLookupGenerator extends LookupGenerator {
 
 /**
  * Creates domain lookup generator
+ *
  * @param numId
  * @returns domain lookup generator
  */
-export function createDomainLookupGenerator(numUri: NumUri): LookupGenerator {
-  return new DomainLookupGenerator(numUri);
-}
+export const createDomainLookupGenerator = (numUri: NumUri): LookupGenerator => new DomainLookupGenerator(numUri);
 
 /**
  * Creates email lookup generator
+ *
  * @param numId
  * @returns email lookup generator
  */
-export function createEmailLookupGenerator(numUri: NumUri): EmailLookupGenerator {
-  return new EmailLookupGeneratorImpl(numUri);
-}
+export const createEmailLookupGenerator = (numUri: NumUri): EmailLookupGenerator => new EmailLookupGeneratorImpl(numUri);
 
 /**
  * Creates url lookup generator
+ *
  * @param numId
  * @returns url lookup generator
  */
-export function createUrlLookupGenerator(numUri: NumUri): LookupGenerator {
-  return new UrlLookupGenerator(numUri);
-}
+export const createUrlLookupGenerator = (numUri: NumUri): LookupGenerator => new UrlLookupGenerator(numUri);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -90,6 +87,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Creates an instance of base lookup generator.
+   *
    * @param numId
    */
   constructor(numUri: NumUri) {
@@ -99,6 +97,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets independent location
+   *
    * @param moduleId
    * @returns
    */
@@ -109,6 +108,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets hosted location
+   *
    * @param moduleId
    * @returns
    */
@@ -119,6 +119,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Determines whether domain root is
+   *
    * @returns
    */
   isDomainRoot() {
@@ -127,6 +128,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets populator location
+   *
    * @param moduleId
    * @returns
    */
@@ -136,6 +138,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets root independent location
+   *
    * @param moduleId
    * @returns
    */
@@ -145,6 +148,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets root independent location no module number
+   *
    * @param addTrailingDot
    * @returns
    */
@@ -158,6 +162,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets root hosted location
+   *
    * @param moduleId
    * @returns
    */
@@ -167,6 +172,7 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Gets root hosted location no module number
+   *
    * @param addTrailingDot
    * @returns
    */
@@ -180,20 +186,22 @@ class BaseLookupGenerator implements LookupGenerator {
 
   /**
    * Validates base lookup generator
-   * @param _numId
-   * @param _moduleId
+   *
+   * @param numId
+   * @param moduleId
    */
-  validate(_numId: string, _moduleId: number) {
-    throw new Error('Not implemented');
+  validate(numId: string, moduleId: number) {
+    throw new Error(`Not implemented: valdate(${numId}, ${moduleId})`);
   }
 }
 
 /**
  * Transforms branch
+ *
  * @param s
  * @returns branch
  */
-function transformBranch(s: string): string {
+const transformBranch = (s: string): string => {
   if (s === '/') {
     return '';
   }
@@ -204,14 +212,15 @@ function transformBranch(s: string): string {
     .split('/')
     .reverse()
     .join('.');
-}
+};
 
 /**
  * Normalises domain name
+ *
  * @param domainName
  * @returns domain name
  */
-function normaliseDomainName(domainName: string): string {
+const normaliseDomainName = (domainName: string): string => {
   if (!domainName) {
     throw new NumInvalidParameterException('Null domain name cannot be normalised');
   }
@@ -249,14 +258,15 @@ function normaliseDomainName(domainName: string): string {
   result = punycode.toASCII(result);
 
   return result;
-}
+};
 
 /**
  * Normalises path
+ *
  * @param path
  * @returns path
  */
-function normalisePath(path: string): string {
+const normalisePath = (path: string): string => {
   let result = '/';
   if (path.length > 0) {
     const pathComponents = path.split('/');
@@ -273,7 +283,7 @@ function normalisePath(path: string): string {
   }
 
   return result;
-}
+};
 
 /**
  * Domain lookup generator
@@ -324,6 +334,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets independent location
+   *
    * @param moduleId
    * @returns independent location
    */
@@ -334,6 +345,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets hosted location
+   *
    * @param moduleId
    * @returns hosted location
    */
@@ -344,6 +356,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets populator location
+   *
    * @param moduleId
    * @returns populator location
    */
@@ -354,6 +367,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets root independent location
+   *
    * @param moduleId
    * @returns root independent location
    */
@@ -363,6 +377,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets root independent location no module number
+   *
    * @param addTrailingDot
    * @returns root independent location no module number
    */
@@ -376,6 +391,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets root hosted location
+   *
    * @param moduleId
    * @returns root hosted location
    */
@@ -388,6 +404,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets root hosted location no module number
+   *
    * @param addTrailingDot
    * @returns root hosted location no module number
    */
@@ -401,6 +418,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets distributed independent location
+   *
    * @param moduleId
    * @param levels
    * @returns distributed independent location
@@ -413,6 +431,7 @@ class EmailLookupGeneratorImpl extends BaseLookupGenerator implements EmailLooku
 
   /**
    * Gets distributed hosted location
+   *
    * @param moduleId
    * @param levels
    * @returns distributed hosted location

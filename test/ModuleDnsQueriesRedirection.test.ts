@@ -16,7 +16,7 @@
 
 import { fail } from 'assert';
 import { MODULE_1, parseNumUri } from '../lib/numuri';
-import { Context, Location } from '../lib/context';
+import { Context, NumLocation } from '../lib/context';
 
 class TestResult {
   constructor(readonly testData: TestData, readonly pass: boolean, readonly message: string) {}
@@ -120,7 +120,7 @@ const runTest = (td: TestData): TestResult => {
 
   try {
     const ctx = new Context(parseNumUri(td.address).withPort(MODULE_1));
-    ctx.location = td.location === 'Independent' ? Location.INDEPENDENT : Location.HOSTED;
+    ctx.location = td.location === 'Independent' ? NumLocation.independent : NumLocation.hosted;
 
     ctx.handleQueryRedirect(td.redirect);
 

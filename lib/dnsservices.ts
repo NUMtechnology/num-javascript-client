@@ -31,12 +31,11 @@ export interface DnsServices {
 
 /**
  * Creates dns services
+ *
  * @param [dnsClient]
  * @returns dns services
  */
-export function createDnsServices(dnsClient?: DnsClient): DnsServices {
-  return new DnsServicesImpl(dnsClient);
-}
+export const createDnsServices = (dnsClient?: DnsClient): DnsServices => new DnsServicesImpl(dnsClient);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -49,6 +48,7 @@ class DnsServicesImpl implements DnsServices {
 
   /**
    * Creates an instance of dns services impl.
+   *
    * @param [dnsClient]
    */
   constructor(dnsClient?: DnsClient) {
@@ -57,6 +57,7 @@ class DnsServicesImpl implements DnsServices {
 
   /**
    * Rebuilds txt record content
+   *
    * @param records
    * @returns txt record content
    */
@@ -133,6 +134,7 @@ class DnsServicesImpl implements DnsServices {
 
   /**
    * Gets record from dns
+   *
    * @param query
    * @param checkDnsSecValidity
    * @returns record from dns

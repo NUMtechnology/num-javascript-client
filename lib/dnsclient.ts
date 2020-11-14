@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // Copyright 2020 NUM Technology Ltd
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,12 +63,11 @@ export interface DnsClient {
 
 /**
  * Creates dns client
+ *
  * @param [resolver]
  * @returns dns client
  */
-export function createDnsClient(resolver?: DoHResolver): DnsClient {
-  return new DnsClientImpl(resolver);
-}
+export const createDnsClient = (resolver?: DoHResolver): DnsClient => new DnsClientImpl(resolver);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -79,6 +79,7 @@ interface Answer {
   readonly name: string;
   readonly type: number;
   readonly data: string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   readonly TTL: number;
 }
 
@@ -92,6 +93,7 @@ class DnsClientImpl implements DnsClient {
 
   /**
    * Creates an instance of dns client impl.
+   *
    * @param [resolver]
    */
   constructor(resolver?: DoHResolver) {
@@ -101,6 +103,7 @@ class DnsClientImpl implements DnsClient {
 
   /**
    * Querys dns client impl
+   *
    * @param question
    * @returns query
    */
@@ -126,12 +129,13 @@ class DnsClientImpl implements DnsClient {
 
   /**
    * Querys using resolver
+   *
    * @param question
    * @param resolver
    * @returns using resolver
    */
   async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<string[]> {
-    log.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec}`);
+    log.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec.toString()}`);
 
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
     const url = `${resolver.url}?${params}`;
@@ -163,10 +167,11 @@ class DnsClientImpl implements DnsClient {
 
 /**
  * Joins parts
+ *
  * @param item
  * @returns parts
  */
-function joinParts(item: Answer): string {
+const joinParts = (item: Answer): string => {
   if (item.type === 5) {
     throw new InvalidDnsResponseException('Found CNAME');
   }
@@ -186,4 +191,4 @@ function joinParts(item: Answer): string {
 
   log.debug(`Joined data ${joined}`);
   return joined;
-}
+};

@@ -38,8 +38,11 @@ export class NumInvalidParameterException extends NumException {
  * Num bad url exception
  */
 export class NumBadUrlException extends NumException {
-  constructor(msg: string, _cause: Error) {
+  readonly cause: Error;
+
+  constructor(msg: string, cause: Error) {
     super(msg);
+    this.cause = cause;
   }
 }
 

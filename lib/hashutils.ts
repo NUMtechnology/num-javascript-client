@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // Copyright 2020 NUM Technology Ltd
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +15,12 @@
 //
 
 import CryptoJS from 'crypto-js';
-// @ts-ignore
-import anyBase from 'any-base';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const anyBase = require('any-base');
 
 type AnyBase = (s: string) => string;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') as AnyBase;
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -32,7 +34,7 @@ const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
  * @param  depth
  * @return  the hash value.
  */
-export function hashByDepth(normalisedDomain: string, depth: number): string {
+export const hashByDepth = (normalisedDomain: string, depth: number): string => {
   const hashed = CryptoJS.SHA1(normalisedDomain).toString();
   const converted = hexToBase36(hashed).toLowerCase();
 
@@ -42,4 +44,4 @@ export function hashByDepth(normalisedDomain: string, depth: number): string {
   }
 
   return dottedHashByDepth;
-}
+};

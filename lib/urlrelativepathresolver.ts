@@ -25,7 +25,7 @@ import { RelativePathException } from './exceptions';
  * @return the resolved path
  * @throws RelativePathException when the redirect is beyond the root of the base path
  */
-export function resolvePath(base: string, redirect: string): string {
+export const resolvePath = (base: string, redirect: string): string => {
   const SEP = '/';
 
   // Normalise the base and redirect paths
@@ -61,4 +61,4 @@ export function resolvePath(base: string, redirect: string): string {
 
   // Rebuild the path to a resolved path
   return SEP + pathStack.join(SEP);
-}
+};

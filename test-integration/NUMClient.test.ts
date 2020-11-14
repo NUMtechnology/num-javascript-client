@@ -17,7 +17,7 @@ import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../
 import { parseNumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
 import { createDnsClient, DoHResolver } from '../lib/dnsclient';
-import { Location } from '../lib/context';
+import { NumLocation } from '../lib/context';
 
 const log = loglevel as Logger;
 
@@ -65,7 +65,7 @@ describe('NUMClient', () => {
   it('should be able to lookup a NUM record using the NUMClient with a custom CallbackHandler', async () => {
     const numUri = parseNumUri('num.uk:1');
     const handler: CallbackHandler = {
-      setLocation: (_l: Location): void => {
+      setLocation: (_l: NumLocation): void => {
         // ignore
       },
       setResult: (r: string): void => {

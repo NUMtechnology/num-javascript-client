@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { createLookupLocationStateMachine } from './lookupstatemachine';
-import { Context, Location, UserVariable } from './context';
+import { Context, NumLocation, UserVariable } from './context';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { DnsClient } from './dnsclient';
 import { NumUri, PositiveInteger } from './numuri';
@@ -32,11 +32,10 @@ const MODULE_SUFFIX = '/rcf.txt`';
 //------------------------------------------------------------------------------------------------------------------------
 /**
  * Creates client
+ *
  * @returns client
  */
-export function createClient(dnsClient?: DnsClient): NumClient {
-  return new NumClientImpl(dnsClient);
-}
+export const createClient = (dnsClient?: DnsClient): NumClient => new NumClientImpl(dnsClient);
 
 /**
  * Num client
@@ -51,6 +50,7 @@ export interface NumClient {
 
   /**
    * Returns a fully interpreted NUM record as a JSON string
+   *
    * @param ctx
    * @param handler
    * @returns num record
@@ -59,6 +59,7 @@ export interface NumClient {
 
   /**
    * Returns the raw MODL record, after redirection if appropriate
+   *
    * @param ctx
    * @param handler
    * @returns MODL record
@@ -74,7 +75,7 @@ export interface CallbackHandler {
    *
    * @param l
    */
-  setLocation(l: Location): void;
+  setLocation(l: NumLocation): void;
 
   /**
    *
@@ -85,11 +86,11 @@ export interface CallbackHandler {
 
 /**
  * Creates default callback handler
+ *
  * @returns default callback handler
  */
-export function createDefaultCallbackHandler(): CallbackHandler {
-  return new DefaultCallbackHandler();
-}
+export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCallbackHandler();
+
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
@@ -97,34 +98,41 @@ export function createDefaultCallbackHandler(): CallbackHandler {
 // Set up logging
 //------------------------------------------------------------------------------------------------------------------------
 
-const colors: any = {
-  TRACE: chalk.magenta,
-  DEBUG: chalk.cyan,
-  INFO: chalk.blue,
-  WARN: chalk.yellow,
-  ERROR: chalk.red,
-};
-
-const levels: any = {
-  TRACE: 'TRACE',
-  DEBUG: 'DEBUG',
-  INFO: 'INFO ',
-  WARN: 'WARN ',
-  ERROR: 'ERROR',
+const colors = (lvl: string) => {
+  switch (lvl) {
+    case 'TRACE':
+      return chalk.magenta;
+    case 'DEBUG':
+      return chalk.cyan;
+    case 'INFO':
+      return chalk.blue;
+    case 'WARN':
+      return chalk.yellow;
+    case 'ERROR':
+      return chalk.red;
+    default:
+      return chalk.red;
+  }
 };
 
 prefix.reg(log);
 
 prefix.apply(log, {
-  format(level, name, timestamp) {
-    return `${chalk.gray(`[${timestamp}]`)} ${colors[level](levels[level])} ${chalk.green(`${name}:`)}`;
+  format: (level: string, name: string | undefined, timestamp: Date | string) => {
+    const levelName = level.toUpperCase();
+    const levelColour = colors(levelName);
+    const colouredLevel: string = levelColour(levelName);
+    if (name) {
+      return `${chalk.gray(`[${timestamp.toString()}]`)} ${colouredLevel} ${chalk.green(`${name}:`)}`;
+    } else {
+      return `${chalk.gray(`[${timestamp.toString()}]`)} ${colouredLevel}`;
+    }
   },
 });
 
 prefix.apply(log.getLogger('critical'), {
-  format(level, name, timestamp) {
-    return chalk.red.bold(`[${timestamp}] ${level} ${name}:`);
-  },
+  format: (level: string, name: string | undefined, timestamp: Date | string) =>
+    name ? chalk.red.bold(`[${timestamp.toString()}] ${level} ${name}:`) : chalk.red.bold(`[${timestamp.toString()}] ${level}:`),
 });
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -133,19 +141,21 @@ prefix.apply(log.getLogger('critical'), {
  * Default callback handler
  */
 class DefaultCallbackHandler implements CallbackHandler {
-  private location: Location | null = null;
+  private location: NumLocation | null = null;
   private result: string | null = null;
 
   /**
    * Sets location
+   *
    * @param l
    */
-  setLocation(l: Location): void {
+  setLocation(l: NumLocation): void {
     this.location = l;
   }
 
   /**
    * Sets result
+   *
    * @param r
    */
   setResult(r: string): void {
@@ -154,14 +164,16 @@ class DefaultCallbackHandler implements CallbackHandler {
 
   /**
    * Gets location
+   *
    * @returns location
    */
-  getLocation(): Location | null {
+  getLocation(): NumLocation | null {
     return this.location;
   }
 
   /**
    * Gets result
+   *
    * @returns result
    */
   getResult(): string | null {
@@ -178,6 +190,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Creates an instance of num client impl.
+   *
    * @param [dnsClient]
    */
   constructor(dnsClient?: DnsClient) {
@@ -186,6 +199,7 @@ class NumClientImpl implements NumClient {
   }
   /**
    * Creates an instance of num client impl.
+   *
    * @param numAddress
    */
   createContext(numAddress: NumUri): Context {
@@ -194,6 +208,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Retrieves num record and interprets it to JSON
+   *
    * @param ctx
    * @param handler
    * @returns num record
@@ -216,10 +231,10 @@ class NumClientImpl implements NumClient {
         if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
           ctx.result = null;
-          ctx.location = Location.NONE;
+          ctx.location = NumLocation.none;
           return null;
         } else if (e instanceof NumLookupRedirect) {
-          ctx.location = Location.INDEPENDENT;
+          ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
         }
       }
@@ -228,6 +243,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Retrieves raw MODL record - i.e. not interpreted
+   *
    * @param ctx
    * @param handler
    * @returns modl record
@@ -249,10 +265,10 @@ class NumClientImpl implements NumClient {
         if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
           ctx.result = null;
-          ctx.location = Location.NONE;
+          ctx.location = NumLocation.none;
           return null;
         } else if (e instanceof NumLookupRedirect) {
-          ctx.location = Location.INDEPENDENT;
+          ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
         }
       }
@@ -261,6 +277,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Retrieves modl record internal
+   *
    * @param ctx
    * @param handler
    * @returns modl record internal
@@ -269,13 +286,13 @@ class NumClientImpl implements NumClient {
     // Use a lambda to query the DNS
     const query = async () => {
       switch (ctx.location) {
-        case Location.INDEPENDENT:
+        case NumLocation.independent:
           return await this.dnsQuery(ctx.queries.independentRecordLocation, ctx);
-        case Location.HOSTED:
+        case NumLocation.hosted:
           return await this.dnsQuery(ctx.queries.hostedRecordLocation, ctx);
-        case Location.POPULATOR:
+        case NumLocation.populator:
           return await this.populatorQuery(ctx);
-        case Location.NONE:
+        case NumLocation.none:
         default:
           return false;
       }
@@ -289,13 +306,18 @@ class NumClientImpl implements NumClient {
       ctx.location = await sm.step(result);
     }
 
-    log.info(`Lookup result: '${ctx.result}', location: '${ctx.location}'`);
+    if (ctx.result) {
+      log.info(`Lookup result: '${ctx.result}', location: '${ctx.location}'`);
+    } else {
+      log.info(`Lookup result: 'null', location: '${ctx.location}'`);
+    }
 
     return ctx.result;
   }
 
   /**
    * Interprets a MODL record for the given module
+   *
    * @param modl
    * @param port
    * @param userVariables
@@ -304,7 +326,7 @@ class NumClientImpl implements NumClient {
   private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
     let uv = '';
     userVariables.forEach((v, k) => {
-      uv += `${k}=${v};`;
+      uv += `${k}=${v.toString()};`;
     });
 
     const enhancedModl = `${uv}${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
@@ -313,6 +335,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Independent or Hosted query
+   *
    * @returns
    */
   private async dnsQuery(query: string, ctx: Context) {
@@ -326,6 +349,7 @@ class NumClientImpl implements NumClient {
 
   /**
    * Populator query
+   *
    * @returns
    */
   private async populatorQuery(ctx: Context) {

@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A NUM Protocol Client in TypeScript",
   "types": "index.d.ts",
   "dependencies": {
@@ -20,13 +20,21 @@
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.13",
+    "@typescript-eslint/eslint-plugin": "^4.7.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.7.0",
+    "@typescript-eslint/parser": "^4.7.0",
     "browserify": "^17.0.0",
     "chai": "^4.2.0",
+    "eslint": "^7.13.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-jsdoc": "^30.7.7",
+    "eslint-plugin-no-null": "^1.0.2",
+    "eslint-plugin-prefer-arrow": "^1.2.2",
+    "eslint-plugin-prettier": "^3.1.4",
     "mocha": "^8.1.3",
     "prettier": "^2.1.2",
     "ts-node": "^8.10.2",
-    "tslint": "^6.1.3",
-    "tslint-config-prettier": "^1.18.0"
+    "tslint": "^6.1.3"
   },
   "scripts": {
     "test": "mocha --require ts-node/register 'test/**/*.ts'",
@@ -39,7 +47,7 @@
     "build": "tsc",
     "doc": "typedoc",
     "format": "prettier --write \"**/*.ts\"",
-    "lint": "tslint --fix -p tsconfig.json",
+    "lint": "eslint --fix lib/**",
     "prepare": "npm test",
     "publish": "git push && git push --tags --force",
     "browserify": "mkdir -p web && browserify -r ./index.js:num-client >web/${npm_package_name}-${npm_package_version}.js && cp web/${npm_package_name}-${npm_package_version}.js web/${npm_package_name}-latest.js"

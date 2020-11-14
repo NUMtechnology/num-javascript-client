@@ -36,13 +36,12 @@ export interface ModuleDnsQueries {
 
 /**
  * Creates module dns queries
+ *
  * @param moduleId
  * @param numUri
  * @returns
  */
-export function createModuleDnsQueries(moduleId: PositiveInteger, numUri: NumUri) {
-  return new ModuleDnsQueriesImpl(moduleId, numUri);
-}
+export const createModuleDnsQueries = (moduleId: PositiveInteger, numUri: NumUri): ModuleDnsQueries => new ModuleDnsQueriesImpl(moduleId, numUri);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -61,6 +60,7 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
 
   /**
    * Creates an instance of module dns queries.
+   *
    * @param moduleId
    * @param numUri
    */
@@ -73,8 +73,8 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
       this.numUri.userinfo !== NO_USER_INFO
         ? createEmailLookupGenerator(this.numUri)
         : this.numUri.protocol.startsWith('http')
-        ? createUrlLookupGenerator(this.numUri)
-        : createDomainLookupGenerator(this.numUri);
+          ? createUrlLookupGenerator(this.numUri)
+          : createDomainLookupGenerator(this.numUri);
 
     this._independentRecordLocation = lookupGenerator.getIndependentLocation(this.moduleId);
     this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(this.moduleId);
@@ -184,12 +184,12 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
  * @param {String} domainPath a String
  * @return a URL path String
  */
-function toPath(domainPath: string): string {
+const toPath = (domainPath: string): string => {
   if (domainPath.includes('.')) {
     return '/' + domainPath.split('.').reverse().join('/');
   }
   return `/${domainPath}`;
-}
+};
 
 /**
  * Convert a URL path to a domain path , e.g. `/sales/manager` becomes `manager.sales`
@@ -197,7 +197,7 @@ function toPath(domainPath: string): string {
  * @param {String} path  a String
  * @return a domain path String
  */
-function fromPath(path: string): string {
+const fromPath = (path: string): string => {
   if (path.includes('/')) {
     return path
       .split('/')
@@ -207,4 +207,4 @@ function fromPath(path: string): string {
   }
 
   return path;
-}
+};

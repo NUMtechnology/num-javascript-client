@@ -35,6 +35,7 @@ export class NumUri {
 
   /**
    * Creates an instance of num uri.
+   *
    * @param userinfo
    * @param host
    * @param port
@@ -59,6 +60,7 @@ export class NumUri {
 
   /**
    * Withs host
+   *
    * @param host
    * @returns host
    */
@@ -68,6 +70,7 @@ export class NumUri {
 
   /**
    * Withs port
+   *
    * @param port
    * @returns port
    */
@@ -77,6 +80,7 @@ export class NumUri {
 
   /**
    * Withs path
+   *
    * @param path
    * @returns path
    */
@@ -86,6 +90,7 @@ export class NumUri {
 
   /**
    * Withs userinfo
+   *
    * @param userinfo
    * @returns userinfo
    */
@@ -96,25 +101,27 @@ export class NumUri {
 
 /**
  * Creates num uri
+ *
  * @param host
  * @param [port]
  * @param [userinfo]
  * @param [path]
  * @returns num uri
  */
-export function buildNumUri(host: string, port?: number, userinfo?: string, path?: string): NumUri {
+export const buildNumUri = (host: string, port?: number, userinfo?: string, path?: string): NumUri => {
   const thePort = port ? new PositiveInteger(port) : MODULE_0;
   const theUserInfo = userinfo ? new UrlUserInfo(userinfo) : NO_USER_INFO;
   const thePath = path ? new UrlPath(path) : NO_PATH;
   return new NumUri(new Hostname(host), thePort, theUserInfo, thePath);
-}
+};
 
 /**
  * Parses num uri
+ *
  * @param uri
  * @returns num uri
  */
-export function parseNumUri(uri: string): NumUri {
+export const parseNumUri = (uri: string): NumUri => {
   const u = parse(uri.includes('://') ? uri : 'num://' + uri);
   const portNumber = notEmpty(u.port) ? Number.parseInt(u.port as string, 10) : 0;
   const hostname = u.hostname ? u.hostname : '';
@@ -125,15 +132,17 @@ export function parseNumUri(uri: string): NumUri {
   const path = notEmpty(u.path) ? new UrlPath(u.path as string) : NO_PATH;
 
   return new NumUri(host, port, userInfo, path);
-}
+};
 
 /**
  * N positive
+ *
  * @param n
  */
 const isPositive = (n: number) => n > -1;
 /**
  * S not empty
+ *
  * @param s
  */
 const notEmpty = (s: string | null) => s && s.length > 0;
@@ -144,6 +153,7 @@ const notEmpty = (s: string | null) => s && s.length > 0;
 export class PositiveInteger {
   /**
    * Creates an instance of positive integer.
+   *
    * @param n
    */
   constructor(readonly n: number) {
@@ -172,6 +182,7 @@ export const MODULE_10 = new PositiveInteger(10);
 export class Hostname {
   /**
    * Creates an instance of hostname.
+   *
    * @param s
    */
   constructor(readonly s: string) {
@@ -186,7 +197,7 @@ export class Hostname {
   }
 
   static isValid(s: string): boolean {
-    const matches = s.match(DOMAIN_REGEX);
+    const matches = DOMAIN_REGEX.exec(s);
     return s.length <= MAX_DOMAIN_NAME_LENGTH && matches !== null && matches.length > 0;
   }
 }
@@ -197,10 +208,11 @@ export class Hostname {
 export class UrlPath {
   /**
    * Creates an instance of url path.
+   *
    * @param s
    */
   constructor(readonly s: string) {
-    if (!s.startsWith('/') || !s.match(PATH_REGEX)) {
+    if (!s.startsWith('/') || !PATH_REGEX.exec(s)) {
       throw new Error(`Invalid URL path: '${s}'`);
     }
     if (s !== '/') {
@@ -245,11 +257,12 @@ export const NO_PATH = new UrlPath('/');
 export class UrlUserInfo {
   /**
    * Creates an instance of url user info.
+   *
    * @param s
    */
   constructor(readonly s: string) {
     if (
-      (notEmpty(s) && !s.match(USERINFO_REGEX)) ||
+      (notEmpty(s) && !USERINFO_REGEX.exec(s)) ||
       s.length > MAX_LOCAL_PART_LENGTH ||
       s.startsWith('.') ||
       s.endsWith('.') ||

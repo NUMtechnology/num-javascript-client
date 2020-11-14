@@ -28,30 +28,32 @@ export type UserVariable = string | number | boolean;
 /**
  * Location
  */
-export enum Location {
-  HOSTED = 'HOSTED',
-  INDEPENDENT = 'INDEPENDENT',
-  POPULATOR = 'POPULATOR',
-  NONE = 'NONE',
+// eslint-disable-next-line no-shadow
+export enum NumLocation {
+  hosted = 'HOSTED',
+  independent = 'INDEPENDENT',
+  populator = 'POPULATOR',
+  none = 'NONE',
 }
 
 /**
  * Context
  */
 export class Context {
-  public location: Location = Location.INDEPENDENT;
+  public location = NumLocation.independent;
   public result: string | null = null;
   public readonly numAddress: NumUri;
   _queries: ModuleDnsQueries;
-  redirectCount: number = 0;
+  redirectCount = 0;
   userVariables: Map<string, UserVariable>;
   /**
    * Dnssec is checked if this is `true` - NOT YET IMPLEMENTED
    */
-  dnssec: boolean = false;
+  dnssec = false;
 
   /**
    * Creates an instance of context.
+   *
    * @param numAddress
    */
   constructor(numAddress: NumUri) {
@@ -62,10 +64,11 @@ export class Context {
 
   /**
    * Sets user variable
+   *
    * @param name
    * @param value
    */
-  setUserVariable(name: string, value: UserVariable) {
+  setUserVariable(name: string, value: UserVariable): void {
     this.userVariables.set(name, value);
   }
 
@@ -81,7 +84,7 @@ export class Context {
   /**
    * Gets queries
    */
-  get queries() {
+  get queries(): ModuleDnsQueries {
     return this._queries;
   }
 
@@ -106,14 +109,14 @@ export class Context {
         const uri = parseNumUri(redirect);
         this._queries = createModuleDnsQueries(uri.port, uri);
       } catch (e) {
-        throw new NumInvalidRedirectException(e.message);
+        throw new NumInvalidRedirectException((e as Error).message);
       }
     } else {
       switch (this.location) {
-        case Location.INDEPENDENT:
+        case NumLocation.independent:
           this.handleIndependentQueryRedirect(redirect);
           break;
-        case Location.HOSTED:
+        case NumLocation.hosted:
           this.handleHostedQueryRedirect(redirect);
           break;
         default:
