@@ -220,30 +220,31 @@ This simple example can be modified as necessary by following the previous examp
   <script src="https://unpkg.com/num-client/web/num-client-latest.js"></script>
   <h1>num.uk:1</h1>
   <pre id='num'></pre>
-</body>
-<script>
+  
+  <script>
 
-  window.addEventListener('load', function () {
+    window.addEventListener('load', function () {
 
-    const num = require('num-client');
+      const num = require('num-client');
 
-    function lookup(uri) {
-      const numUri = num.parseNumUri(uri);
+      function lookup(uri) {
+        const numUri = num.parseNumUri(uri);
 
-      const client = num.createClient();
-      const ctx = client.createContext(numUri);
+        const client = num.createClient();
+        const ctx = client.createContext(numUri);
 
-      return client.retrieveNumRecord(ctx);
-    }
+        return client.retrieveNumRecord(ctx);
+      }
 
-    lookup('num.uk:1').then((result) => {
-      const pretty = JSON.stringify(JSON.parse(result), null, 4);
-      
-      document.getElementById('num').innerHTML = pretty;
+      lookup('num.uk:1').then((result) => {
+        const pretty = JSON.stringify(JSON.parse(result), null, 4);
+        
+        document.getElementById('num').innerHTML = pretty;
+      });
     });
-  });
 
-</script>
+  </script>
+</body>
 
 </html>
 ```

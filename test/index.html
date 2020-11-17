@@ -8,31 +8,34 @@
 
 <body>
   <script src="https://unpkg.com/num-client/web/num-client-latest.js"></script>
-  <h1>num.uk:1</h1>
-  <pre id='num'></pre>
+  <h1>NUM Protocol Example</h1>
+  <h2>NUM URI = 'num.uk:1'</h1>
+    <div style="border: 1px solid blue;width: fit-content;">
+      <pre id='num'></pre>
+    </div>
+    <script>
+
+      window.addEventListener('load', function () {
+
+        const num = require('num-client');
+
+        function lookup(uri) {
+          const numUri = num.parseNumUri(uri);
+
+          const client = num.createClient();
+          const ctx = client.createContext(numUri);
+
+          return client.retrieveNumRecord(ctx);
+        }
+
+        lookup('num.uk:1').then((result) => {
+          const pretty = JSON.stringify(JSON.parse(result), null, 4);
+
+          document.getElementById('num').innerHTML = pretty;
+        });
+      });
+
+    </script>
 </body>
-<script>
-
-  window.addEventListener('load', function () {
-
-    const num = require('num-client');
-
-    function lookup(uri) {
-      const numUri = num.parseNumUri(uri);
-
-      const client = num.createClient();
-      const ctx = client.createContext(numUri);
-
-      return client.retrieveNumRecord(ctx);
-    }
-
-    lookup('num.uk:1').then((result) => {
-      const pretty = JSON.stringify(JSON.parse(result), null, 4);
-      
-      document.getElementById('num').innerHTML = pretty;
-    });
-  });
-
-</script>
 
 </html>

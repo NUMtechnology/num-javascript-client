@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { createLookupLocationStateMachine } from './lookupstatemachine';
-import { Context, NumLocation, UserVariable } from './context';
-import { createDnsServices, DnsServices } from './dnsservices';
-import { DnsClient } from './dnsclient';
-import { NumUri, PositiveInteger } from './numuri';
-import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
-import { createModlServices, ModlServices } from './modlservices';
-import log from 'loglevel';
 import chalk from 'chalk';
+import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
+import { Context, NumLocation, UserVariable } from './context';
+import { DnsClient } from './dnsclient';
+import { createDnsServices, DnsServices } from './dnsservices';
+import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
+import { createLookupLocationStateMachine } from './lookupstatemachine';
+import { createModlServices, ModlServices } from './modlservices';
+import { NumUri, PositiveInteger } from './numuri';
 
 const INTERPRETER_TIMEOUT_MS = 2000;
 const MODULE_PREFIX = '*load=`https://modules.numprotocol.com/';
@@ -138,14 +138,14 @@ prefix.apply(log.getLogger('critical'), {
 //------------------------------------------------------------------------------------------------------------------------
 
 /**
- * Default callback handler
+ * Default callback handler - a minimal class for responding to Callbacks from the NumClient
  */
 class DefaultCallbackHandler implements CallbackHandler {
   private location: NumLocation | null = null;
   private result: string | null = null;
 
   /**
-   * Sets location
+   * Sets the location that a record was retrieved from.
    *
    * @param l
    */
@@ -154,7 +154,7 @@ class DefaultCallbackHandler implements CallbackHandler {
   }
 
   /**
-   * Sets result
+   * Sets the NUM record that was found.
    *
    * @param r
    */
@@ -163,7 +163,7 @@ class DefaultCallbackHandler implements CallbackHandler {
   }
 
   /**
-   * Gets location
+   * Gets the location that the record was retrieved from.
    *
    * @returns location
    */
@@ -172,7 +172,7 @@ class DefaultCallbackHandler implements CallbackHandler {
   }
 
   /**
-   * Gets result
+   * Gets the NUM record that was retrieved.
    *
    * @returns result
    */
