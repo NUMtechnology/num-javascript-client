@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { checkForRedirection } from '../lib/modlservices';
+import { checkForRedirection } from '../src/modlservices';
 
 describe('checkForRedirection', () => {
   it('Can find a redirection', () => {

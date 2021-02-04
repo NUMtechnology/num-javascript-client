@@ -13,8 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-
-import { NO_USER_INFO, parseNumUri } from '../lib/numuri';
+import { NO_USER_INFO, parseNumUri } from '../src/numuri';
 
 describe('NumUri Parsing', () => {
   it('can parse a full NUM URI', () => {

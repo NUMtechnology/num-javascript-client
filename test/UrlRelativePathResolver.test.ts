@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { resolvePath } from '../lib/urlrelativepathresolver';
+import { resolvePath } from '../src/urlrelativepathresolver';
 
 describe('UrlrelativePathResolver', () => {
   it('testResolveEmptyString', () => {

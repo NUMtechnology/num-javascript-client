@@ -13,8 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-
-import { hashByDepth } from '../lib/hashutils';
+import { hashByDepth } from '../src/hashutils';
 
 describe('HashUtils', () => {
   it('Can hash correctly 1', () => {

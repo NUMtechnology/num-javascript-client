@@ -15,8 +15,8 @@
  */
 
 import { fail } from 'assert';
-import { MODULE_1, parseNumUri } from '../lib/numuri';
-import { Context, NumLocation } from '../lib/context';
+import { Context, NumLocation } from '../src/context';
+import { MODULE_1, parseNumUri } from '../src/numuri';
 
 class TestResult {
   constructor(readonly testData: TestData, readonly pass: boolean, readonly message: string) {}

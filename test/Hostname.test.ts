@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { Hostname } from '../lib/numuri';
+import { Hostname } from '../src/numuri';
 
 const validUriStrings = [
   'test_$*&.example.com',

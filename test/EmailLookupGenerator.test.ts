@@ -13,8 +13,8 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { createEmailLookupGenerator } from '../lib/lookupgenerators';
-import { MODULE_1, parseNumUri, PositiveInteger } from '../lib/numuri';
+import { createEmailLookupGenerator } from '../src/lookupgenerators';
+import { MODULE_1, parseNumUri, PositiveInteger } from '../src/numuri';
 
 const ONE_LEVEL = new PositiveInteger(1);
 const TWO_LEVELS = new PositiveInteger(2);

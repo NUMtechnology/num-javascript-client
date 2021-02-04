@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { createLookupLocationStateMachine } from '../lib/lookupstatemachine';
 import { expect } from 'chai';
-import { Context } from '../lib/context';
-import { parseNumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
+import { Context } from '../src/context';
+import { createLookupLocationStateMachine } from '../src/lookupstatemachine';
+import { parseNumUri } from '../src/numuri';
 
 const log = loglevel as Logger;
 

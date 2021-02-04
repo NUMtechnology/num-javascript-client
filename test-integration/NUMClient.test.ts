@@ -13,11 +13,11 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../lib/client';
-import { parseNumUri } from '../lib/numuri';
 import loglevel, { Logger } from 'loglevel';
-import { createDnsClient, DoHResolver } from '../lib/dnsclient';
-import { NumLocation } from '../lib/context';
+import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
+import { NumLocation } from '../src/context';
+import { createDnsClient, DoHResolver } from '../src/dnsclient';
+import { parseNumUri } from '../src/numuri';
 
 const log = loglevel as Logger;
 

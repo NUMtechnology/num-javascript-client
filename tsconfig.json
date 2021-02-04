@@ -21,7 +21,7 @@
     "sourceMap": true
   },
   "include": [
-    "lib",
+    "src",
     "index.d.ts"
   ],
   "exclude": [

@@ -13,8 +13,8 @@
 // limitations under the License.
 //
 import { fail } from 'assert';
-import { createModuleDnsQueries } from '../lib/modulednsqueries';
-import { MODULE_1, parseNumUri } from '../lib/numuri';
+import { createModuleDnsQueries } from '../src/modulednsqueries';
+import { MODULE_1, parseNumUri } from '../src/numuri';
 
 class TestResult {
   constructor(readonly testData: TestData, readonly pass: boolean, readonly message: string) {}

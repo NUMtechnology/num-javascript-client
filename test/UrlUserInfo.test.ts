@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { UrlUserInfo } from '../lib/numuri';
+import { UrlUserInfo } from '../src/numuri';
 
 const validUserInfoStrings = [
   'john.smith',

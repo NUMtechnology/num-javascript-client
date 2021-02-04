@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { hashByDepth } from './hashutils';
-import punycode from 'punycode';
 import log from 'loglevel';
-import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
+import punycode from 'punycode';
 import { URL } from 'url';
+import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
+import { hashByDepth } from './hashutils';
 import { Hostname, NO_USER_INFO, NumUri, PositiveInteger, UrlUserInfo } from './numuri';
 
 const _NUM = '._num.';

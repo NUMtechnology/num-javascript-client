@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Launch Program",
-            "program": "${workspaceFolder}/lib/js-interpreter/Interpreter.js",
+            "program": "${workspaceFolder}/src/js-interpreter/Interpreter.js",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"

@@ -13,8 +13,8 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { createDomainLookupGenerator, createUrlLookupGenerator } from '../lib/lookupgenerators';
-import { MODULE_1, parseNumUri } from '../lib/numuri';
+import { createDomainLookupGenerator, createUrlLookupGenerator } from '../src/lookupgenerators';
+import { MODULE_1, parseNumUri } from '../src/numuri';
 
 const EXPECTED_INDEPENDENT = '1._num.numexample.com.';
 

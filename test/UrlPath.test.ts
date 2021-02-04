@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { UrlPath } from '../lib/numuri';
+import { UrlPath } from '../src/numuri';
 
 const validPaths = ['/', '/a', '/a/b', '/例', '/例/例'];
 

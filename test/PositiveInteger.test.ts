@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import { PositiveInteger } from '../lib/numuri';
+import { PositiveInteger } from '../src/numuri';
 
 describe('PositiveInteger', () => {
   it('should be able to create a PositiveInteger', () => {

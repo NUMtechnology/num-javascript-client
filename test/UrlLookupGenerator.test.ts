@@ -13,8 +13,8 @@ import { expect } from 'chai';
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { createUrlLookupGenerator } from '../lib/lookupgenerators';
-import { MODULE_1, parseNumUri } from '../lib/numuri';
+import { createUrlLookupGenerator } from '../src/lookupgenerators';
+import { MODULE_1, parseNumUri } from '../src/numuri';
 
 describe('UrlLookupGenerator', () => {
   it('should be able to create valid lookup queries 1', () => {
