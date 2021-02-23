@@ -21,7 +21,7 @@
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
-import { ResourceLoader } from '../dist/num-javascript-client/src/resourceloader';
+import { ResourceLoader } from '../../num-javascript-client/src/resourceloader';
 import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
 import { NumLocation } from '../src/context';
 import { createDnsClient, DoHResolver } from '../src/dnsclient';
