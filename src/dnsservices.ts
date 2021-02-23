@@ -149,6 +149,6 @@ class DnsServicesImpl implements DnsServices {
 
     const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
     // Punydecode the result.
-    return (result && result.includes(';@d=01;')) ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
+    return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
   }
 }

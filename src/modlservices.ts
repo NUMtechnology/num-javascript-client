@@ -22,7 +22,7 @@ import { NumLookupRedirect } from './exceptions';
  * Modl services
  */
 export interface ModlServices {
-  interpretNumRecord(modl: string): string;
+  interpretNumRecord(modl: string): Record<string, unknown>;
 }
 
 /**
@@ -64,7 +64,6 @@ export const checkForRedirection = (obj: any): void => {
 //------------------------------------------------------------------------------------------------------------------------
 
 const modlInterpreter = new Interpreter();
-
 /**
  * Modl services impl
  */
@@ -76,12 +75,12 @@ class ModlServicesImpl implements ModlServices {
    * @param timeout
    * @returns num record
    */
-  interpretNumRecord(modl: string): string {
+  interpretNumRecord(modl: string): Record<string, unknown> {
     const jsonObj = modlInterpreter.interpretToJsonObject(modl);
     if (jsonObj) {
       checkForRedirection(jsonObj);
-      return JSON.stringify(jsonObj);
+      return jsonObj as Record<string, unknown>;
     }
-    return '';
+    return {};
   }
 }

@@ -19,6 +19,8 @@ import { NumLocation } from '../src/context';
 import { createDnsClient, DoHResolver } from '../src/dnsclient';
 import { parseNumUri } from '../src/numuri';
 
+const deepEql = require('deep-eql');
+
 const log = loglevel as Logger;
 
 log.setLevel('info');
@@ -41,9 +43,14 @@ describe('NUMClient', () => {
     const result = await client.retrieveNumRecord(ctx, handler);
 
     expect(result).not.to.be.null;
-    expect(result).to.equal(
-      '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organisation","description_default":"View Organisation"}}'
+
+    const same = deepEql(
+      JSON.parse(result as string),
+      JSON.parse(
+        '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organisation","description_default":"View Organisation"}}'
+      )
     );
+    expect(same).to.be.true;
   });
 
   it('should be able to lookup a NUM record using the NUMClient and custom user variables', async () => {
@@ -57,9 +64,13 @@ describe('NUMClient', () => {
 
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.to.be.null;
-    expect(result).to.equal(
-      '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organization","description_default":"View Organization"}}'
+    const same = deepEql(
+      JSON.parse(result as string),
+      JSON.parse(
+        '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organization","description_default":"View Organization"}}'
+      )
     );
+    expect(same).to.be.true;
   });
 
   it('should be able to lookup a NUM record using the NUMClient with a custom CallbackHandler', async () => {
@@ -70,9 +81,13 @@ describe('NUMClient', () => {
       },
       setResult: (r: string): void => {
         expect(r).not.to.be.null;
-        expect(r).to.equal(
-          '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organisation","description_default":"View Organisation"}}'
+        const same = deepEql(
+          JSON.parse(r),
+          JSON.parse(
+            '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_type":"method","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"3p","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_type":"method","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"3p","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_type":"entity","object_display_name":"Organisation","description_default":"View Organisation"}}'
+          )
         );
+        expect(same).to.be.true;
       },
     };
 

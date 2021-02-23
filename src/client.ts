@@ -15,13 +15,17 @@
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
+import { createSchemaMapper } from '../../typescript-schema-mapper/src/SchemaMapper';
+import { SchemaMapper } from '../dist/typescript-schema-mapper/src/SchemaMapper';
 import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
+import { createModuleConfigProvider, ModuleConfigProvider } from './moduleconfig';
 import { NumUri, PositiveInteger } from './numuri';
+import { createResourceLoader, ResourceLoader } from './resourceloader';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -61,6 +65,12 @@ export interface NumClient {
    * @returns MODL record
    */
   retrieveModlRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
+
+  /**
+   *
+   * @param loader Override the default ResourceLoader - mainly used for testing.
+   */
+  setResourceLoader(loader: ResourceLoader): void;
 }
 
 /**
@@ -90,6 +100,7 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
+
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
 //------------------------------------------------------------------------------------------------------------------------
@@ -183,6 +194,9 @@ class DefaultCallbackHandler implements CallbackHandler {
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
+  private readonly schemaMapper: SchemaMapper;
+  private readonly configProvider: ModuleConfigProvider;
+  private resourceLoader: ResourceLoader;
 
   /**
    * Creates an instance of num client impl.
@@ -192,6 +206,17 @@ class NumClientImpl implements NumClient {
   constructor(dnsClient?: DnsClient) {
     this.dnsServices = createDnsServices(dnsClient);
     this.modlServices = createModlServices();
+    this.schemaMapper = createSchemaMapper();
+    this.configProvider = createModuleConfigProvider();
+    this.resourceLoader = createResourceLoader();
+  }
+
+  /**
+   *
+   * @param loader Override the default resource loader for testing.
+   */
+  setResourceLoader(loader: ResourceLoader): void {
+    this.resourceLoader = loader;
   }
   /**
    * Creates an instance of num client impl.
@@ -214,7 +239,7 @@ class NumClientImpl implements NumClient {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
-          const json = this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (json) {
             if (handler) {
               handler.setResult(json);
@@ -253,7 +278,7 @@ class NumClientImpl implements NumClient {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
           // We need to interpret the record to check for redirects, but we ignore the result.
-          this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (handler) {
             handler.setResult(modl);
           }
@@ -322,13 +347,28 @@ class NumClientImpl implements NumClient {
    * @param userVariables
    * @returns interpret
    */
-  private interpret(modl: string, _port: PositiveInteger, userVariables: Map<string, UserVariable>): string | null {
+  private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
     let uv = '';
     userVariables.forEach((v, k) => {
       uv += `${k}=${v.toString()};`;
     });
 
-    return this.modlServices.interpretNumRecord(`${uv}${modl}`);
+    const jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
+    const moduleConfig = this.configProvider.getConfig(port);
+    if (moduleConfig && moduleConfig.schemaMapUrl) {
+      const schemaMapString = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+
+      if (schemaMapString) {
+        const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
+        return JSON.stringify(this.schemaMapper.convert(jsonResult as any, schemaMap));
+      }
+      // No schema map
+      log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+      return JSON.stringify(jsonResult);
+    }
+    // No schema map
+    log.warn(`No schema map defined in ${JSON.stringify(moduleConfig)}`);
+    return JSON.stringify(this.schemaMapper.convert(jsonResult as any, {} as any));
   }
 
   /**
@@ -372,7 +412,7 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = this.interpret(result, ctx.numAddress.port, ctx.userVariables);
+        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables);
         return true;
       }
     }
