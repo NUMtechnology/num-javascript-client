@@ -78,7 +78,7 @@ describe('NUMClient', () => {
 
     const client = createClient(dnsClient);
     const ctx = client.createContext(numUri);
-    client.retrieveNumRecord(ctx, handler).then((_result) => {
+    await client.retrieveNumRecord(ctx, handler).then((_result) => {
       // Ignore because the callback handler will handle it
     });
   });

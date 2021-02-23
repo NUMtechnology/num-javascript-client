@@ -13,8 +13,9 @@
 // limitations under the License.
 //
 
-import { createDnsClient, DnsClient, Question } from './dnsclient';
 import log from 'loglevel';
+import punycode from 'punycode';
+import { createDnsClient, DnsClient, Question } from './dnsclient';
 import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
@@ -146,6 +147,8 @@ class DnsServicesImpl implements DnsServices {
 
     log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
 
-    return this.rebuildTxtRecordContent(result);
+    const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
+    // Punydecode the result.
+    return (result && result.includes(';@d=01;')) ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
   }
 }

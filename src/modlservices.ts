@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import axios from 'axios';
-import log from 'loglevel';
+import { Interpreter } from '../../typescript-modl-interpreter/lib/modl-interpreter/Interpreter';
 import { NumLookupRedirect } from './exceptions';
-
-const INTERPRETER_URL = 'https://api.apps.num.uk/v1/mtoj';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -25,7 +22,7 @@ const INTERPRETER_URL = 'https://api.apps.num.uk/v1/mtoj';
  * Modl services
  */
 export interface ModlServices {
-  interpretNumRecord(modl: string, timeout: number): Promise<string>;
+  interpretNumRecord(modl: string): string;
 }
 
 /**
@@ -65,6 +62,9 @@ export const checkForRedirection = (obj: any): void => {
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
+
+const modlInterpreter = new Interpreter();
+
 /**
  * Modl services impl
  */
@@ -76,24 +76,11 @@ class ModlServicesImpl implements ModlServices {
    * @param timeout
    * @returns num record
    */
-  async interpretNumRecord(modl: string, timeout: number): Promise<string> {
-    try {
-      const response = await axios.post(INTERPRETER_URL, modl, {
-        headers: {
-          'content-type': 'text/plain',
-        },
-        timeout,
-      });
-
-      if (response.status === 200) {
-        checkForRedirection(response.data);
-        return JSON.stringify(response.data);
-      }
-    } catch (e) {
-      if (e instanceof NumLookupRedirect) {
-        throw e;
-      }
-      log.warn((e as Error).message);
+  interpretNumRecord(modl: string): string {
+    const jsonObj = modlInterpreter.interpretToJsonObject(modl);
+    if (jsonObj) {
+      checkForRedirection(jsonObj);
+      return JSON.stringify(jsonObj);
     }
     return '';
   }

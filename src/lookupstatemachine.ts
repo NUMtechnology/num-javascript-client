@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { NumLocation } from './context';
-import log from 'loglevel';
 import delay from 'delay';
+import log from 'loglevel';
+import { NumLocation } from './context';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports

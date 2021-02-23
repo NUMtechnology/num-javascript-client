@@ -23,10 +23,6 @@ import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { NumUri, PositiveInteger } from './numuri';
 
-const INTERPRETER_TIMEOUT_MS = 2000;
-const MODULE_PREFIX = '*load=`https://modules.numprotocol.com/';
-const MODULE_SUFFIX = '/rcf.txt`';
-
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
@@ -218,7 +214,7 @@ class NumClientImpl implements NumClient {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
-          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          const json = this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (json) {
             if (handler) {
               handler.setResult(json);
@@ -236,6 +232,9 @@ class NumClientImpl implements NumClient {
         } else if (e instanceof NumLookupRedirect) {
           ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
+        } else if (e instanceof Error) {
+          log.warn(`Unhandled exception: ${e.message}`);
+          return null;
         }
       }
     }
@@ -254,7 +253,7 @@ class NumClientImpl implements NumClient {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
           // We need to interpret the record to check for redirects, but we ignore the result.
-          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (handler) {
             handler.setResult(modl);
           }
@@ -323,14 +322,13 @@ class NumClientImpl implements NumClient {
    * @param userVariables
    * @returns interpret
    */
-  private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
+  private interpret(modl: string, _port: PositiveInteger, userVariables: Map<string, UserVariable>): string | null {
     let uv = '';
     userVariables.forEach((v, k) => {
       uv += `${k}=${v.toString()};`;
     });
 
-    const enhancedModl = `${uv}${MODULE_PREFIX}${port.n}${MODULE_SUFFIX};${modl}`;
-    return await this.modlServices.interpretNumRecord(enhancedModl, INTERPRETER_TIMEOUT_MS);
+    return this.modlServices.interpretNumRecord(`${uv}${modl}`);
   }
 
   /**
@@ -374,7 +372,7 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables);
+        ctx.result = this.interpret(result, ctx.numAddress.port, ctx.userVariables);
         return true;
       }
     }

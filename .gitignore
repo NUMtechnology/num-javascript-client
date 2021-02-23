@@ -12,3 +12,4 @@
 !*.lock
 !.github
 !.npmignore
+CHANGES-NEEDED.md
