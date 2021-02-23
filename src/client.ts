@@ -15,8 +15,7 @@
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
-import { createSchemaMapper } from '../../typescript-schema-mapper/src/SchemaMapper';
-import { SchemaMapper } from '../dist/typescript-schema-mapper/src/SchemaMapper';
+import { createSchemaMapper, SchemaMapper } from '../../typescript-schema-mapper/src/SchemaMapper';
 import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
@@ -360,7 +359,7 @@ class NumClientImpl implements NumClient {
 
       if (schemaMapString) {
         const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
-        return JSON.stringify(this.schemaMapper.convert(jsonResult as any, schemaMap));
+        return JSON.stringify(this.schemaMapper.convert(jsonResult as any, schemaMap as any));
       }
       // No schema map
       log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);

@@ -24,12 +24,12 @@
     "sourceMap": true
   },
   "include": [
-    "src",
-    "index.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
+    "./src/*.ts",
+    "./index.d.ts",
     "test",
     "test-integration"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

@@ -6,7 +6,7 @@ export interface ModuleConfigProvider {
 export const createModuleConfigProvider = (): ModuleConfigProvider => new ModuleConfigProviderImpl();
 
 export class ProcessingChain {
-  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) {}
+  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) { }
 }
 
 export class ModuleConfig {
@@ -18,12 +18,19 @@ export class ModuleConfig {
     readonly schemaMapUrl: URL | null,
     readonly expandedSchemaUrl: URL | null,
     readonly localeFilesBaseUrl: URL | null
-  ) {}
+  ) { }
 }
 
 class ModuleConfigProviderImpl implements ModuleConfigProvider {
   getConfig(moduleNumber: PositiveInteger): ModuleConfig | null {
     // TODO: Implement fully
-    return new ModuleConfig(moduleNumber, new PositiveInteger(1), new ProcessingChain(true, true, true, true), null, null, null, null);
+    return new ModuleConfig(
+      moduleNumber,
+      new PositiveInteger(1),
+      new ProcessingChain(true, true, true, true),
+      null,
+      new URL('https://modules.numprotocol.com/1/schema-map.json'),
+      null,
+      null);
   }
 }
