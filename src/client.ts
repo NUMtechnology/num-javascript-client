@@ -368,11 +368,11 @@ class NumClientImpl implements NumClient {
 
       // Apply the schema mapping if one is defined
       if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-        const schemaMapString = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
 
-        if (schemaMapString) {
-          const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
-          jsonResult = mapper.convert(jsonResult as any, schemaMap as any) as Record<string, unknown>;
+        if (schemaMapResponse) {
+          const schemaMap = schemaMapResponse.data as Record<string, unknown>;
+          jsonResult = mapper.convert(jsonResult as any, schemaMap) as Record<string, unknown>;
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
@@ -395,23 +395,21 @@ class NumClientImpl implements NumClient {
       const localeUrl = new URL(baseUrl.toString() + localeFilename);
 
       // Try loading the locale file and fallback to the default if we can't find one.
-      let localeFileString = await this.resourceLoader.load(localeUrl);
+      let localeFileResponse = await this.resourceLoader.load(localeUrl);
 
-      if (!localeFileString) {
+      if (!localeFileResponse) {
         const defaultLocaleUrl = new URL(baseUrl.toString() + 'en-gb.txt');
-        localeFileString = await this.resourceLoader.load(defaultLocaleUrl);
-        if (!localeFileString) {
+        localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
+        if (!localeFileResponse) {
           log.error(`Cannot load locale file from ${localeUrl.toString()} or ${defaultLocaleUrl.toString()}`);
           return null;
         }
       }
 
-      // We should now have a localeFileString.
-      const localeJson = JSON.parse(localeFileString) as Record<string, unknown>;
-
       // Resolve references
       if (moduleConfig.processingChain.resolveReferences) {
-        jsonResult = this.referencesResolver.resolve(localeJson, jsonResult);
+        const localeFile = localeFileResponse.data as Record<string, unknown>;
+        jsonResult = this.referencesResolver.resolve(localeFile, jsonResult);
       }
 
       // Filter our internal keys

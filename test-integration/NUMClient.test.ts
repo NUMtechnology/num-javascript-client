@@ -163,11 +163,11 @@ describe('NUMClient', () => {
 });
 
 class DummyResourceLoader implements ResourceLoader {
-  load(url: URL): Promise<string | null> {
+  load(url: URL): Promise<Record<string, unknown> | null> {
     const urlStr = url.toString();
 
     if (urlStr.includes('schema-map')) {
-      return new Promise<string | null>((resolve) => {
+      return new Promise<Record<string, unknown> | null>((resolve) => {
         const map = {
           '@n': {
             'return': {
@@ -288,11 +288,11 @@ class DummyResourceLoader implements ResourceLoader {
             }
           }
         };
-        resolve(JSON.stringify(map));
+        resolve({ data: map });
       });
     }
     if (urlStr.includes('locales') && urlStr.includes('en-gb')) {
-      return new Promise<string | null>((resolve) => {
+      return new Promise<Record<string, unknown> | null>((resolve) => {
         const locale = {
           'locale.o.name': 'Organisation',
           'locale.o.default': 'View Organisation',
@@ -301,11 +301,11 @@ class DummyResourceLoader implements ResourceLoader {
           'locale.li.name': 'LinkedIn',
           'locale.li.default': 'View LinkedIn page',
         };
-        resolve(JSON.stringify(locale));
+        resolve({ data: locale });
       });
     }
     if (urlStr.includes('locales') && urlStr.includes('en-us')) {
-      return new Promise<string | null>((resolve) => {
+      return new Promise<Record<string, unknown> | null>((resolve) => {
         const locale = {
           'locale.o.name': 'Organization',
           'locale.o.default': 'View Organization',
@@ -314,10 +314,10 @@ class DummyResourceLoader implements ResourceLoader {
           'locale.li.name': 'LinkedIn',
           'locale.li.default': 'View LinkedIn page',
         };
-        resolve(JSON.stringify(locale));
+        resolve({ data: locale });
       });
     }
-    return new Promise<string | null>((resolve) => {
+    return new Promise<Record<string, unknown> | null>((resolve) => {
       resolve(null);
     });
   }

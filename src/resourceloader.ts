@@ -6,7 +6,7 @@ import log from 'loglevel';
 //------------------------------------------------------------------------------------------------------------------------
 
 export interface ResourceLoader {
-  load(url: URL): Promise<string | null>;
+  load(url: URL): Promise<Record<string, unknown> | null>;
 }
 
 export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl() as ResourceLoader;
@@ -16,13 +16,13 @@ export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl
 //------------------------------------------------------------------------------------------------------------------------
 
 class ResourceLoaderImpl implements ResourceLoader {
-  private cache: LruCache<string>;
+  private cache: LruCache<Record<string, unknown>>;
 
   constructor() {
     this.cache = new LruCache();
   }
 
-  async load(url: URL): Promise<string | null> {
+  async load(url: URL): Promise<Record<string, unknown> | null> {
     try {
       if (url) {
         const urlStr = url.toString();

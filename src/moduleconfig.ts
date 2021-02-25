@@ -36,9 +36,9 @@ class ModuleConfigProviderImpl implements ModuleConfigProvider {
       new PositiveInteger(1),
       new ProcessingChain(true, true, true, true, true, true),
       null,
-      new URL(`https://modules.numprotocol.com/${moduleNumber.n}/schema-map.json`),
+      new URL(`https://test.modules.numprotocol.com/${moduleNumber.n}/schema-map.json`),
       null,
-      null
+      new URL(`https://test.modules.numprotocol.com/${moduleNumber.n}/locales/`)
     );
   }
 }
