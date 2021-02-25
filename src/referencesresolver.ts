@@ -2,6 +2,8 @@
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
+
+
 /**
  * Resolve references
  */
@@ -43,11 +45,13 @@ class ReferencesResolverImpl implements ReferencesResolver {
     // pre-process these into an easier to use Map
     const referenceValues = {} as Record<string, unknown>;
 
+    // Make a set of references using the locale
     Object.keys(locale).forEach((k) => {
       const ref = `%${k}`;
       referenceValues[ref] = locale[k];
     });
 
+    // Make a set of references using the object index
     const index = json['?'] as any[];
     if (index) {
       index.forEach((v, i) => {
@@ -61,10 +65,13 @@ class ReferencesResolverImpl implements ReferencesResolver {
     Object.keys(json).forEach((k) => {
       const value: any = json[k];
 
+      // Add the value to the references in case its referred to later
+      referenceValues[`%${k}`] = value;
+
       if (Array.isArray(value)) {
-        result[k] = processArray(referenceValues, value);
+        result[k] = processArray(k, referenceValues, value);
       } else if (typeof value === 'object') {
-        result[k] = processObject(referenceValues, value);
+        result[k] = processObject(k, referenceValues, value);
       } else if (typeof value === 'string') {
         result[k] = processString(referenceValues, value);
       } else {
@@ -82,14 +89,17 @@ class ReferencesResolverImpl implements ReferencesResolver {
  * @param referenceValues
  * @param arr
  */
-const processArray = (referenceValues: Record<string, unknown>, arr: any[]): any[] => {
+const processArray = (parent: string, referenceValues: Record<string, unknown>, arr: any[]): any[] => {
   const result: any[] = [];
 
-  arr.forEach((value) => {
+  arr.forEach((value, index) => {
+    const newParent = `${parent}.${index}`;
+    referenceValues[`%${newParent}`] = value;
+
     if (Array.isArray(value)) {
-      result.push(processArray(referenceValues, value));
+      result.push(processArray(newParent, referenceValues, value));
     } else if (typeof value === 'object') {
-      result.push(processObject(referenceValues, value));
+      result.push(processObject(newParent, referenceValues, value));
     } else if (typeof value === 'string') {
       result.push(processString(referenceValues, value));
     } else {
@@ -105,16 +115,18 @@ const processArray = (referenceValues: Record<string, unknown>, arr: any[]): any
  * @param referenceValues
  * @param obj
  */
-const processObject = (referenceValues: Record<string, unknown>, obj: Record<string, unknown>): Record<string, unknown> => {
+const processObject = (parent: string, referenceValues: Record<string, unknown>, obj: Record<string, unknown>): Record<string, unknown> => {
   const result = {} as Record<string, unknown>;
 
   Object.keys(obj).forEach((k) => {
     const value: any = obj[k];
+    const newParent = `${parent}.${k}`;
+    referenceValues[`%${newParent}`] = value;
 
     if (Array.isArray(value)) {
-      result[k] = processArray(referenceValues, value);
+      result[k] = processArray(newParent, referenceValues, value);
     } else if (typeof value === 'object') {
-      result[k] = processObject(referenceValues, value);
+      result[k] = processObject(newParent, referenceValues, value);
     } else if (typeof value === 'string') {
       result[k] = processString(referenceValues, value);
     } else {
