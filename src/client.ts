@@ -20,10 +20,12 @@ import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
+import { createInternalKeysFilter, InternalKeysFilter } from './keysfilter';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfigProvider } from './moduleconfig';
 import { NumUri, PositiveInteger } from './numuri';
+import { createReferencesResolver, ReferencesResolver } from './referencesresolver';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -99,6 +101,8 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
+
+const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/locales/');
 
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
@@ -196,6 +200,8 @@ class NumClientImpl implements NumClient {
   private readonly schemaMapper: SchemaMapper;
   private readonly configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
+  private internalKeysFilter: InternalKeysFilter;
+  private referencesResolver: ReferencesResolver;
 
   /**
    * Creates an instance of num client impl.
@@ -208,6 +214,8 @@ class NumClientImpl implements NumClient {
     this.schemaMapper = createSchemaMapper();
     this.configProvider = createModuleConfigProvider();
     this.resourceLoader = createResourceLoader();
+    this.internalKeysFilter = createInternalKeysFilter();
+    this.referencesResolver = createReferencesResolver();
   }
 
   /**
@@ -352,22 +360,77 @@ class NumClientImpl implements NumClient {
       uv += `${k}=${v.toString()};`;
     });
 
-    const jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
+    let jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
     const moduleConfig = this.configProvider.getConfig(port);
-    if (moduleConfig && moduleConfig.schemaMapUrl) {
-      const schemaMapString = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
-
-      if (schemaMapString) {
-        const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
-        return JSON.stringify(this.schemaMapper.convert(jsonResult as any, schemaMap as any));
+    if (moduleConfig) {
+      // Validate the compact schema if there is one and if the config says we should
+      if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
+        // TODO: load the schema and use it to validate jsonResult
       }
-      // No schema map
-      log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+
+      // Apply the schema mapping if one is defined
+      if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
+        const schemaMapString = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+
+        if (schemaMapString) {
+          const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
+          jsonResult = this.schemaMapper.convert(jsonResult as any, schemaMap as any) as Record<string, unknown>;
+        } else {
+          // No schema map
+          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+          return null;
+        }
+      }
+
+      // Attempt to load a locale file.
+      // Choose the locale base URL
+      const baseUrl = moduleConfig.localeFilesBaseUrl ? moduleConfig.localeFilesBaseUrl : DEFAULT_LOCALES_BASE_URL;
+      let country = userVariables.get('_C')?.toString();
+      let language = userVariables.get('_L')?.toString();
+      if (!language) {
+        language = 'en';
+      }
+      if (!country) {
+        country = 'gb';
+      }
+      const localeFilename = `${language}-${country}.txt`;
+      const localeUrl = new URL(baseUrl.toString() + localeFilename);
+
+      // Try loading the locale file and fallback to the default if we can't find one.
+      let localeFileString = await this.resourceLoader.load(localeUrl);
+
+      if (!localeFileString) {
+        const defaultLocaleUrl = new URL(baseUrl.toString() + 'en-gb.txt');
+        localeFileString = await this.resourceLoader.load(defaultLocaleUrl);
+        if (!localeFileString) {
+          log.error(`Cannot load locale file from ${localeUrl.toString()} or ${defaultLocaleUrl.toString()}`);
+          return null;
+        }
+      }
+
+      // We should now have a localeFileString.
+      const localeJson = JSON.parse(localeFileString) as Record<string, unknown>;
+
+      // Resolve references
+      if (moduleConfig.processingChain.resolveReferences) {
+        jsonResult = this.referencesResolver.resolve(localeJson, jsonResult);
+      }
+
+      // Filter our internal keys
+      if (moduleConfig.processingChain.removeInternalValues) {
+        jsonResult = this.internalKeysFilter.filter(jsonResult);
+      }
+
+      // Validate the expanded schema if there is one and if the config says we should
+      if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
+        // TODO: load the schema and use it to validate jsonResult
+      }
+
       return JSON.stringify(jsonResult);
+    } else {
+      log.error('No module config file available.');
+      return null;
     }
-    // No schema map
-    log.warn(`No schema map defined in ${JSON.stringify(moduleConfig)}`);
-    return JSON.stringify(this.schemaMapper.convert(jsonResult as any, {} as any));
   }
 
   /**

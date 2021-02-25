@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -18,6 +19,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import { fail } from 'assert';
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
@@ -78,7 +80,7 @@ describe('NUMClient', () => {
 
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.equal(null);
-    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organization","description_default":"View Organization"}}';
+    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation","description_default":"View Organisation"}}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -98,7 +100,18 @@ describe('NUMClient', () => {
       },
       setResult: (r: string): void => {
         expect(r).not.equal(null);
-        const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation","description_default":"View Organisation"}}';
+      },
+    };
+
+    const client = createClient(dnsClient);
+    client.setResourceLoader(new DummyResourceLoader());
+
+    const ctx = client.createContext(numUri);
+    await client.retrieveNumRecord(ctx, handler).then((r) => {
+      const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation","description_default":"View Organisation"}}';
+
+      if (r) {
+
         const same = deepEql(
           JSON.parse(r),
           JSON.parse(expected)
@@ -108,15 +121,9 @@ describe('NUMClient', () => {
           console.log(`Expected: ${expected}`);
         }
         expect(same).to.equal(true);
-      },
-    };
-
-    const client = createClient(dnsClient);
-    client.setResourceLoader(new DummyResourceLoader());
-
-    const ctx = client.createContext(numUri);
-    await client.retrieveNumRecord(ctx, handler).then((_result) => {
-      // Ignore because the callback handler will handle it
+      } else {
+        fail('Result "r" is null');
+      }
     });
   });
 
@@ -156,129 +163,147 @@ describe('NUMClient', () => {
 });
 
 class DummyResourceLoader implements ResourceLoader {
-  load(_url: URL): Promise<string | null> {
-    return new Promise<string | null>((resolve, _reject) => {
-      const map = {
-        '@n': {
-          'return': {
-            '@n': '${@n}'
+  load(url: URL): Promise<string | null> {
+    if (url.toString().includes('schema-map')) {
+      return new Promise<string | null>((resolve) => {
+        const map = {
+          '@n': {
+            'return': {
+              '@n': '${@n}'
+            }
+          },
+          'o': {
+            'key': 'organisation',
+            'assign': [
+              'n',
+              's',
+              'c',
+              'h'
+            ],
+            'return': {
+              'object_display_name': '%locale.o.name',
+              'description_default': '%locale.o.default',
+              'name': '${n}',
+              'slogan': '${s}',
+              'contacts': '${c}',
+              'hours': '${h}'
+            }
+          },
+          'fb': {
+            'key': 'facebook',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.fb.name',
+              'description_default': '%locale.fb.default',
+              'description': '${d}',
+              'prefix': 'https://www.facebook.com/',
+              'method_type': 'third_party',
+              'controller': 'facebook.com',
+              'value': '${v}'
+            }
+          },
+          'in': {
+            'key': 'instagram',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.in.name',
+              'description_default': '%locale.in.default',
+              'description': '${d}',
+              'prefix': 'https://www.instagram.com/',
+              'method_type': 'third_party',
+              'controller': 'instagram.com',
+              'value': '${v}'
+            }
+          },
+          'li': {
+            'key': 'linkedin',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.li.name',
+              'description_default': '%locale.li.default',
+              'description': '${d}',
+              'prefix': 'https://www.linkedin.com/',
+              'method_type': 'third_party',
+              'controller': 'linkedin.com',
+              'value': '${v}'
+            }
+          },
+          'pi': {
+            'key': 'pinterest',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.pi.name',
+              'description_default': '%locale.pi.default',
+              'description': '${d}',
+              'prefix': 'https://www.pinterest.com/',
+              'method_type': 'third_party',
+              'controller': 'pinterest.com',
+              'value': '${v}'
+            }
+          },
+          'tw': {
+            'key': 'twitter',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.tw.name',
+              'description_default': '%locale.tw.default',
+              'description': '${d}',
+              'prefix': 'https://www.twitter.com/',
+              'method_type': 'third_party',
+              'controller': 'twitter.com',
+              'value': '${v}',
+              'value_prefix': '@'
+            }
+          },
+          't': {
+            'key': 'telephone',
+            'assign': [
+              'v',
+              'd'
+            ],
+            'return': {
+              'object_display_name': '%locale.t.name',
+              'description_default': '%locale.t.default',
+              'description': '${d}',
+              'prefix': 'tel:',
+              'method_type': 'core',
+              'value': '${v}'
+            }
           }
-        },
-        'o': {
-          'key': 'organisation',
-          'assign': [
-            'n',
-            's',
-            'c',
-            'h'
-          ],
-          'return': {
-            'object_display_name': '%locale.o.name',
-            'description_default': '%locale.o.default',
-            'name': '${n}',
-            'slogan': '${s}',
-            'contacts': '${c}',
-            'hours': '${h}'
-          }
-        },
-        'fb': {
-          'key': 'facebook',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.fb.name',
-            'description_default': '%locale.fb.default',
-            'description': '${d}',
-            'prefix': 'https://www.facebook.com/',
-            'method_type': 'third_party',
-            'controller': 'facebook.com',
-            'value': '${v}'
-          }
-        },
-        'in': {
-          'key': 'instagram',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.in.name',
-            'description_default': '%locale.in.default',
-            'description': '${d}',
-            'prefix': 'https://www.instagram.com/',
-            'method_type': 'third_party',
-            'controller': 'instagram.com',
-            'value': '${v}'
-          }
-        },
-        'li': {
-          'key': 'linkedin',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.li.name',
-            'description_default': '%locale.li.default',
-            'description': '${d}',
-            'prefix': 'https://www.linkedin.com/',
-            'method_type': 'third_party',
-            'controller': 'linkedin.com',
-            'value': '${v}'
-          }
-        },
-        'pi': {
-          'key': 'pinterest',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.pi.name',
-            'description_default': '%locale.pi.default',
-            'description': '${d}',
-            'prefix': 'https://www.pinterest.com/',
-            'method_type': 'third_party',
-            'controller': 'pinterest.com',
-            'value': '${v}'
-          }
-        },
-        'tw': {
-          'key': 'twitter',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.tw.name',
-            'description_default': '%locale.tw.default',
-            'description': '${d}',
-            'prefix': 'https://www.twitter.com/',
-            'method_type': 'third_party',
-            'controller': 'twitter.com',
-            'value': '${v}',
-            'value_prefix': '@'
-          }
-        },
-        't': {
-          'key': 'telephone',
-          'assign': [
-            'v',
-            'd'
-          ],
-          'return': {
-            'object_display_name': '%locale.t.name',
-            'description_default': '%locale.t.default',
-            'description': '${d}',
-            'prefix': 'tel:',
-            'method_type': 'core',
-            'value': '${v}'
-          }
-        }
-      };
-      resolve(JSON.stringify(map));
+        };
+        resolve(JSON.stringify(map));
+      });
+    }
+    if (url.toString().includes('locales')) {
+      return new Promise<string | null>((resolve) => {
+        const locale = {
+          'locale.o.name': 'Organisation',
+          'locale.o.default': 'View Organisation',
+          'locale.tw.name': 'Twitter',
+          'locale.tw.default': 'View Twitter profile',
+          'locale.li.name': 'LinkedIn',
+          'locale.li.default': 'View LinkedIn page',
+        };
+        resolve(JSON.stringify(locale));
+      });
+    }
+    return new Promise<string | null>((resolve) => {
+      resolve(null);
     });
   }
 
