@@ -24,8 +24,8 @@ describe('ReferencesResolver', () => {
   it('should be able to resolve references in the locale and the index', () => {
 
     const locale = { 'locale.o.name': 'Organisation' };
-    const numRecord = { '?': ['first', 'second'], x: '%locale.o.name', y: '%0', z: '%1' };
-    const expected = { '?': ['first', 'second'], 'x': 'Organisation', 'y': 'first', 'z': 'second' };
+    const numRecord = { '?': ['first', 'second'], x: '%locale.o.name', y: '%0', z: '%1', deep: { arg: 'deepvalue' }, b: '%deep.arg' };
+    const expected = { '?': ['first', 'second'], 'x': 'Organisation', 'y': 'first', 'z': 'second', 'deep': { 'arg': 'deepvalue' }, 'b': 'deepvalue' };
 
     const result = resolver.resolve(locale, numRecord);
 
