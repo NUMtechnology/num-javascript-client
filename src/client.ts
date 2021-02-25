@@ -15,7 +15,7 @@
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
-import { createSchemaMapper, SchemaMapper } from '../../typescript-schema-mapper/src/SchemaMapper';
+import { mapper } from 'num-schema-mapper';
 import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
@@ -197,7 +197,6 @@ class DefaultCallbackHandler implements CallbackHandler {
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
-  private readonly schemaMapper: SchemaMapper;
   private readonly configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
   private internalKeysFilter: InternalKeysFilter;
@@ -211,7 +210,6 @@ class NumClientImpl implements NumClient {
   constructor(dnsClient?: DnsClient) {
     this.dnsServices = createDnsServices(dnsClient);
     this.modlServices = createModlServices();
-    this.schemaMapper = createSchemaMapper();
     this.configProvider = createModuleConfigProvider();
     this.resourceLoader = createResourceLoader();
     this.internalKeysFilter = createInternalKeysFilter();
@@ -374,7 +372,7 @@ class NumClientImpl implements NumClient {
 
         if (schemaMapString) {
           const schemaMap = JSON.parse(schemaMapString) as Record<string, unknown>;
-          jsonResult = this.schemaMapper.convert(jsonResult as any, schemaMap as any) as Record<string, unknown>;
+          jsonResult = mapper.convert(jsonResult as any, schemaMap as any) as Record<string, unknown>;
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);

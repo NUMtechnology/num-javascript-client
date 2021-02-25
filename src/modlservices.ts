@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import { Interpreter } from '../../typescript-modl-interpreter/lib/modl-interpreter/Interpreter';
+import { interpreter } from 'modl_interpreter';
 import { NumLookupRedirect } from './exceptions';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -63,7 +63,6 @@ export const checkForRedirection = (obj: any): void => {
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
 
-const modlInterpreter = new Interpreter();
 /**
  * Modl services impl
  */
@@ -76,7 +75,7 @@ class ModlServicesImpl implements ModlServices {
    * @returns num record
    */
   interpretNumRecord(modl: string): Record<string, unknown> {
-    const jsonObj = modlInterpreter.interpretToJsonObject(modl);
+    const jsonObj = interpreter.interpretToJsonObject(modl);
     if (jsonObj) {
       checkForRedirection(jsonObj);
       return jsonObj as Record<string, unknown>;

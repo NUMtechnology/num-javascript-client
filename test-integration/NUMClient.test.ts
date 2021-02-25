@@ -23,11 +23,11 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
-import { ResourceLoader } from '../../num-javascript-client/src/resourceloader';
 import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
 import { NumLocation } from '../src/context';
 import { createDnsClient, DoHResolver } from '../src/dnsclient';
 import { parseNumUri } from '../src/numuri';
+import { ResourceLoader } from '../src/resourceloader';
 
 
 const log = loglevel as Logger;

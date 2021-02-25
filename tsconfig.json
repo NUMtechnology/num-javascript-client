@@ -24,10 +24,7 @@
     "sourceMap": true
   },
   "include": [
-    "./src/*.ts",
-    "./index.d.ts",
-    "test",
-    "test-integration"
+    "src/*.ts"
   ],
   "exclude": [
     "node_modules"
