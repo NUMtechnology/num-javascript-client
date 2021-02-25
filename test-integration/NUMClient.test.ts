@@ -80,7 +80,7 @@ describe('NUMClient', () => {
 
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.equal(null);
-    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation","description_default":"View Organisation"}}';
+    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organization","description_default":"View Organization"}}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -164,7 +164,9 @@ describe('NUMClient', () => {
 
 class DummyResourceLoader implements ResourceLoader {
   load(url: URL): Promise<string | null> {
-    if (url.toString().includes('schema-map')) {
+    const urlStr = url.toString();
+
+    if (urlStr.includes('schema-map')) {
       return new Promise<string | null>((resolve) => {
         const map = {
           '@n': {
@@ -289,11 +291,24 @@ class DummyResourceLoader implements ResourceLoader {
         resolve(JSON.stringify(map));
       });
     }
-    if (url.toString().includes('locales')) {
+    if (urlStr.includes('locales') && urlStr.includes('en-gb')) {
       return new Promise<string | null>((resolve) => {
         const locale = {
           'locale.o.name': 'Organisation',
           'locale.o.default': 'View Organisation',
+          'locale.tw.name': 'Twitter',
+          'locale.tw.default': 'View Twitter profile',
+          'locale.li.name': 'LinkedIn',
+          'locale.li.default': 'View LinkedIn page',
+        };
+        resolve(JSON.stringify(locale));
+      });
+    }
+    if (urlStr.includes('locales') && urlStr.includes('en-us')) {
+      return new Promise<string | null>((resolve) => {
+        const locale = {
+          'locale.o.name': 'Organization',
+          'locale.o.default': 'View Organization',
           'locale.tw.name': 'Twitter',
           'locale.tw.default': 'View Twitter profile',
           'locale.li.name': 'LinkedIn',

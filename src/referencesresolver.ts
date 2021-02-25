@@ -1,4 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+//------------------------------------------------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------------------------------------------------
+/**
+ * Resolve references
+ */
 export interface ReferencesResolver {
   /**
    * Replace object references using the locale and object index.
@@ -13,6 +19,15 @@ export interface ReferencesResolver {
  * Function to create a ReferencesResolver
  */
 export const createReferencesResolver = (): ReferencesResolver => new ReferencesResolverImpl();
+
+//------------------------------------------------------------------------------------------------------------------------
+// Internals
+//------------------------------------------------------------------------------------------------------------------------
+
+// eslint-disable-next-line max-len
+const FIND_REFS = new RegExp(
+  /(((\%|~%|%)\w+)(\.\w*<`?\w*`?,`\w*`>)+|((\%|~%|%)` ?[\w-]+`[\w.<>,]*%?)|((\%|~%|%)\*?[\w]+(\.%?\w*(<[\w, `]*>)?)*%?)|(%`[ %\w-]+`(\.\w+)+)|(%`.+`))/gm
+);
 
 /**
  * Private implementation of a ReferencesResolver
@@ -119,11 +134,16 @@ const processObject = (referenceValues: Record<string, unknown>, obj: Record<str
 const processString = (referenceValues: Record<string, unknown>, str: string): string => {
   let result = str;
 
+  let matches: RegExpExecArray | null;
+
   // TODO: handle situations where locale[k] is not a string
-  Object.keys(referenceValues).forEach((ref) => {
-    // TODO: use a regex to find the references to replace and look up those.
-    result = result.replace(ref, referenceValues[ref] as string);
-  });
+  while ((matches = FIND_REFS.exec(str)) !== null) {
+    const ref = matches[0];
+    const replacement = referenceValues[ref];
+    if (replacement) {
+      result = result.replace(ref, replacement as string);
+    }
+  }
 
   return result;
 };
