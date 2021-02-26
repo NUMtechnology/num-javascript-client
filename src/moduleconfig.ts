@@ -10,7 +10,6 @@ export class ProcessingChain {
     readonly modlToJson: boolean,
     readonly validateCompactJson: boolean,
     readonly unpack: boolean,
-    readonly resolveReferences: boolean,
     readonly removeInternalValues: boolean,
     readonly validateExpandedJson: boolean
   ) {}
@@ -34,7 +33,7 @@ class ModuleConfigProviderImpl implements ModuleConfigProvider {
     return new ModuleConfig(
       moduleNumber,
       new PositiveInteger(1),
-      new ProcessingChain(true, true, true, true, true, true),
+      new ProcessingChain(true, true, true, true, true),
       null,
       new URL(`https://test.modules.numprotocol.com/${moduleNumber.n}/schema-map.json`),
       null,

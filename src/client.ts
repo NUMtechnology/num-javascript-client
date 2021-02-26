@@ -25,7 +25,6 @@ import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfigProvider } from './moduleconfig';
 import { NumUri, PositiveInteger } from './numuri';
-import { createReferencesResolver, ReferencesResolver } from './referencesresolver';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -200,7 +199,6 @@ class NumClientImpl implements NumClient {
   private readonly configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
   private internalKeysFilter: InternalKeysFilter;
-  private referencesResolver: ReferencesResolver;
 
   /**
    * Creates an instance of num client impl.
@@ -213,7 +211,6 @@ class NumClientImpl implements NumClient {
     this.configProvider = createModuleConfigProvider();
     this.resourceLoader = createResourceLoader();
     this.internalKeysFilter = createInternalKeysFilter();
-    this.referencesResolver = createReferencesResolver();
   }
 
   /**
@@ -366,20 +363,6 @@ class NumClientImpl implements NumClient {
         // TODO: load the schema and use it to validate jsonResult
       }
 
-      // Apply the schema mapping if one is defined
-      if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
-
-        if (schemaMapResponse) {
-          const schemaMap = schemaMapResponse.data as Record<string, unknown>;
-          jsonResult = mapper.convert(jsonResult as any, schemaMap) as Record<string, unknown>;
-        } else {
-          // No schema map
-          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
-          return null;
-        }
-      }
-
       // Attempt to load a locale file.
       // Choose the locale base URL
       const baseUrl = moduleConfig.localeFilesBaseUrl ? moduleConfig.localeFilesBaseUrl : DEFAULT_LOCALES_BASE_URL;
@@ -406,10 +389,19 @@ class NumClientImpl implements NumClient {
         }
       }
 
-      // Resolve references
-      if (moduleConfig.processingChain.resolveReferences) {
-        const localeFile = localeFileResponse.data as Record<string, unknown>;
-        jsonResult = this.referencesResolver.resolve(localeFile, jsonResult);
+      const localeFile = localeFileResponse.data as Record<string, unknown>;
+      // Apply the schema mapping and Resolve references if one is defined
+      if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
+        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+
+        if (schemaMapResponse) {
+          const schemaMap = schemaMapResponse.data as Record<string, unknown>;
+          jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMap) as Record<string, unknown>;
+        } else {
+          // No schema map
+          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+          return null;
+        }
       }
 
       // Filter our internal keys

@@ -45,7 +45,6 @@ describe('ModuleConfig', () => {
 
     expect(moduleSpec.processingChain.modlToJson).equal(true);
     expect(moduleSpec.processingChain.removeInternalValues).equal(true);
-    expect(moduleSpec.processingChain.resolveReferences).equal(true);
     expect(moduleSpec.processingChain.unpack).equal(true);
     expect(moduleSpec.processingChain.validateCompactJson).equal(true);
     expect(moduleSpec.processingChain.validateExpandedJson).equal(true);
