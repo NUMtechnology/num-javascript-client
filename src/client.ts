@@ -70,6 +70,14 @@ export interface NumClient {
    * @param loader Override the default ResourceLoader - mainly used for testing.
    */
   setResourceLoader(loader: ResourceLoader): void;
+
+  /**
+   *
+   * @param modl a raw MODL string
+   * @param moduleNumber a PositiveInteger module number
+   * @param userVariables a Map of user-supplied values such as 'C' and 'L' for country and language respectively.
+   */
+  interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null>;
 }
 
 /**
@@ -342,18 +350,18 @@ class NumClientImpl implements NumClient {
    * Interprets a MODL record for the given module
    *
    * @param modl
-   * @param port
+   * @param moduleNumber
    * @param userVariables
    * @returns interpret
    */
-  private async interpret(modl: string, port: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
+  public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
     let uv = '';
     userVariables.forEach((v, k) => {
       uv += `${k}=${v.toString()};`;
     });
 
     let jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
-    const moduleConfig = this.configProvider.getConfig(port);
+    const moduleConfig = this.configProvider.getConfig(moduleNumber);
     if (moduleConfig) {
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {

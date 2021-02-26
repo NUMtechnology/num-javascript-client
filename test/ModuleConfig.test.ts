@@ -32,8 +32,6 @@ describe('ModuleConfig', () => {
         'modlToJson': true,
         'validateCompactJson': true,
         'unpack': true,
-        'resolveReferences': true,
-        'removeInternalValues': true,
         'validateExpandedJson': true
       }
     } as unknown;
@@ -44,7 +42,6 @@ describe('ModuleConfig', () => {
     expect(moduleSpec.localeFilesBaseUrl?.toString()).to.equal('https://modules.numprotocol.com/1/locales/');
 
     expect(moduleSpec.processingChain.modlToJson).equal(true);
-    expect(moduleSpec.processingChain.removeInternalValues).equal(true);
     expect(moduleSpec.processingChain.unpack).equal(true);
     expect(moduleSpec.processingChain.validateCompactJson).equal(true);
     expect(moduleSpec.processingChain.validateExpandedJson).equal(true);
