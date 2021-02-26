@@ -20,7 +20,6 @@ import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
-import { createInternalKeysFilter, InternalKeysFilter } from './keysfilter';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfigProvider } from './moduleconfig';
@@ -198,7 +197,6 @@ class NumClientImpl implements NumClient {
   readonly modlServices: ModlServices;
   private readonly configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
-  private internalKeysFilter: InternalKeysFilter;
 
   /**
    * Creates an instance of num client impl.
@@ -210,7 +208,6 @@ class NumClientImpl implements NumClient {
     this.modlServices = createModlServices();
     this.configProvider = createModuleConfigProvider();
     this.resourceLoader = createResourceLoader();
-    this.internalKeysFilter = createInternalKeysFilter();
   }
 
   /**
@@ -402,11 +399,6 @@ class NumClientImpl implements NumClient {
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
           return null;
         }
-      }
-
-      // Filter our internal keys
-      if (moduleConfig.processingChain.removeInternalValues) {
-        jsonResult = this.internalKeysFilter.filter(jsonResult);
       }
 
       // Validate the expanded schema if there is one and if the config says we should
