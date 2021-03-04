@@ -6,7 +6,9 @@ import log from 'loglevel';
 //------------------------------------------------------------------------------------------------------------------------
 
 export interface ResourceLoader {
-  load(url: URL): Promise<Record<string, unknown> | null>;
+  setenv(env: string);
+
+  load(url: string): Promise<Record<string, unknown> | null>;
 }
 
 export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl() as ResourceLoader;
@@ -17,25 +19,31 @@ export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl
 
 class ResourceLoaderImpl implements ResourceLoader {
   private cache: LruCache<Record<string, unknown>>;
+  private env: string | null;
 
   constructor() {
     this.cache = new LruCache();
+    this.env = null;
   }
 
-  async load(url: URL): Promise<Record<string, unknown> | null> {
+  setenv(env: string) {
+    this.env = env;
+  }
+
+  async load(url: string): Promise<Record<string, unknown> | null> {
     try {
       if (url) {
-        const urlStr = url.toString();
-        const cached = this.cache.get(urlStr);
+        url = this.env ? url.replace('modules.numprotocol.com', `${this.env}.modules.numprotocol.com`) : url;
+        const cached = this.cache.get(url);
         if (cached) {
           return cached;
         } else {
-          return await axios.get(urlStr);
+          return await axios.get(url);
         }
       }
     } catch (e) {
       if (e instanceof Error) {
-        log.error(`Cannot load resource from ${JSON.stringify(url)} - ${e.message}`);
+        log.error(`Cannot load resource from ${url} - ${e.message}`);
       }
     }
     return null;

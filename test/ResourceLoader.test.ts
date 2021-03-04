@@ -18,17 +18,17 @@ const loader = createResourceLoader();
 
 describe('ResourceLoader', () => {
   it('should be able to load a valid resource', async () => {
-    const rcf = await loader.load(new URL('https://modules.numprotocol.com/1/rcf.txt'));
+    const rcf = await loader.load('https://modules.numprotocol.com/1/rcf.txt');
     expect(rcf).not.equal(null);
   });
 
   it('should return null for an invalid resource', async () => {
-    const rcf = await loader.load(new URL('https://modules.numprotocol.com/1/blahblah.txt'));
+    const rcf = await loader.load('https://modules.numprotocol.com/1/blahblah.txt');
     expect(rcf).equal(null);
   });
 
   it('should return null for an invalid web site', async () => {
-    const rcf = await loader.load(new URL('https://doesnotexisthdgfksajhdgfkahsdgfhkjdgsdjhfg.com/1/blahblah.txt'));
+    const rcf = await loader.load('https://doesnotexisthdgfksajhdgfkahsdgfhkjdgsdjhfg.com/1/blahblah.txt');
     expect(rcf).equal(null);
   });
 });

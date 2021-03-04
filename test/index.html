@@ -24,6 +24,7 @@
 
           const client = num.createClient();
           const ctx = client.createContext(numUri);
+          client.setenv(null);
 
           return client.retrieveNumRecord(ctx);
         }

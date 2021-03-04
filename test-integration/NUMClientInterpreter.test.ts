@@ -61,8 +61,17 @@ describe('NUMClient with Interpreter', () => {
 });
 
 class DummyResourceLoader implements ResourceLoader {
-  load(url: URL): Promise<Record<string, unknown> | null> {
-    const urlStr = url.toString();
+  private env: string;
+
+  constructor() {
+    this.env = 'test';
+  }
+
+  setenv(env: string) {
+    this.env = env;
+  }
+
+  load(urlStr: string): Promise<Record<string, unknown> | null> {
 
     log.info(`Dummy resource loader loading: ${urlStr}`);
 
@@ -71,10 +80,10 @@ class DummyResourceLoader implements ResourceLoader {
         const module1 = {
           "module": 1,
           "version": 1,
-          "compactSchemaUrl": "https://test.modules.numprotocol.com/1/compact-schema.json",
-          "expandedSchemaUrl": "https://test.modules.numprotocol.com/1/schema.json",
-          "schemaMapUrl": "https://test.modules.numprotocol.com/1/schema-map.json",
-          "localeFilesBaseUrl": "https://test.modules.numprotocol.com/1/locales/",
+          "compactSchemaUrl": `https://${this.env}.modules.numprotocol.com/1/compact-schema.json`,
+          "expandedSchemaUrl": `https://${this.env}.modules.numprotocol.com/1/schema.json`,
+          "schemaMapUrl": `https://${this.env}.modules.numprotocol.com/1/schema-map.json`,
+          "localeFilesBaseUrl": `https://${this.env}.modules.numprotocol.com/1/locales/`,
           "processingChain": {
             "modlToJson": true,
             "validateCompactJson": true,

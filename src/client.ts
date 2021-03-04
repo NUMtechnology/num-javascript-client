@@ -79,6 +79,13 @@ export interface NumClient {
    * @param userVariables a Map of user-supplied values such as 'C' and 'L' for country and language respectively.
    */
   interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null>;
+
+  /**
+   * Set the execution environment.
+   *
+   * @param env `test` for the test environment
+   */
+  setenv(env: string): void;
 }
 
 /**
@@ -234,6 +241,16 @@ class NumClientImpl implements NumClient {
     this.resourceLoader = loader;
     this.configProvider = createModuleConfigProvider(this.resourceLoader);
   }
+
+  /**
+   * Set the execution environment.
+   *
+   * @param env `test` for the test environment
+   */
+  setenv(env: string): void {
+    this.resourceLoader.setenv(env);
+  }
+
   /**
    * Creates an instance of num client impl.
    *
@@ -376,7 +393,7 @@ class NumClientImpl implements NumClient {
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
         // load the schema and use it to validate jsonResult
-        const compactSchemaResponse = await this.resourceLoader.load(new URL(moduleConfig.compactSchemaUrl));
+        const compactSchemaResponse = await this.resourceLoader.load(moduleConfig.compactSchemaUrl);
         if (compactSchemaResponse && compactSchemaResponse.data) {
           const validate = ajv.compile(compactSchemaResponse.data as Record<string, unknown>);
 
@@ -406,7 +423,7 @@ class NumClientImpl implements NumClient {
         country = DEFAULT_COUNTRY;
       }
       const localeFilename = `${language}-${country}.json`;
-      const localeUrl = new URL(baseUrl.toString() + localeFilename);
+      const localeUrl = baseUrl.toString() + localeFilename;
 
       // Try loading the locale file and fallback to the default if we can't find one.
       let localeFileResponse = await this.resourceLoader.load(localeUrl);
@@ -415,7 +432,7 @@ class NumClientImpl implements NumClient {
         if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
           return null;
         } else {
-          const defaultLocaleUrl = new URL(baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME);
+          const defaultLocaleUrl = baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME;
           localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
           if (!localeFileResponse) {
             return null;
@@ -426,7 +443,7 @@ class NumClientImpl implements NumClient {
       const localeFile = localeFileResponse.data as Record<string, unknown>;
       // Apply the schema mapping and Resolve references if one is defined
       if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-        const schemaMapResponse = await this.resourceLoader.load(new URL(moduleConfig.schemaMapUrl));
+        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
 
         if (schemaMapResponse) {
           const schemaMap = schemaMapResponse.data as Record<string, unknown>;
@@ -441,7 +458,7 @@ class NumClientImpl implements NumClient {
       // Validate the expanded schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
         // load the schema and use it to validate the expanded JSON
-        const schemaResponse = await this.resourceLoader.load(new URL(moduleConfig.expandedSchemaUrl));
+        const schemaResponse = await this.resourceLoader.load(moduleConfig.expandedSchemaUrl);
         if (schemaResponse && schemaResponse.data) {
           const validate = ajv.compile(schemaResponse.data as Record<string, unknown>);
 

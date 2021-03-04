@@ -31,7 +31,7 @@ class ModuleConfigProviderImpl implements ModuleConfigProvider {
   }
 
   async getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null> {
-    const response = await this.resourceLoader.load(new URL(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/module-spec.json`));
+    const response = await this.resourceLoader.load(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/module-spec.json`);
 
     if (response && response.data) {
       return response.data as ModuleConfig;
