@@ -31,7 +31,7 @@ const log = loglevel as Logger;
 
 log.setLevel('info');
 
-describe('NUMClient', () => {
+describe('NUMClient with Interpreter', () => {
 
   it('should be able to lookup a NUM record using the NUMClient', async () => {
 

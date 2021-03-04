@@ -109,6 +109,9 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 //------------------------------------------------------------------------------------------------------------------------
 
 const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/locales/');
+const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_COUNTRY = 'gb';
+const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
@@ -374,23 +377,26 @@ class NumClientImpl implements NumClient {
       let country = userVariables.get('_C')?.toString();
       let language = userVariables.get('_L')?.toString();
       if (!language) {
-        language = 'en';
+        language = DEFAULT_LANGUAGE;
       }
       if (!country) {
-        country = 'gb';
+        country = DEFAULT_COUNTRY;
       }
-      const localeFilename = `${language}-${country}.txt`;
+      const localeFilename = `${language}-${country}.json`;
       const localeUrl = new URL(baseUrl.toString() + localeFilename);
 
       // Try loading the locale file and fallback to the default if we can't find one.
       let localeFileResponse = await this.resourceLoader.load(localeUrl);
 
       if (!localeFileResponse) {
-        const defaultLocaleUrl = new URL(baseUrl.toString() + 'en-gb.txt');
-        localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
-        if (!localeFileResponse) {
-          log.error(`Cannot load locale file from ${localeUrl.toString()} or ${defaultLocaleUrl.toString()}`);
+        if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
           return null;
+        } else {
+          const defaultLocaleUrl = new URL(baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME);
+          localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
+          if (!localeFileResponse) {
+            return null;
+          }
         }
       }
 
