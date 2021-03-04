@@ -24,13 +24,13 @@
 
           const client = num.createClient();
           const ctx = client.createContext(numUri);
-          client.setenv(null);
+          client.setenv('test');
 
           return client.retrieveNumRecord(ctx);
         }
 
         lookup('num.uk:1').then((result) => {
-          const pretty = JSON.stringify(JSON.parse(result), null, 4);
+          const pretty = JSON.stringify(JSON.parse(result), null, 1);
 
           document.getElementById('num').innerHTML = pretty;
         });
