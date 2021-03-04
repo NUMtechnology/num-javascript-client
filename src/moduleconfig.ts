@@ -1,14 +1,14 @@
 import { PositiveInteger } from './numuri';
-import { createResourceLoader, ResourceLoader } from './resourceloader';
+import { ResourceLoader } from './resourceloader';
 
 export interface ModuleConfigProvider {
   getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null>;
 }
 
-export const createModuleConfigProvider = (): ModuleConfigProvider => new ModuleConfigProviderImpl();
+export const createModuleConfigProvider = (resourceLoader: ResourceLoader): ModuleConfigProvider => new ModuleConfigProviderImpl(resourceLoader);
 
 export class ProcessingChain {
-  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) { }
+  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) {}
 }
 
 export class ModuleConfig {
@@ -20,15 +20,14 @@ export class ModuleConfig {
     readonly schemaMapUrl: string | null,
     readonly expandedSchemaUrl: string | null,
     readonly localeFilesBaseUrl: string | null
-  ) { }
+  ) {}
 }
 
 const DEFAULT_MODULES_BASE_URL = 'https://modules.numprotocol.com';
 
 class ModuleConfigProviderImpl implements ModuleConfigProvider {
-  private resourceLoader: ResourceLoader;
-  constructor() {
-    this.resourceLoader = createResourceLoader();
+  constructor(private resourceLoader: ResourceLoader) {
+    this.resourceLoader = resourceLoader;
   }
 
   async getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null> {

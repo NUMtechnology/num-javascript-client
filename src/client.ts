@@ -211,7 +211,7 @@ class DefaultCallbackHandler implements CallbackHandler {
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
-  private readonly configProvider: ModuleConfigProvider;
+  private configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
 
   /**
@@ -222,8 +222,8 @@ class NumClientImpl implements NumClient {
   constructor(dnsClient?: DnsClient) {
     this.dnsServices = createDnsServices(dnsClient);
     this.modlServices = createModlServices();
-    this.configProvider = createModuleConfigProvider();
     this.resourceLoader = createResourceLoader();
+    this.configProvider = createModuleConfigProvider(this.resourceLoader);
   }
 
   /**
@@ -232,6 +232,7 @@ class NumClientImpl implements NumClient {
    */
   setResourceLoader(loader: ResourceLoader): void {
     this.resourceLoader = loader;
+    this.configProvider = createModuleConfigProvider(this.resourceLoader);
   }
   /**
    * Creates an instance of num client impl.
@@ -364,14 +365,14 @@ class NumClientImpl implements NumClient {
    */
   // eslint-disable-next-line complexity
   public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
-    let uv = '';
-    userVariables.forEach((v, k) => {
-      uv += `${k}=${v.toString()};`;
-    });
-
-    let jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
+    let jsonResult = this.modlServices.interpretNumRecord(modl);
     const moduleConfig = await this.configProvider.getConfig(moduleNumber);
     if (moduleConfig) {
+      // Skip everything if specified
+      if (!moduleConfig.processingChain.modlToJson) {
+        return modl;
+      }
+
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
         // load the schema and use it to validate jsonResult
