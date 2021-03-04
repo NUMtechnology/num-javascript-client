@@ -1,12 +1,14 @@
 import { PositiveInteger } from './numuri';
+import { createResourceLoader, ResourceLoader } from './resourceloader';
+
 export interface ModuleConfigProvider {
-  getConfig(moduleNumber: PositiveInteger): ModuleConfig | null;
+  getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null>;
 }
 
 export const createModuleConfigProvider = (): ModuleConfigProvider => new ModuleConfigProviderImpl();
 
 export class ProcessingChain {
-  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) {}
+  constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) { }
 }
 
 export class ModuleConfig {
@@ -14,24 +16,27 @@ export class ModuleConfig {
     readonly moduleNumber: PositiveInteger,
     readonly moduleVersion: PositiveInteger,
     readonly processingChain: ProcessingChain,
-    readonly compactSchemaUrl: URL | null,
-    readonly schemaMapUrl: URL | null,
-    readonly expandedSchemaUrl: URL | null,
-    readonly localeFilesBaseUrl: URL | null
-  ) {}
+    readonly compactSchemaUrl: string | null,
+    readonly schemaMapUrl: string | null,
+    readonly expandedSchemaUrl: string | null,
+    readonly localeFilesBaseUrl: string | null
+  ) { }
 }
 
+const DEFAULT_MODULES_BASE_URL = 'https://modules.numprotocol.com';
+
 class ModuleConfigProviderImpl implements ModuleConfigProvider {
-  getConfig(moduleNumber: PositiveInteger): ModuleConfig | null {
-    // TODO: Implement fully
-    return new ModuleConfig(
-      moduleNumber,
-      new PositiveInteger(1),
-      new ProcessingChain(true, true, true, true),
-      null,
-      new URL(`https://test.modules.numprotocol.com/${moduleNumber.n}/schema-map.json`),
-      null,
-      new URL(`https://test.modules.numprotocol.com/${moduleNumber.n}/locales/`)
-    );
+  private resourceLoader: ResourceLoader;
+  constructor() {
+    this.resourceLoader = createResourceLoader();
+  }
+
+  async getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null> {
+    const response = await this.resourceLoader.load(new URL(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/module-spec.json`));
+
+    if (response && response.data) {
+      return response.data as ModuleConfig;
+    }
+    return null;
   }
 }

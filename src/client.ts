@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Ajv from 'ajv';
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
@@ -108,10 +109,14 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
 
+log.setLevel('info');
+
 const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/locales/');
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_COUNTRY = 'gb';
 const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
+
+const ajv = new Ajv();
 
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
@@ -357,6 +362,7 @@ class NumClientImpl implements NumClient {
    * @param userVariables
    * @returns interpret
    */
+  // eslint-disable-next-line complexity
   public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
     let uv = '';
     userVariables.forEach((v, k) => {
@@ -364,11 +370,27 @@ class NumClientImpl implements NumClient {
     });
 
     let jsonResult = this.modlServices.interpretNumRecord(`${uv}${modl}`);
-    const moduleConfig = this.configProvider.getConfig(moduleNumber);
+    const moduleConfig = await this.configProvider.getConfig(moduleNumber);
     if (moduleConfig) {
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
-        // TODO: load the schema and use it to validate jsonResult
+        // load the schema and use it to validate jsonResult
+        const compactSchemaResponse = await this.resourceLoader.load(new URL(moduleConfig.compactSchemaUrl));
+        if (compactSchemaResponse && compactSchemaResponse.data) {
+          const validate = ajv.compile(compactSchemaResponse.data as Record<string, unknown>);
+
+          if (!validate(jsonResult)) {
+            log.error(`Fails to match the compact JSON schema: ${JSON.stringify(jsonResult)}`);
+            return null;
+          } else {
+            log.info('JSON matches the compact schema.');
+          }
+        } else {
+          log.error(`Unable to load the compact JSON schema from : ${JSON.stringify(moduleConfig.compactSchemaUrl)}`);
+          return null;
+        }
+      } else {
+        log.info('Not configured to validate against the compact schema.');
       }
 
       // Attempt to load a locale file.
@@ -403,7 +425,7 @@ class NumClientImpl implements NumClient {
       const localeFile = localeFileResponse.data as Record<string, unknown>;
       // Apply the schema mapping and Resolve references if one is defined
       if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+        const schemaMapResponse = await this.resourceLoader.load(new URL(moduleConfig.schemaMapUrl));
 
         if (schemaMapResponse) {
           const schemaMap = schemaMapResponse.data as Record<string, unknown>;
@@ -417,7 +439,23 @@ class NumClientImpl implements NumClient {
 
       // Validate the expanded schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
-        // TODO: load the schema and use it to validate jsonResult
+        // load the schema and use it to validate the expanded JSON
+        const schemaResponse = await this.resourceLoader.load(new URL(moduleConfig.expandedSchemaUrl));
+        if (schemaResponse && schemaResponse.data) {
+          const validate = ajv.compile(schemaResponse.data as Record<string, unknown>);
+
+          if (!validate(jsonResult)) {
+            log.error(`Fails to match the expanded JSON schema: ${JSON.stringify(jsonResult)}`);
+            return null;
+          } else {
+            log.info('JSON matches the expanded schema.');
+          }
+        } else {
+          log.error(`Unable to load the expanded JSON schema from : ${JSON.stringify(moduleConfig.expandedSchemaUrl)}`);
+          return null;
+        }
+      } else {
+        log.info('Not configured to validate against the expanded schema.');
       }
 
       return JSON.stringify(jsonResult);
