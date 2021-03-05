@@ -9,38 +9,41 @@
 <body>
   <script src="../web/num-client-latest.js"></script>
   <h1>NUM Protocol Example</h1>
-  <h2>NUM URI = 'num.uk:1'</h1>
-    <div style="border: 1px solid blue;width: fit-content;">
-      <pre id='num'></pre>
-    </div>
+  <div>
+    NUM URI = <input type="text" value="numexample.com:1" id='urivalue' onchange="reloadRecord()">
     <input type="button" value="Reload" onclick="reloadRecord()">
-    <script>
+  </div>
+  <div style="border: 1px solid blue;width: fit-content;">
+    <pre id='num'></pre>
+  </div>
+  <script>
 
-      const num = require('num-client');
-      const client = num.createClient();
-      client.setenv('test');
+    const num = require('num-client');
+    const client = num.createClient();
+    client.setenv('test');
 
-      function lookup(uri) {
-        const numUri = num.parseNumUri(uri);
+    function lookup(uri) {
+      const numUri = num.parseNumUri(uri);
 
-        const ctx = client.createContext(numUri);
+      const ctx = client.createContext(numUri);
 
-        return client.retrieveNumRecord(ctx);
-      }
+      return client.retrieveNumRecord(ctx);
+    }
 
-      function reloadRecord() {
-        lookup('num.uk:1').then((result) => {
-          const pretty = JSON.stringify(JSON.parse(result), null, 1);
-          document.getElementById('num').innerHTML = pretty;
-        });
-
-      }
-
-      window.addEventListener('load', function () {
-        reloadRecord();
+    function reloadRecord() {
+      const uri = document.getElementById('urivalue').value;
+      lookup(uri).then((result) => {
+        const pretty = JSON.stringify(JSON.parse(result), null, 1);
+        document.getElementById('num').innerHTML = pretty;
       });
 
-    </script>
+    }
+
+    window.addEventListener('load', function () {
+      reloadRecord();
+    });
+
+  </script>
 </body>
 
 </html>
