@@ -23,7 +23,7 @@ import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
-import { createModuleConfigProvider, ModuleConfigProvider } from './moduleconfig';
+import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider } from './moduleconfig';
 import { NumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 
@@ -382,7 +382,7 @@ class NumClientImpl implements NumClient {
    */
   // eslint-disable-next-line complexity
   public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
-    let jsonResult = this.modlServices.interpretNumRecord(modl);
+    // Process the resulting JSON according to the ModuleConfig.json
     const moduleConfig = await this.configProvider.getConfig(moduleNumber);
     if (moduleConfig) {
       // Skip everything if specified
@@ -390,21 +390,13 @@ class NumClientImpl implements NumClient {
         return modl;
       }
 
+      // Interpret the MODL
+      let jsonResult = this.modlServices.interpretNumRecord(modl);
+
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
         // load the schema and use it to validate jsonResult
-        const compactSchemaResponse = await this.resourceLoader.load(moduleConfig.compactSchemaUrl);
-        if (compactSchemaResponse) {
-          const validate = ajv.compile(compactSchemaResponse);
-
-          if (!validate(jsonResult)) {
-            log.error(`Fails to match the compact JSON schema: ${JSON.stringify(jsonResult)}`);
-            return null;
-          } else {
-            log.info('JSON matches the compact schema.');
-          }
-        } else {
-          log.error(`Unable to load the compact JSON schema from : ${JSON.stringify(moduleConfig.compactSchemaUrl)}`);
+        if (!(await this.validateSchema(moduleConfig.compactSchemaUrl, jsonResult))) {
           return null;
         }
       } else {
@@ -412,32 +404,9 @@ class NumClientImpl implements NumClient {
       }
 
       // Attempt to load a locale file.
-      // Choose the locale base URL
-      const baseUrl = moduleConfig.localeFilesBaseUrl ? moduleConfig.localeFilesBaseUrl : DEFAULT_LOCALES_BASE_URL;
-      let country = userVariables.get('_C')?.toString();
-      let language = userVariables.get('_L')?.toString();
-      if (!language) {
-        language = DEFAULT_LANGUAGE;
-      }
-      if (!country) {
-        country = DEFAULT_COUNTRY;
-      }
-      const localeFilename = `${language}-${country}.json`;
-      const localeUrl = baseUrl.toString() + localeFilename;
-
-      // Try loading the locale file and fallback to the default if we can't find one.
-      let localeFileResponse = await this.resourceLoader.load(localeUrl);
-
-      if (!localeFileResponse) {
-        if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
-          return null;
-        } else {
-          const defaultLocaleUrl = baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME;
-          localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
-          if (!localeFileResponse) {
-            return null;
-          }
-        }
+      const localeFile = await this.loadLocaleFile(moduleConfig, userVariables);
+      if (!localeFile) {
+        return null;
       }
 
       // Apply the schema mapping and Resolve references if one is defined
@@ -445,7 +414,7 @@ class NumClientImpl implements NumClient {
         const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
 
         if (schemaMapResponse) {
-          jsonResult = mapper.convert(localeFileResponse, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
+          jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
@@ -456,18 +425,7 @@ class NumClientImpl implements NumClient {
       // Validate the expanded schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
         // load the schema and use it to validate the expanded JSON
-        const schemaResponse = await this.resourceLoader.load(moduleConfig.expandedSchemaUrl);
-        if (schemaResponse) {
-          const validate = ajv.compile(schemaResponse);
-
-          if (!validate(jsonResult)) {
-            log.error(`Fails to match the expanded JSON schema: ${JSON.stringify(jsonResult)}`);
-            return null;
-          } else {
-            log.info('JSON matches the expanded schema.');
-          }
-        } else {
-          log.error(`Unable to load the expanded JSON schema from : ${JSON.stringify(moduleConfig.expandedSchemaUrl)}`);
+        if (!(await this.validateSchema(moduleConfig.expandedSchemaUrl, jsonResult))) {
           return null;
         }
       } else {
@@ -527,5 +485,55 @@ class NumClientImpl implements NumClient {
       }
     }
     return false;
+  }
+
+  private async validateSchema(schemaUrl: string, json: Record<string, unknown>): Promise<boolean> {
+    // Validate the schema if there is one
+    const schema = await this.resourceLoader.load(schemaUrl);
+    if (schema) {
+      const validate = ajv.compile(schema);
+
+      if (validate(json)) {
+        log.info(`JSON matches the schema at ${schemaUrl}`);
+        return true;
+      } else {
+        log.error(`Fails to match the JSON schema at ${schemaUrl} - data: ${JSON.stringify(json)}`);
+      }
+    } else {
+      log.error(`Unable to load the JSON schema from : ${schemaUrl}`);
+    }
+    return false;
+  }
+
+  private async loadLocaleFile(moduleConfig: ModuleConfig, userVariables: Map<string, UserVariable>): Promise<Record<string, unknown> | null> {
+    // Attempt to load a locale file.
+    // Choose the locale base URL
+    const baseUrl = moduleConfig.localeFilesBaseUrl ? moduleConfig.localeFilesBaseUrl : DEFAULT_LOCALES_BASE_URL;
+    let country = userVariables.get('_C')?.toString();
+    let language = userVariables.get('_L')?.toString();
+    if (!language) {
+      language = DEFAULT_LANGUAGE;
+    }
+    if (!country) {
+      country = DEFAULT_COUNTRY;
+    }
+    const localeFilename = `${language}-${country}.json`;
+    const localeUrl = baseUrl.toString() + localeFilename;
+
+    // Try loading the locale file and fallback to the default if we can't find one.
+    let localeFileResponse = await this.resourceLoader.load(localeUrl);
+
+    if (!localeFileResponse) {
+      if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
+        return null;
+      } else {
+        const defaultLocaleUrl = baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME;
+        localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
+        if (!localeFileResponse) {
+          return null;
+        }
+      }
+    }
+    return localeFileResponse;
   }
 }
