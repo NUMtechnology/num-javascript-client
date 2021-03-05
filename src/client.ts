@@ -394,8 +394,8 @@ class NumClientImpl implements NumClient {
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
         // load the schema and use it to validate jsonResult
         const compactSchemaResponse = await this.resourceLoader.load(moduleConfig.compactSchemaUrl);
-        if (compactSchemaResponse && compactSchemaResponse.data) {
-          const validate = ajv.compile(compactSchemaResponse.data as Record<string, unknown>);
+        if (compactSchemaResponse) {
+          const validate = ajv.compile(compactSchemaResponse);
 
           if (!validate(jsonResult)) {
             log.error(`Fails to match the compact JSON schema: ${JSON.stringify(jsonResult)}`);
@@ -440,14 +440,12 @@ class NumClientImpl implements NumClient {
         }
       }
 
-      const localeFile = localeFileResponse.data as Record<string, unknown>;
       // Apply the schema mapping and Resolve references if one is defined
       if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
         const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
 
         if (schemaMapResponse) {
-          const schemaMap = schemaMapResponse.data as Record<string, unknown>;
-          jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMap) as Record<string, unknown>;
+          jsonResult = mapper.convert(localeFileResponse, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
@@ -459,8 +457,8 @@ class NumClientImpl implements NumClient {
       if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
         // load the schema and use it to validate the expanded JSON
         const schemaResponse = await this.resourceLoader.load(moduleConfig.expandedSchemaUrl);
-        if (schemaResponse && schemaResponse.data) {
-          const validate = ajv.compile(schemaResponse.data as Record<string, unknown>);
+        if (schemaResponse) {
+          const validate = ajv.compile(schemaResponse);
 
           if (!validate(jsonResult)) {
             log.error(`Fails to match the expanded JSON schema: ${JSON.stringify(jsonResult)}`);

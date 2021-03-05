@@ -13,27 +13,31 @@
     <div style="border: 1px solid blue;width: fit-content;">
       <pre id='num'></pre>
     </div>
+    <input type="button" value="Reload" onclick="reloadRecord()">
     <script>
 
-      window.addEventListener('load', function () {
+      const num = require('num-client');
+      const client = num.createClient();
+      client.setenv('test');
 
-        const num = require('num-client');
+      function lookup(uri) {
+        const numUri = num.parseNumUri(uri);
 
-        function lookup(uri) {
-          const numUri = num.parseNumUri(uri);
+        const ctx = client.createContext(numUri);
 
-          const client = num.createClient();
-          const ctx = client.createContext(numUri);
-          client.setenv('test');
+        return client.retrieveNumRecord(ctx);
+      }
 
-          return client.retrieveNumRecord(ctx);
-        }
-
+      function reloadRecord() {
         lookup('num.uk:1').then((result) => {
           const pretty = JSON.stringify(JSON.parse(result), null, 1);
-
           document.getElementById('num').innerHTML = pretty;
         });
+
+      }
+
+      window.addEventListener('load', function () {
+        reloadRecord();
       });
 
     </script>

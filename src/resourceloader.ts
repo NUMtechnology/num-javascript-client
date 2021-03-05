@@ -38,7 +38,10 @@ class ResourceLoaderImpl implements ResourceLoader {
         if (cached) {
           return cached;
         } else {
-          return await axios.get(url);
+          const loadedResource = await axios.get(url);
+          const result = loadedResource.data as Record<string, unknown>;
+          this.cache.put(url, result);
+          return result;
         }
       }
     } catch (e) {
