@@ -13,4 +13,4 @@
 !.github
 !.npmignore
 CHANGES-NEEDED.md
-src/scratch.ts
+/**/scratch*.ts

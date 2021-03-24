@@ -20,13 +20,11 @@ import { parseNumUri } from '../src/numuri';
 
 const log = loglevel as Logger;
 
-const TEST_DELAYS = [100, 100, 100, 100, 100, 100, 100, 100];
-
 const testUri = parseNumUri('example.com:1');
 
 describe('LookupLocationStateMachine', () => {
   it('should be able to step through all the best-case states', async () => {
-    const sm = createLookupLocationStateMachine(TEST_DELAYS);
+    const sm = createLookupLocationStateMachine();
     const ctx = new Context(testUri);
 
     let count = 0;
@@ -39,7 +37,7 @@ describe('LookupLocationStateMachine', () => {
   });
 
   it('should be able to step through all the worst-case states', async () => {
-    const sm = createLookupLocationStateMachine(TEST_DELAYS);
+    const sm = createLookupLocationStateMachine();
     const ctx = new Context(testUri);
 
     let count = 0;
@@ -48,11 +46,11 @@ describe('LookupLocationStateMachine', () => {
       count++;
       log.debug('ctx.location: ', ctx.location);
     }
-    expect(count).to.equal(11);
+    expect(count).to.equal(2);
   });
 
   it('should be able to succeed at INDY2', async () => {
-    const sm = createLookupLocationStateMachine(TEST_DELAYS);
+    const sm = createLookupLocationStateMachine();
     const ctx = new Context(testUri);
 
     let count = 0;
@@ -61,11 +59,11 @@ describe('LookupLocationStateMachine', () => {
       count++;
       log.debug('ctx.location: ', ctx.location);
     }
-    expect(count).to.equal(4);
+    expect(count).to.equal(2);
   });
 
   it('should be able to succeed at HOSTED2', async () => {
-    const sm = createLookupLocationStateMachine(TEST_DELAYS);
+    const sm = createLookupLocationStateMachine();
     const ctx = new Context(testUri);
 
     let count = 0;
@@ -74,6 +72,6 @@ describe('LookupLocationStateMachine', () => {
       count++;
       log.debug('ctx.location: ', ctx.location);
     }
-    expect(count).to.equal(4);
+    expect(count).to.equal(2);
   });
 });

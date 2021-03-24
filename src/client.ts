@@ -360,7 +360,7 @@ class NumClientImpl implements NumClient {
     while (!sm.complete()) {
       log.info(`Checking location: '${ctx.location}'`);
       const result = await query();
-      ctx.location = await sm.step(result);
+      ctx.location = sm.step(result);
     }
 
     if (ctx.result) {
