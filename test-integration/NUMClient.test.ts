@@ -54,7 +54,7 @@ describe('NUMClient', () => {
 
     expect(result).not.equal(null);
 
-    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation"}}';
+    const expected = '{"@n":1,"organisation":{"object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"twitter":{"object_display_name":"Twitter","description_default":"View Twitter profile","description":null,"prefix":"https://www.twitter.com/","method_type":"third_party","controller":"twitter.com","value":"NUMprotocol","value_prefix":"@"}},{"linkedin":{"object_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com","value":"company/20904983"}}]}}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -79,7 +79,7 @@ describe('NUMClient', () => {
 
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.equal(null);
-    const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organization"}}';
+    const expected = '{"@n":1,"organisation":{"object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"twitter":{"object_display_name":"Twitter","description_default":"View Twitter profile","description":null,"prefix":"https://www.twitter.com/","method_type":"third_party","controller":"twitter.com","value":"NUMprotocol","value_prefix":"@"}},{"linkedin":{"object_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com","value":"company/20904983"}}]}}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -107,7 +107,7 @@ describe('NUMClient', () => {
 
     const ctx = client.createContext(numUri);
     await client.retrieveNumRecord(ctx, handler).then((r) => {
-      const expected = '{"@n":1,"organisation":{"name":"NUM","contacts":[{"twitter":{"value":"NUMprotocol","object_display_name":"Twitter","description_default":"View Twitter profile","prefix":"https://www.twitter.com/","method_type":"third_party","value_prefix":"@","controller":"twitter.com"}},{"linkedin":{"value":"company/20904983","object_display_name":"LinkedIn","description_default":"View LinkedIn page","prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com"}}],"slogan":"Organising the world\'s open data","object_display_name":"Organisation"}}';
+      const expected = '{"@n":1,"organisation":{"object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"twitter":{"object_display_name":"Twitter","description_default":"View Twitter profile","description":null,"prefix":"https://www.twitter.com/","method_type":"third_party","controller":"twitter.com","value":"NUMprotocol","value_prefix":"@"}},{"linkedin":{"object_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"prefix":"https://www.linkedin.com/","method_type":"third_party","controller":"linkedin.com","value":"company/20904983"}}]}}';
 
       if (r) {
 

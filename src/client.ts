@@ -16,7 +16,7 @@ import Ajv from 'ajv';
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
-import { mapper } from 'num-schema-mapper';
+import { mapper } from 'object-unpacker';
 import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
