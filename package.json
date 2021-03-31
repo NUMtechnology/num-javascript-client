@@ -11,7 +11,7 @@
     "delay": "^4.4.0",
     "loglevel": "^1.7.0",
     "loglevel-plugin-prefix": "^0.8.4",
-    "object-unpacker": "0.0.3",
+    "object-unpacker": "0.0.4",
     "modl-interpreter": "0.0.7",
     "punycode": "^2.1.1",
     "ts-loader": "^7.0.5",
