@@ -51,7 +51,7 @@
     "preversion": "npm run format && npm run lint && npm run doc && npm run build",
     "build": "tsc",
     "doc": "typedoc",
-    "format": "prettier --write \"./src/*.ts\" ./index.d.ts",
+    "format": "prettier --write \"./src/*.ts\" ",
     "lint": "eslint --fix ./src/**",
     "prepare": "npm test",
     "pack": "npm test && mkdir -p web && browserify -r ./index.js:num-client >web/${npm_package_name}-${npm_package_version}.js && cp web/${npm_package_name}-${npm_package_version}.js web/${npm_package_name}-latest.js",
