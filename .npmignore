@@ -2,6 +2,6 @@
 **/tsconfig.json
 **/webpack.config.js
 node_modules
-lib
+src
 test-integration
 web
