@@ -49,7 +49,7 @@ npm install -s num-client
 ## Importing the Client
 Use this import to make the client available for use:
 ```Typescript
-import { 
+import {
   createClient,     // required for creating the `NUMClient`
   createDnsClient,  // optional unless you need to override the default DoH endpoint
   parseNumUri,      // required for converting the NUM URI string into a valid `NumUri` object
