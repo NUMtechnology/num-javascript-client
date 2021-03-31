@@ -1,8 +1,9 @@
 {
   "name": "num-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A NUM Protocol Client in TypeScript",
-  "types": "index.d.ts",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
   "dependencies": {
     "@types/crypto-js": "^4.0.1",
     "any-base": "^1.1.0",
@@ -64,7 +65,6 @@
   },
   "files": [
     "dist",
-    "index.d.ts",
     "index.js",
     "web/*"
   ]
