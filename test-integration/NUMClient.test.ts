@@ -27,18 +27,23 @@ import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../
 import { NumLocation } from '../src/context';
 import { createDnsClient, DoHResolver } from '../src/dnsclient';
 import { parseNumUri } from '../src/numuri';
+import { DummyResourceLoader } from './DummyResourceLoader';
 
 
 const log = loglevel as Logger;
 
-log.setLevel('info');
 
 const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
 const dnsClient = createDnsClient(DEFAULT_RESOLVER);
 
+
+const dummyResourceLoader = new DummyResourceLoader();
+
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
     const client = createClient(dnsClient);
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
   });
 
@@ -47,7 +52,8 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    client.setenv('test');
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
@@ -71,7 +77,8 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(dnsClient);
-    client.setenv('test');
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
     ctx.setUserVariable('_L', 'en');
@@ -103,7 +110,8 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(dnsClient);
-    client.setenv('test');
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
     await client.retrieveNumRecord(ctx, handler).then((r) => {
@@ -131,6 +139,8 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(dnsClient);
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).equal(null);
@@ -142,7 +152,8 @@ describe('NUMClient', () => {
     const numUri3 = parseNumUri('num.uk:1');
 
     const client = createClient();
-    client.setenv('test');
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);
     const ctx2 = client.createContext(numUri2);

@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A NUM Protocol Client in TypeScript",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "loglevel": "^1.7.0",
     "loglevel-plugin-prefix": "^0.8.4",
     "modl-interpreter": "0.0.7",
-    "object-unpacker": "0.0.4",
+    "object-unpacker": "0.0.7",
     "punycode": "^2.1.1",
     "ts-loader": "^7.0.5",
     "typescript": "^4.0.2"

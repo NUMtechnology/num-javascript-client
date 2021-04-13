@@ -5,4 +5,3 @@ import { buildNumUri, Hostname, NumUri, parseNumUri, PositiveInteger, UrlPath, U
 export { parseNumUri, NumUri, PositiveInteger, Hostname, UrlUserInfo, UrlPath, buildNumUri };
 export { createClient };
 export { DoHResolver, createDnsClient };
-

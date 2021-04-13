@@ -27,7 +27,7 @@ class ResourceLoaderImpl implements ResourceLoader {
     this.env = null;
   }
 
-  setenv(env: string) {
+  setenv(env: string): void {
     this.env = env;
   }
 

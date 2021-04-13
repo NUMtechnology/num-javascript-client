@@ -25,18 +25,21 @@ import loglevel, { Logger } from 'loglevel';
 import { createClient } from '../src/client';
 import { UserVariable } from '../src/context';
 import { PositiveInteger } from '../src/numuri';
+import { DummyResourceLoader } from './DummyResourceLoader';
 
 
 const log = loglevel as Logger;
 
 log.setLevel('info');
 
+const dummyResourceLoader = new DummyResourceLoader();
+
 describe('NUMClient with Interpreter', () => {
 
   it('should be able to lookup a NUM record using the NUMClient', async () => {
 
     const client = createClient();
-    client.setenv('test');
+    client.setResourceLoader(dummyResourceLoader);
 
     const modl = '@n=1;o(n=NUM;s=Organising the world\'s open data;c[tw=NUMprotocol;li=company/20904983])';
     const moduleNumber = new PositiveInteger(1);

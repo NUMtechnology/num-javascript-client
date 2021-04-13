@@ -123,7 +123,7 @@ const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_COUNTRY = 'gb';
 const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
 
-const ajv = new Ajv();
+const ajv = new Ajv({ allowUnionTypes: true });
 
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
@@ -274,9 +274,12 @@ class NumClientImpl implements NumClient {
         if (modl) {
           const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
           if (json) {
+            log.debug(`json = ${json}`);
             if (handler) {
               handler.setResult(json);
             }
+          } else {
+            log.debug('json = null');
           }
           return json;
         }
@@ -392,6 +395,7 @@ class NumClientImpl implements NumClient {
 
       // Interpret the MODL
       let jsonResult = this.modlServices.interpretNumRecord(modl);
+      log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
 
       // Validate the compact schema if there is one and if the config says we should
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
@@ -415,6 +419,7 @@ class NumClientImpl implements NumClient {
 
         if (schemaMapResponse) {
           jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
+          log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
@@ -488,19 +493,26 @@ class NumClientImpl implements NumClient {
   }
 
   private async validateSchema(schemaUrl: string, json: Record<string, unknown>): Promise<boolean> {
-    // Validate the schema if there is one
-    const schema = await this.resourceLoader.load(schemaUrl);
-    if (schema) {
-      const validate = ajv.compile(schema);
+    let existingSchema = ajv.getSchema(schemaUrl);
+    if (!existingSchema) {
+      const schema = await this.resourceLoader.load(schemaUrl);
 
-      if (validate(json)) {
-        log.info(`JSON matches the schema at ${schemaUrl}`);
-        return true;
+      // Validate the schema if there is one
+      if (schema) {
+        existingSchema = ajv.compile(schema);
       } else {
-        log.error(`Fails to match the JSON schema at ${schemaUrl} - data: ${JSON.stringify(json)}`);
+        log.error(`Unable to load the JSON schema from : ${schemaUrl}`);
       }
+    }
+    if (!existingSchema) {
+      log.error(`Cannot find the JSON schema at ${schemaUrl}`);
+      return false;
+    }
+    if (existingSchema(json)) {
+      log.info(`JSON matches the schema at ${schemaUrl}`);
+      return true;
     } else {
-      log.error(`Unable to load the JSON schema from : ${schemaUrl}`);
+      log.error(`Fails to match the JSON schema at ${schemaUrl} - data: ${JSON.stringify(json)}`);
     }
     return false;
   }
@@ -520,16 +532,19 @@ class NumClientImpl implements NumClient {
     const localeFilename = `${language}-${country}.json`;
     const localeUrl = baseUrl.toString() + localeFilename;
 
+    log.debug(`Loading locale file: ${localeUrl}`);
     // Try loading the locale file and fallback to the default if we can't find one.
     let localeFileResponse = await this.resourceLoader.load(localeUrl);
 
     if (!localeFileResponse) {
       if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
+        log.debug(`Unable to load locale file: ${localeUrl}`);
         return null;
       } else {
         const defaultLocaleUrl = baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME;
         localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
         if (!localeFileResponse) {
+          log.debug(`Unable to load locale file: ${defaultLocaleUrl}`);
           return null;
         }
       }
