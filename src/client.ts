@@ -345,6 +345,7 @@ class NumClientImpl implements NumClient {
         if (e instanceof NumProtocolException) {
           log.error(`NumProtocolException: ${e.errorCode} : ${e.message}`);
           handler?.setErrorCode(e.errorCode);
+          return null;
         } else if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
           ctx.result = null;
@@ -388,6 +389,7 @@ class NumClientImpl implements NumClient {
           if (handler) {
             log.error(`NumProtocolException: ${e.errorCode} : ${e.message}`);
             handler.setErrorCode(e.errorCode);
+            return null;
           }
         } else if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
