@@ -97,6 +97,19 @@ export class NumUri {
   withUserinfo(userinfo: UrlUserInfo): NumUri {
     return new NumUri(this.host, this.port, userinfo, this.path);
   }
+
+  /**
+   * Convert the NumUri object to a string
+   *
+   * @returns The URI as a string
+   */
+  toString(): string {
+    const hostPart = this.host?.s;
+    const pathPart = this.path?.s !== '/' ? this.path?.s : '';
+    const portPart = `:${this.port?.n}`;
+    const userPart = this.userinfo?.s ? `${this.userinfo?.s}@` : '';
+    return `${userPart}${hostPart}${portPart}${pathPart}`;
+  }
 }
 
 /**

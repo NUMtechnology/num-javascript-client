@@ -89,6 +89,22 @@ export interface NumClient {
 }
 
 /**
+ * Used to report errors in the NUM protocol
+ */
+export enum NumProtocolErrorCode {
+  errorCreatingContext = 'ERROR_CREATING_CONTEXT',
+  compactSchemaError = 'COMPACT_SCHEMA_ERROR',
+  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND_ERROR',
+  noUnpackerConfigFileFound = 'NO_UNPACKER_CONFIG_FILE_FOUND',
+  expandedSchemaError = 'EXPANDED_SCHEMA_ERROR',
+  moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
+  tooManyRedirects = 'TOO_MANY_REDIRECTS',
+  internalError = 'INTERNAL_ERROR',
+  noModlRecordFound = 'NO_MODL_RECORD_FOUND',
+  schemaNotFound = 'SCHEMA_NOT_FOUND',
+}
+
+/**
  * Callback handler - these methods are invoked when the lookup is complete.
  */
 export interface CallbackHandler {
@@ -103,6 +119,13 @@ export interface CallbackHandler {
    * @param r
    */
   setResult(r: string): void;
+
+  /**
+   * Set the error code if there is one.
+   *
+   * @param e NumProtocolErrorCode
+   */
+  setErrorCode(e: NumProtocolErrorCode): void;
 }
 
 /**
@@ -169,11 +192,21 @@ prefix.apply(log.getLogger('critical'), {
 //------------------------------------------------------------------------------------------------------------------------
 
 /**
+ * Error reporting.
+ */
+class NumProtocolException extends Error {
+  constructor(readonly errorCode: NumProtocolErrorCode, message: string) {
+    super(message);
+  }
+}
+
+/**
  * Default callback handler - a minimal class for responding to Callbacks from the NumClient
  */
 class DefaultCallbackHandler implements CallbackHandler {
   private location: NumLocation | null = null;
   private result: string | null = null;
+  private errorCode: NumProtocolErrorCode | null = null;
 
   /**
    * Sets the location that a record was retrieved from.
@@ -209,6 +242,24 @@ class DefaultCallbackHandler implements CallbackHandler {
    */
   getResult(): string | null {
     return this.result;
+  }
+
+  /**
+   * Set the error code if there is one.
+   *
+   * @param e the NumProtocolErrorCode
+   */
+  setErrorCode(e: NumProtocolErrorCode): void {
+    this.errorCode = e;
+  }
+
+  /**
+   * Get the error code or null if none.
+   *
+   * @returns NumProtocolErrorCode
+   */
+  getErrorCode(): NumProtocolErrorCode | null {
+    return this.errorCode;
   }
 }
 
@@ -257,7 +308,12 @@ class NumClientImpl implements NumClient {
    * @param numAddress
    */
   createContext(numAddress: NumUri): Context {
-    return new Context(numAddress);
+    try {
+      return new Context(numAddress);
+    } catch (e) {
+      const err = e as Error;
+      throw new NumProtocolException(NumProtocolErrorCode.errorCreatingContext, err.message);
+    }
   }
 
   /**
@@ -283,18 +339,24 @@ class NumClientImpl implements NumClient {
           }
           return json;
         }
+        handler?.setErrorCode(NumProtocolErrorCode.noModlRecordFound);
         return null;
       } catch (e) {
-        if (e instanceof NumMaximumRedirectsExceededException) {
+        if (e instanceof NumProtocolException) {
+          log.error(`NumProtocolException: ${e.errorCode} : ${e.message}`);
+          handler?.setErrorCode(e.errorCode);
+        } else if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
           ctx.result = null;
           ctx.location = NumLocation.none;
+          handler?.setErrorCode(NumProtocolErrorCode.tooManyRedirects);
           return null;
         } else if (e instanceof NumLookupRedirect) {
           ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
         } else if (e instanceof Error) {
           log.warn(`Unhandled exception: ${e.message}`);
+          handler?.setErrorCode(NumProtocolErrorCode.internalError);
           return null;
         }
       }
@@ -322,14 +384,28 @@ class NumClientImpl implements NumClient {
         }
         return null;
       } catch (e) {
-        if (e instanceof NumMaximumRedirectsExceededException) {
+        if (e instanceof NumProtocolException) {
+          if (handler) {
+            log.error(`NumProtocolException: ${e.errorCode} : ${e.message}`);
+            handler.setErrorCode(e.errorCode);
+          }
+        } else if (e instanceof NumMaximumRedirectsExceededException) {
           log.warn('Too many redirects. Aborting the lookup.');
           ctx.result = null;
           ctx.location = NumLocation.none;
+          if (handler) {
+            handler.setErrorCode(NumProtocolErrorCode.tooManyRedirects);
+          }
           return null;
         } else if (e instanceof NumLookupRedirect) {
           ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
+        } else if (e instanceof Error) {
+          log.warn(`Unhandled exception: ${e.message}`);
+          if (handler) {
+            handler.setErrorCode(NumProtocolErrorCode.internalError);
+          }
+          return null;
         }
       }
     }
@@ -401,7 +477,7 @@ class NumClientImpl implements NumClient {
       if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
         // load the schema and use it to validate jsonResult
         if (!(await this.validateSchema(moduleConfig.compactSchemaUrl, jsonResult))) {
-          return null;
+          throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
         }
       } else {
         log.info('Not configured to validate against the compact schema.');
@@ -410,7 +486,7 @@ class NumClientImpl implements NumClient {
       // Attempt to load a locale file.
       const localeFile = await this.loadLocaleFile(moduleConfig, userVariables);
       if (!localeFile) {
-        return null;
+        throw new NumProtocolException(NumProtocolErrorCode.localeFileNotFoundError, `Unable to locate a locale file using ${JSON.stringify(userVariables)}`);
       }
 
       // Apply the schema mapping and Resolve references if one is defined
@@ -423,7 +499,10 @@ class NumClientImpl implements NumClient {
         } else {
           // No schema map
           log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
-          return null;
+          throw new NumProtocolException(
+            NumProtocolErrorCode.noUnpackerConfigFileFound,
+            `Could not load the configure Unpacker config file: ${moduleConfig.schemaMapUrl}`
+          );
         }
       }
 
@@ -431,7 +510,7 @@ class NumClientImpl implements NumClient {
       if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
         // load the schema and use it to validate the expanded JSON
         if (!(await this.validateSchema(moduleConfig.expandedSchemaUrl, jsonResult))) {
-          return null;
+          throw new NumProtocolException(NumProtocolErrorCode.expandedSchemaError, 'The record does not match the expanded schema');
         }
       } else {
         log.info('Not configured to validate against the expanded schema.');
@@ -440,7 +519,7 @@ class NumClientImpl implements NumClient {
       return JSON.stringify(jsonResult);
     } else {
       log.error('No module config file available.');
-      return null;
+      throw new NumProtocolException(NumProtocolErrorCode.moduleConfigFileNotFound, `Unable to load the module config file for module ${moduleNumber.n} `);
     }
   }
 
@@ -501,12 +580,15 @@ class NumClientImpl implements NumClient {
       if (schema) {
         existingSchema = ajv.compile(schema);
       } else {
-        log.error(`Unable to load the JSON schema from : ${schemaUrl}`);
+        const msg = `Unable to load the JSON schema from : ${schemaUrl}`;
+        log.error(msg);
+        throw new NumProtocolException(NumProtocolErrorCode.schemaNotFound, msg);
       }
     }
     if (!existingSchema) {
-      log.error(`Cannot find the JSON schema at ${schemaUrl}`);
-      return false;
+      const msg = `Cannot find the JSON schema at ${schemaUrl}`;
+      log.error(msg);
+      throw new NumProtocolException(NumProtocolErrorCode.schemaNotFound, msg);
     }
     if (existingSchema(json)) {
       log.info(`JSON matches the schema at ${schemaUrl}`);

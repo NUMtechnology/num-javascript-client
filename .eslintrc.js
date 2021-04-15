@@ -212,12 +212,7 @@ module.exports = {
     "no-new-wrappers": "error",
     "no-null/no-null": "off",
     "no-redeclare": "error",
-    "no-shadow": [
-      "error",
-      {
-        "hoist": "all"
-      }
-    ],
+    "no-shadow": "off",
     "no-template-curly-in-string": "error",
     "no-throw-literal": "error",
     "no-trailing-spaces": "error",

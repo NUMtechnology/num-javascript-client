@@ -23,7 +23,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
-import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
+import { CallbackHandler, createClient, createDefaultCallbackHandler, NumProtocolErrorCode } from '../src/client';
 import { NumLocation } from '../src/context';
 import { createDnsClient, DoHResolver } from '../src/dnsclient';
 import { parseNumUri } from '../src/numuri';
@@ -107,6 +107,9 @@ describe('NUMClient', () => {
       setResult: (r: string): void => {
         expect(r).not.equal(null);
       },
+      setErrorCode(e: NumProtocolErrorCode): void {
+        fail('Unexpected error');
+      }
     };
 
     const client = createClient(dnsClient);
@@ -136,7 +139,17 @@ describe('NUMClient', () => {
 
   it('should fail to lookup a NUM record using the NUMClient', async () => {
     const numUri = parseNumUri('ldskfhlskdhflkdsjhfkdhlsdhflasdh.uk:1');
-    const handler = createDefaultCallbackHandler();
+    const handler: CallbackHandler = {
+      setLocation: (_l: NumLocation): void => {
+        // ignore
+      },
+      setResult: (r: string): void => {
+        expect(r).not.equal(null);
+      },
+      setErrorCode(e: NumProtocolErrorCode): void {
+        expect(e).equal(NumProtocolErrorCode.noModlRecordFound);
+      }
+    };
 
     const client = createClient(dnsClient);
     log.setLevel('debug');
