@@ -203,7 +203,7 @@ class NumProtocolException extends Error {
 /**
  * Default callback handler - a minimal class for responding to Callbacks from the NumClient
  */
-class DefaultCallbackHandler implements CallbackHandler {
+export class DefaultCallbackHandler implements CallbackHandler {
   private location: NumLocation | null = null;
   private result: string | null = null;
   private errorCode: NumProtocolErrorCode | null = null;
