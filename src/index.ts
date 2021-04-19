@@ -7,4 +7,3 @@ export { parseNumUri, NumUri, PositiveInteger, Hostname, UrlUserInfo, UrlPath, b
 export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
 export { DoHResolver, createDnsClient };
 export { resolvePath };
-

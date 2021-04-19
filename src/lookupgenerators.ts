@@ -21,7 +21,7 @@ import { Hostname, NO_USER_INFO, NumUri, PositiveInteger, UrlUserInfo } from './
 
 const _NUM = '._num.';
 const DNPREFIX = '_';
-const TLZ = 'num.net';
+let TLZ = 'num.net';
 const EMAIL_SEP = 'e';
 const POP_3LZ = 'populator';
 const DEFAULT_DEPTH = 3;
@@ -29,6 +29,14 @@ const DEFAULT_DEPTH = 3;
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
+export const setenvDomainLookups = (env: string): void => {
+  if (env === 'test') {
+    TLZ = 'n001.uk';
+  } else if (env === 'staging') {
+    TLZ = 'n002.uk';
+  }
+};
+
 /**
  * Lookup generator
  */

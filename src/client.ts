@@ -21,6 +21,7 @@ import { Context, NumLocation, UserVariable } from './context';
 import { DnsClient } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
+import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider } from './moduleconfig';
@@ -300,7 +301,7 @@ class NumClientImpl implements NumClient {
    */
   setenv(env: string): void {
     this.resourceLoader.setenv(env);
-    //this.lookupGenerators.setenv(env);// TODO - Change the TLZ for test and staging
+    setenvDomainLookups(env);
   }
 
   /**
