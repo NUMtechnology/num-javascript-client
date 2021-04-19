@@ -300,6 +300,7 @@ class NumClientImpl implements NumClient {
    */
   setenv(env: string): void {
     this.resourceLoader.setenv(env);
+    //this.lookupGenerators.setenv(env);// TODO - Change the TLZ for test and staging
   }
 
   /**

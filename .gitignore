@@ -12,5 +12,6 @@
 !*.lock
 !.github
 !.npmignore
+!webpack.config.js
 CHANGES-NEEDED.md
 /**/scratch*.ts
