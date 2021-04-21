@@ -15,9 +15,9 @@
 //
 
 import axios from 'axios';
-import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
-import punycode from 'punycode';
 import log from 'loglevel';
+import punycode from 'punycode';
+import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
 
 const NXDOMAIN = 3;
 
@@ -83,7 +83,7 @@ interface Answer {
   readonly TTL: number;
 }
 
-const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
+const DEFAULT_RESOLVER = new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query');
 
 /**
  * Dns client
@@ -137,7 +137,7 @@ class DnsClientImpl implements DnsClient {
   async queryUsingResolver(question: Question, resolver: DoHResolver): Promise<string[]> {
     log.info(`Query made using ${resolver.name} for the DNS ${question.type} record(s) at ${question.name} dnssec:${question.dnssec.toString()}`);
 
-    const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0');
+    const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0') + '&ct=application/dns-json';
     const url = `${resolver.url}?${params}`;
 
     const response = await axios.get(url);
