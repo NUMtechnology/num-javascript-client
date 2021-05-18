@@ -146,6 +146,10 @@ class DnsClientImpl implements DnsClient {
       if (response.data.Status === 0) {
         if (response.data.Answer) {
           const data = response.data.Answer as Answer[];
+          const answerName = data[0].name.endsWith('.') ? data[0].name : data[0].name + '.';
+          if (question.name !== answerName) {
+            log.error(`Q = ${JSON.stringify(question)}, A = ${JSON.stringify(data[0])}`);
+          }
 
           return data.map(joinParts);
         } else {
