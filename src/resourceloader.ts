@@ -19,11 +19,11 @@ export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl
 //------------------------------------------------------------------------------------------------------------------------
 
 class ResourceLoaderImpl implements ResourceLoader {
-  private cache: LruCache<Record<string, unknown>>;
+  private static cache: LruCache<Record<string, unknown>>;
   private env: string | null;
 
   constructor() {
-    this.cache = new LruCache();
+    ResourceLoaderImpl.cache = new LruCache();
     this.env = null;
   }
 
@@ -35,13 +35,13 @@ class ResourceLoaderImpl implements ResourceLoader {
     try {
       if (url) {
         url = this.env ? url.replace('modules.numprotocol.com', `${this.env}.modules.numprotocol.com`) : url;
-        const cached = this.cache.get(url);
+        const cached = ResourceLoaderImpl.cache.get(url);
         if (cached) {
           return cached;
         } else {
           const loadedResource = await axios.get(url);
           const result = loadedResource.data as Record<string, unknown>;
-          this.cache.put(url, result);
+          ResourceLoaderImpl.cache.put(url, result);
           return result;
         }
       }

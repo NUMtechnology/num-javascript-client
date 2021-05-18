@@ -160,9 +160,9 @@ describe('NUMClient', () => {
   });
 
   it('should be able to do multiple parallel lookups for a NUM record using the NUMClient', async () => {
-    const numUri1 = parseNumUri('num.uk:1');
-    const numUri2 = parseNumUri('num.uk:1');
-    const numUri3 = parseNumUri('num.uk:1');
+    const numUri1 = parseNumUri('axa.co.uk:1');
+    const numUri2 = parseNumUri('aviva.co.uk:1');
+    const numUri3 = parseNumUri('lloydsbank.com:1');
 
     const client = createClient();
     log.setLevel('debug');

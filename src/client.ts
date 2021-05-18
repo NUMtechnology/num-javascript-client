@@ -178,9 +178,9 @@ prefix.apply(log, {
     const levelColour = colors(levelName);
     const colouredLevel: string = levelColour(levelName);
     if (name) {
-      return `${chalk.gray(`[${timestamp.toString()}]`)} ${colouredLevel} ${chalk.green(`${name}:`)}`;
+      return `${chalk.gray(timestamp.toString())} ${colouredLevel} ${chalk.green(name + ':')}`;
     } else {
-      return `${chalk.gray(`[${timestamp.toString()}]`)} ${colouredLevel}`;
+      return `${chalk.gray(timestamp.toString())} ${colouredLevel}`;
     }
   },
 });
@@ -427,11 +427,11 @@ class NumClientImpl implements NumClient {
     const query = async () => {
       switch (ctx.location) {
         case NumLocation.independent:
-          return await this.dnsQuery(ctx.queries.independentRecordLocation, ctx);
+          return this.dnsQuery(ctx.queries.independentRecordLocation, ctx);
         case NumLocation.hosted:
-          return await this.dnsQuery(ctx.queries.hostedRecordLocation, ctx);
+          return this.dnsQuery(ctx.queries.hostedRecordLocation, ctx);
         case NumLocation.populator:
-          return await this.populatorQuery(ctx);
+          return this.populatorQuery(ctx);
         case NumLocation.none:
         default:
           return false;
@@ -582,7 +582,7 @@ class NumClientImpl implements NumClient {
 
       // Validate the schema if there is one
       if (schema) {
-        existingSchema = ajv.compile(schema);
+        existingSchema = ajv.getSchema(schemaUrl) ? ajv.getSchema(schemaUrl) : ajv.compile(schema);
       } else {
         const msg = `Unable to load the JSON schema from : ${schemaUrl}`;
         log.error(msg);
