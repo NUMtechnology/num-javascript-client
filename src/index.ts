@@ -21,6 +21,7 @@ import {
   UrlPath,
   UrlUserInfo,
 } from './numuri';
+import { ResourceLoader } from './resourceloader';
 import { resolvePath } from './urlrelativepathresolver';
 
 export { NumClient, parseNumUri, NumUri, PositiveInteger, Hostname, UrlUserInfo, UrlPath, buildNumUri };
@@ -37,4 +38,4 @@ export { MODULE_9 };
 export { MODULE_10 };
 export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
 export { DoHResolver, createDnsClient };
-export { resolvePath };
+export { resolvePath, ResourceLoader };
