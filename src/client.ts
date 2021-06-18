@@ -83,10 +83,27 @@ export interface NumClient {
 
   /**
    * Set the execution environment.
+   * Calls setDnsEnv() and setModuleEnv() with the same environment name
    *
    * @param env `test` for the test environment
    */
   setenv(env: string): void;
+
+  /**
+   * Set the execution environment.
+   * Sets the environment to use for DNS
+   *
+   * @param env `test` for the test environment
+   */
+  setDnsEnv(env: string): void;
+
+  /**
+   * Set the execution environment.
+   * Sets the environment to use for the modules files.
+   *
+   * @param env `test` for the test environment
+   */
+  setModuleEnv(env: string): void;
 }
 
 /**
@@ -300,8 +317,26 @@ class NumClientImpl implements NumClient {
    * @param env `test` for the test environment
    */
   setenv(env: string): void {
-    this.resourceLoader.setenv(env);
+    this.setDnsEnv(env);
+    this.setModuleEnv(env);
+  }
+
+  /**
+   * Set the execution environment.
+   *
+   * @param env `test` for the test environment
+   */
+  setDnsEnv(env: string): void {
     setenvDomainLookups(env);
+  }
+
+  /**
+   * Set whete the modules files should be loaded from.
+   *
+   * @param env `test` for the test environment
+   */
+  setModuleEnv(env: string): void {
+    this.resourceLoader.setenv(env);
   }
 
   /**
