@@ -41,6 +41,7 @@ export const setenvDomainLookups = (env: string): void => {
       TLZ = 'num.net';
       break;
     default:
+      TLZ = 'num.net';
   }
 };
 
