@@ -28,7 +28,7 @@ class ResourceLoaderImpl implements ResourceLoader {
   }
 
   setenv(env: string): void {
-    this.env = env;
+    this.env = env === 'test' || env === 'staging' ? env : null;
   }
 
   async load(url: string): Promise<Record<string, unknown> | null> {

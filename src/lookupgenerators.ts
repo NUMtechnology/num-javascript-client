@@ -30,10 +30,17 @@ const DEFAULT_DEPTH = 3;
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
 export const setenvDomainLookups = (env: string): void => {
-  if (env === 'test') {
-    TLZ = 'n001.uk';
-  } else if (env === 'staging') {
-    TLZ = 'n002.uk';
+  switch (env) {
+    case 'test':
+      TLZ = 'n001.uk';
+      break;
+    case 'staging':
+      TLZ = 'n002.uk';
+      break;
+    case 'prod':
+      TLZ = 'num.net';
+      break;
+    default:
   }
 };
 
