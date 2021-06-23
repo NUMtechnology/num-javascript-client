@@ -217,7 +217,7 @@ class BaseLookupGenerator implements LookupGenerator {
  * @param s
  * @returns branch
  */
-const transformBranch = (s: string): string => {
+export const transformBranch = (s: string): string => {
   if (s === '/') {
     return '';
   }
@@ -236,7 +236,7 @@ const transformBranch = (s: string): string => {
  * @param domainName
  * @returns domain name
  */
-const normaliseDomainName = (domainName: string): string => {
+export const normaliseDomainName = (domainName: string): string => {
   if (!domainName) {
     throw new NumInvalidParameterException('Null domain name cannot be normalised');
   }
