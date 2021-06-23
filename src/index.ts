@@ -2,6 +2,7 @@
 import { createClient, DefaultCallbackHandler, NumClient, NumProtocolErrorCode } from './client';
 import { createDnsClient, DoHResolver } from './dnsclient';
 import { normalisePath } from './lookupgenerators';
+import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
 import {
   buildNumUri,
   Hostname,
@@ -39,4 +40,4 @@ export { MODULE_9 };
 export { MODULE_10 };
 export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
 export { DoHResolver, createDnsClient };
-export { resolvePath, ResourceLoader, normalisePath };
+export { resolvePath, ResourceLoader, normalisePath, createModuleDnsQueries, ModuleDnsQueries };
