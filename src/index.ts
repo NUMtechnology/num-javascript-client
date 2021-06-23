@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import { createClient, DefaultCallbackHandler, NumClient, NumProtocolErrorCode } from './client';
 import { createDnsClient, DoHResolver } from './dnsclient';
+import { normalisePath } from './lookupgenerators';
 import {
   buildNumUri,
   Hostname,
@@ -38,4 +39,4 @@ export { MODULE_9 };
 export { MODULE_10 };
 export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
 export { DoHResolver, createDnsClient };
-export { resolvePath, ResourceLoader };
+export { resolvePath, ResourceLoader, normalisePath };

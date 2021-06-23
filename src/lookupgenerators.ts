@@ -282,7 +282,7 @@ const normaliseDomainName = (domainName: string): string => {
  * @param path
  * @returns path
  */
-const normalisePath = (path: string): string => {
+export const normalisePath = (path: string): string => {
   let result = '/';
   if (path.length > 0) {
     const pathComponents = path.split('/');
