@@ -27,16 +27,18 @@ const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
  * Dns services
  */
 export interface DnsServices {
+  setTimeout(t: number): void;
   getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string>;
 }
 
 /**
  * Creates dns services
  *
+ * @param timeout the DNS request timeout in milliseconds
  * @param [dnsClient]
  * @returns dns services
  */
-export const createDnsServices = (dnsClient?: DnsClient): DnsServices => new DnsServicesImpl(dnsClient);
+export const createDnsServices = (timeout: number, dnsClient?: DnsClient): DnsServices => new DnsServicesImpl(timeout, dnsClient);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -52,8 +54,17 @@ class DnsServicesImpl implements DnsServices {
    *
    * @param [dnsClient]
    */
-  constructor(dnsClient?: DnsClient) {
-    this.dnsClient = dnsClient ? dnsClient : createDnsClient();
+  constructor(timeout: number, dnsClient?: DnsClient) {
+    this.dnsClient = dnsClient ? dnsClient : createDnsClient(timeout);
+  }
+
+  /**
+   * Set the DNS request timeout.
+   *
+   * @param t the DNS request timeout in milliseconds
+   */
+  setTimeout(t: number): void {
+    this.dnsClient.setTimeout(t);
   }
 
   /**

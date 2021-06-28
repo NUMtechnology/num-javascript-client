@@ -34,7 +34,7 @@ const log = loglevel as Logger;
 
 
 const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
-const dnsClient = createDnsClient(DEFAULT_RESOLVER);
+const dnsClient = createDnsClient(1000, DEFAULT_RESOLVER);
 
 
 const dummyResourceLoader = new DummyResourceLoader();
