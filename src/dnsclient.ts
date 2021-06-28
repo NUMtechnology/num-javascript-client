@@ -54,6 +54,13 @@ export class Question {
  */
 export interface DnsClient {
   /**
+   * Set the DNS request timeout in milliseconds.
+   *
+   * @param t the timeout
+   */
+  setTimeout(t: number);
+
+  /**
    *
    * @param question
    * @returns query
@@ -67,7 +74,7 @@ export interface DnsClient {
  * @param [resolver]
  * @returns dns client
  */
-export const createDnsClient = (resolver?: DoHResolver): DnsClient => new DnsClientImpl(resolver);
+export const createDnsClient = (timeout: number, resolver?: DoHResolver): DnsClient => new DnsClientImpl(timeout, resolver);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -90,15 +97,21 @@ const DEFAULT_RESOLVER = new DoHResolver('Cloudflare', 'https://cloudflare-dns.c
  */
 class DnsClientImpl implements DnsClient {
   private readonly resolver: DoHResolver;
+  private timeout: number;
 
   /**
    * Creates an instance of dns client impl.
    *
    * @param [resolver]
    */
-  constructor(resolver?: DoHResolver) {
+  constructor(timeout: number, resolver?: DoHResolver) {
     this.resolver = resolver ? resolver : DEFAULT_RESOLVER;
+    this.timeout = timeout;
     log.info(`DNS client configured with resolver: ${this.resolver.url}`);
+  }
+
+  setTimeout(t: number) {
+    this.timeout = t;
   }
 
   /**
@@ -140,7 +153,7 @@ class DnsClientImpl implements DnsClient {
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0') + '&ct=application/dns-json';
     const url = `${resolver.url}?${params}`;
 
-    const response = await axios.get(url);
+    const response = await axios.get(url, { timeout: this.timeout });
 
     if (response.data) {
       if (response.data.Status === 0) {

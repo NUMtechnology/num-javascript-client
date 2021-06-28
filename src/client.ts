@@ -104,6 +104,14 @@ export interface NumClient {
    * @param env `test` for the test environment
    */
   setModuleEnv(env: string): void;
+
+  /**
+   * Set a timeout for DoH requests.
+   * Defaults to 500ms
+   *
+   * @param t the DoH request timeout in milliseconds
+   */
+  setTimeoutMillis(t: number): void;
 }
 
 /**
@@ -163,6 +171,7 @@ const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/loca
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_COUNTRY = 'gb';
 const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
+const DNS_REQUEST_TIMEOUT_MS = 500;
 
 const ajv = new Ajv({ allowUnionTypes: true });
 
@@ -296,7 +305,7 @@ class NumClientImpl implements NumClient {
    * @param [dnsClient]
    */
   constructor(dnsClient?: DnsClient) {
-    this.dnsServices = createDnsServices(dnsClient);
+    this.dnsServices = createDnsServices(DNS_REQUEST_TIMEOUT_MS, dnsClient);
     this.modlServices = createModlServices();
     this.resourceLoader = createResourceLoader();
     this.configProvider = createModuleConfigProvider(this.resourceLoader);
@@ -339,6 +348,9 @@ class NumClientImpl implements NumClient {
     this.resourceLoader.setenv(env);
   }
 
+  setTimeoutMillis(t: number): void {
+    this.dnsServices.setTimeout(t);
+  }
   /**
    * Creates an instance of num client impl.
    *
