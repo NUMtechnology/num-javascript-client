@@ -13,10 +13,16 @@
 // limitations under the License.
 //
 
-import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
-import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator } from './lookupgenerators';
 import log from 'loglevel';
-import { NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
+import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
+import {
+  createDomainLookupGenerator,
+  createEmailLookupGenerator,
+  createTNUMLookupGenerator,
+  createUrlLookupGenerator,
+  LookupGenerator,
+} from './lookupgenerators';
+import { Hostname, NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -69,12 +75,16 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
     this.numUri = numUri;
 
     // Create a suitable LookupGenerator based on the type of the record specifier
-    const lookupGenerator =
-      this.numUri.userinfo !== NO_USER_INFO
-        ? createEmailLookupGenerator(this.numUri)
-        : this.numUri.protocol.startsWith('http')
-          ? createUrlLookupGenerator(this.numUri)
-          : createDomainLookupGenerator(this.numUri);
+    let lookupGenerator: LookupGenerator;
+    if (this.numUri.userinfo !== NO_USER_INFO) {
+      lookupGenerator = createEmailLookupGenerator(this.numUri);
+    } else if (this.numUri.protocol.startsWith('http')) {
+      lookupGenerator = createUrlLookupGenerator(this.numUri);
+    } else if (Hostname.isValidTNUM(this.numUri.host.s)) {
+      lookupGenerator = createTNUMLookupGenerator(this.numUri);
+    } else {
+      lookupGenerator = createDomainLookupGenerator(this.numUri);
+    }
 
     this._independentRecordLocation = lookupGenerator.getIndependentLocation(this.moduleId);
     this._rootIndependentRecordLocation = lookupGenerator.getRootIndependentLocation(this.moduleId);

@@ -15,6 +15,7 @@
 import { parse } from 'url';
 
 const DOMAIN_REGEX = new RegExp(/^(([^.\s\\\b]+?\.)*?([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?\.)([^!"#$%&'()*+,./:;<=>?@\[\]^_`{|}~\s\b]+?))\.??$/);
+const TNUM_REGEX = new RegExp(/^\+\d{2,15}$/);
 const USERINFO_REGEX = new RegExp(/^(?!\s)[^@\f\t\r\b\s\\]+$/);
 const PATH_REGEX = new RegExp(/^(\/[^;,/\\?:@&=+$.#\s]+)*\/?$/);
 const MAX_LABEL_LENGTH = 63;
@@ -210,8 +211,13 @@ export class Hostname {
   }
 
   static isValid(s: string): boolean {
-    const matches = DOMAIN_REGEX.exec(s);
-    return s.length <= MAX_DOMAIN_NAME_LENGTH && matches !== null && matches.length > 0;
+    const domainMatches = DOMAIN_REGEX.exec(s);
+    return (s.length <= MAX_DOMAIN_NAME_LENGTH && domainMatches !== null && domainMatches.length > 0) || Hostname.isValidTNUM(s);
+  }
+
+  static isValidTNUM(s: string): boolean {
+    const tnumMatches = TNUM_REGEX.exec(s);
+    return tnumMatches !== null && tnumMatches.length > 0;
   }
 }
 
