@@ -512,65 +512,73 @@ class NumClientImpl implements NumClient {
    */
   // eslint-disable-next-line complexity
   public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
-    // Process the resulting JSON according to the ModuleConfig.json
-    const moduleConfig = await this.configProvider.getConfig(moduleNumber);
-    if (moduleConfig) {
-      // Skip everything if specified
-      if (!moduleConfig.processingChain.modlToJson) {
-        return modl;
-      }
-
-      // Interpret the MODL
-      let jsonResult = this.modlServices.interpretNumRecord(modl);
-      log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
-
-      // Validate the compact schema if there is one and if the config says we should
-      if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
-        // load the schema and use it to validate jsonResult
-        if (!(await this.validateSchema(moduleConfig.compactSchemaUrl, jsonResult))) {
-          throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
+    if (moduleNumber.n !== 0) {
+      // Process the resulting JSON according to the ModuleConfig.json
+      const moduleConfig = await this.configProvider.getConfig(moduleNumber);
+      if (moduleConfig) {
+        // Skip everything if specified
+        if (!moduleConfig.processingChain.modlToJson) {
+          return modl;
         }
-      } else {
-        log.info('Not configured to validate against the compact schema.');
-      }
 
-      // Attempt to load a locale file.
-      const localeFile = await this.loadLocaleFile(moduleConfig, userVariables);
-      if (!localeFile) {
-        throw new NumProtocolException(NumProtocolErrorCode.localeFileNotFoundError, `Unable to locate a locale file using ${JSON.stringify(userVariables)}`);
-      }
+        // Interpret the MODL
+        let jsonResult = this.modlServices.interpretNumRecord(modl);
+        log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
 
-      // Apply the schema mapping and Resolve references if one is defined
-      if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-        const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
-
-        if (schemaMapResponse) {
-          jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
-          log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
+        // Validate the compact schema if there is one and if the config says we should
+        if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
+          // load the schema and use it to validate jsonResult
+          if (!(await this.validateSchema(moduleConfig.compactSchemaUrl, jsonResult))) {
+            throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
+          }
         } else {
-          // No schema map
-          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
-          throw new NumProtocolException(
-            NumProtocolErrorCode.noUnpackerConfigFileFound,
-            `Could not load the configure Unpacker config file: ${moduleConfig.schemaMapUrl}`
-          );
+          log.info('Not configured to validate against the compact schema.');
         }
-      }
 
-      // Validate the expanded schema if there is one and if the config says we should
-      if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
-        // load the schema and use it to validate the expanded JSON
-        if (!(await this.validateSchema(moduleConfig.expandedSchemaUrl, jsonResult))) {
-          throw new NumProtocolException(NumProtocolErrorCode.expandedSchemaError, 'The record does not match the expanded schema');
+        // Attempt to load a locale file.
+        const localeFile = await this.loadLocaleFile(moduleConfig, userVariables);
+        if (!localeFile) {
+          throw new NumProtocolException(NumProtocolErrorCode.localeFileNotFoundError, `Unable to locate a locale file using ${JSON.stringify(userVariables)}`);
         }
+
+        // Apply the schema mapping and Resolve references if one is defined
+        if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
+          const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
+
+          if (schemaMapResponse) {
+            jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
+            log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
+          } else {
+            // No schema map
+            log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+            throw new NumProtocolException(
+              NumProtocolErrorCode.noUnpackerConfigFileFound,
+              `Could not load the configure Unpacker config file: ${moduleConfig.schemaMapUrl}`
+            );
+          }
+        }
+
+        // Validate the expanded schema if there is one and if the config says we should
+        if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
+          // load the schema and use it to validate the expanded JSON
+          if (!(await this.validateSchema(moduleConfig.expandedSchemaUrl, jsonResult))) {
+            throw new NumProtocolException(NumProtocolErrorCode.expandedSchemaError, 'The record does not match the expanded schema');
+          }
+        } else {
+          log.info('Not configured to validate against the expanded schema.');
+        }
+
+        return JSON.stringify(jsonResult);
       } else {
-        log.info('Not configured to validate against the expanded schema.');
+        log.error('No module config file available.');
+        throw new NumProtocolException(NumProtocolErrorCode.moduleConfigFileNotFound, `Unable to load the module config file for module ${moduleNumber.n} `);
       }
-
-      return JSON.stringify(jsonResult);
     } else {
-      log.error('No module config file available.');
-      throw new NumProtocolException(NumProtocolErrorCode.moduleConfigFileNotFound, `Unable to load the module config file for module ${moduleNumber.n} `);
+      // Interpret the MODL
+      const jsonResult = this.modlServices.interpretNumRecord(modl);
+      const jsonString = JSON.stringify(jsonResult);
+      log.debug(`Interpreter raw JSON result: ${jsonString}`);
+      return jsonString;
     }
   }
 
