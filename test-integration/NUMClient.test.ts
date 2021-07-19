@@ -72,6 +72,31 @@ describe('NUMClient', () => {
     expect(same).to.equal(true);
   });
 
+  it('should be able to lookup a NUM record using the NUMClient when the INDEPENDENT record is invalid MODL', async () => {
+    const numUri = parseNumUri('seswater.co.uk:1');
+    const handler = createDefaultCallbackHandler();
+
+    const client = createClient();
+    log.setLevel('debug');
+    client.setResourceLoader(dummyResourceLoader);
+
+    const ctx = client.createContext(numUri);
+    const result = await client.retrieveNumRecord(ctx, handler);
+
+    expect(result).not.equal(null);
+
+    const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organisation","name":"SES Water","slogan":null,"contacts":[{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Moving Home New Customers","action":"https://seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","value":"seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","controller":null},{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Make a Payment Online","action":"https://ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","value":"ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","controller":null},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Customer Services","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["wd@9-17"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Automated Freephone Payment Line","action":"tel:+44800 587 2936","value":"+44800 587 2936","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Emergency Line","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Thames Water 24 hour Service","action":"tel:+44845 920 0800","value":"+44845 920 0800","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Southern Water 24 hour Service","action":"tel:+44845 278 0845","value":"+44845 278 0845","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/SESWater","controller":"twitter.com","value":"@SESWater"},{"method_type":"facebook","method_display_name":"Facebook","description_default":"View Facebook profile","description":null,"action":"https://www.facebook.com/SESWaterOfficial","controller":"facebook.com","value":"/SESWaterOfficial"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/seswater","controller":"linkedin.com","value":"/company/seswater"}]}';
+    const same = deepEql(
+      JSON.parse(result as string),
+      JSON.parse(expected)
+    );
+    if (!same) {
+      console.log(`Actual  : ${result}`);
+      console.log(`Expected: ${expected}`);
+    }
+    expect(same).to.equal(true);
+  });
+
   it('should be able to lookup a NUM record using the NUMClient and custom user variables', async () => {
     const numUri = parseNumUri('num.uk:1');
     const handler = createDefaultCallbackHandler();

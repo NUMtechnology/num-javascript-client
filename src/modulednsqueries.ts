@@ -76,7 +76,7 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
 
     // Create a suitable LookupGenerator based on the type of the record specifier
     let lookupGenerator: LookupGenerator;
-    if (this.numUri.userinfo !== NO_USER_INFO) {
+    if (this.numUri.userinfo.s !== NO_USER_INFO.s) {
       lookupGenerator = createEmailLookupGenerator(this.numUri);
     } else if (this.numUri.protocol.startsWith('http')) {
       lookupGenerator = createUrlLookupGenerator(this.numUri);
