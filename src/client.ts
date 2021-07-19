@@ -589,7 +589,7 @@ class NumClientImpl implements NumClient {
    */
   private async dnsQuery(query: string, ctx: Context) {
     const result = await this.dnsServices.getRecordFromDns(query, ctx.dnssec);
-    if (result.length > 0 && result.startsWith('@n=')) {
+    if (result.length > 0 && /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)|(@n=\d+;.*)/.test(result)) {
       ctx.result = result;
       return true;
     }
