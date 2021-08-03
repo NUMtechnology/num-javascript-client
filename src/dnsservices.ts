@@ -16,7 +16,7 @@
 import log from 'loglevel';
 import punycode from 'punycode';
 import { createDnsClient, DnsClient, DoHResolver, Question } from './dnsclient';
-import { BadDnsStatusException, RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
+import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
 
@@ -183,7 +183,10 @@ class DnsServicesImpl implements DnsServices {
       // Punydecode the result.
       return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
     } catch (e: any) {
-      if (e instanceof BadDnsStatusException) {
+      if (e && typeof e === 'object' && e.status) {
+        if (e.status !== 0) {
+          return '';
+        }
         throw e;
       }
 
