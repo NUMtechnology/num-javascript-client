@@ -190,7 +190,7 @@ class DnsServicesImpl implements DnsServices {
       // Change the client we're using an try again
       this.clientIndex = (this.clientIndex + 1) % this.dnsClients.length;
 
-      log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name}`);
+      log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name} due to ${JSON.stringify(e)}`);
 
       return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1);
     }
