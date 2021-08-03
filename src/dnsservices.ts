@@ -15,8 +15,8 @@
 
 import log from 'loglevel';
 import punycode from 'punycode';
-import { createDnsClient, DnsClient, Question } from './dnsclient';
-import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
+import { createDnsClient, DnsClient, DoHResolver, Question } from './dnsclient';
+import { BadDnsStatusException, RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
 
@@ -35,27 +35,30 @@ export interface DnsServices {
  * Creates dns services
  *
  * @param timeout the DNS request timeout in milliseconds
- * @param [dnsClient]
+ * @param [DoHResolver]
  * @returns dns services
  */
-export const createDnsServices = (timeout: number, dnsClient?: DnsClient): DnsServices => new DnsServicesImpl(timeout, dnsClient);
+export const createDnsServices = (timeout: number, resolvers: Array<DoHResolver>): DnsServices => new DnsServicesImpl(timeout, resolvers);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
+
 /**
  * Dns services impl
  */
 class DnsServicesImpl implements DnsServices {
-  private dnsClient: DnsClient;
+  private dnsClients: Array<DnsClient>;
+  private clientIndex: number;
 
   /**
    * Creates an instance of dns services impl.
    *
    * @param [dnsClient]
    */
-  constructor(timeout: number, dnsClient?: DnsClient) {
-    this.dnsClient = dnsClient ? dnsClient : createDnsClient(timeout);
+  constructor(timeout: number, resolvers: Array<DoHResolver>) {
+    this.dnsClients = resolvers.map((r) => createDnsClient(timeout, r));
+    this.clientIndex = 0;
   }
 
   /**
@@ -64,7 +67,9 @@ class DnsServicesImpl implements DnsServices {
    * @param t the DNS request timeout in milliseconds
    */
   setTimeout(t: number): void {
-    this.dnsClient.setTimeout(t);
+    this.dnsClients.forEach((c) => {
+      c.setTimeout(t);
+    });
   }
 
   /**
@@ -152,14 +157,42 @@ class DnsServicesImpl implements DnsServices {
    * @returns record from dns
    */
   async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string> {
-    const question = new Question(query, 'TXT', checkDnsSecValidity);
+    return this._getRecordFromDns(query, checkDnsSecValidity, this.dnsClients.length);
+  }
 
-    const result = await this.dnsClient.query(question);
+  /**
+   * Gets record from dns
+   *
+   * @param query
+   * @param checkDnsSecValidity
+   * @returns record from dns
+   */
+  async _getRecordFromDns(query: string, checkDnsSecValidity: boolean, attempts: number): Promise<string> {
+    if (attempts === 0) {
+      return Promise.resolve('');
+    }
 
-    log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
+    try {
+      const question = new Question(query, 'TXT', checkDnsSecValidity);
 
-    const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
-    // Punydecode the result.
-    return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
+      const result = await this.dnsClients[this.clientIndex].query(question);
+
+      log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
+
+      const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
+      // Punydecode the result.
+      return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
+    } catch (e: any) {
+      if (e instanceof BadDnsStatusException) {
+        throw e;
+      }
+
+      // Change the client we're using an try again
+      this.clientIndex = (this.clientIndex + 1) % this.dnsClients.length;
+
+      log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name}`);
+
+      return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1);
+    }
   }
 }

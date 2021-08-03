@@ -66,6 +66,8 @@ export interface DnsClient {
    * @returns query
    */
   query(question: Question): Promise<string[]>;
+
+  getResolver(): DoHResolver;
 }
 
 /**
@@ -74,7 +76,7 @@ export interface DnsClient {
  * @param [resolver]
  * @returns dns client
  */
-export const createDnsClient = (timeout: number, resolver?: DoHResolver): DnsClient => new DnsClientImpl(timeout, resolver);
+export const createDnsClient = (timeout: number, resolver: DoHResolver): DnsClient => new DnsClientImpl(timeout, resolver);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -90,8 +92,6 @@ interface Answer {
   readonly TTL: number;
 }
 
-const DEFAULT_RESOLVER = new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query');
-
 /**
  * Dns client
  */
@@ -104,14 +104,18 @@ class DnsClientImpl implements DnsClient {
    *
    * @param [resolver]
    */
-  constructor(timeout: number, resolver?: DoHResolver) {
-    this.resolver = resolver ? resolver : DEFAULT_RESOLVER;
+  constructor(timeout: number, resolver: DoHResolver) {
+    this.resolver = resolver;
     this.timeout = timeout;
     log.info(`DNS client configured with resolver: ${this.resolver.url}`);
   }
 
   setTimeout(t: number) {
     this.timeout = t;
+  }
+
+  getResolver(): DoHResolver {
+    return this.resolver;
   }
 
   /**
@@ -133,7 +137,8 @@ class DnsClientImpl implements DnsClient {
           log.warn(`Error resolving ${question.name} with ${this.resolver.name}`);
         }
       } else {
-        log.warn(`Error resolving ${question.name} with ${this.resolver.name}.`);
+        log.warn(`Error resolving ${question.name} with ${this.resolver.name}. ${JSON.stringify(err)}`);
+        throw err;
       }
     }
 

@@ -27,7 +27,7 @@ const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
 /**
- * Generate a SHA1 hash and base36 encode it, then return the first 3 chars separated by '.' and prefixed by '.'
+ * Generate a SHA1 hash and base36 encode it, then return the first `depth` chars separated by '.' and prefixed by '.'
  * The parameter is not checked and the caller must supply a correct value.
  *
  * @param  normalisedDomain domain name.
@@ -38,10 +38,14 @@ export const hashByDepth = (normalisedDomain: string, depth: number): string => 
   const hashed = CryptoJS.SHA1(normalisedDomain).toString();
   const converted = hexToBase36(hashed).toLowerCase();
 
-  let dottedHashByDepth = '';
-  for (let i = depth - 1; i >= 0; i--) {
-    dottedHashByDepth += `.${converted[i]}`;
-  }
-
-  return dottedHashByDepth;
+  return generateHash(depth - 1, converted);
 };
+
+/**
+ * Convert `abcd` into `.c.b.a`
+ *
+ * @param i index of the first letter to use in s
+ * @param s a string of at least i+1 characters
+ * @returns strings
+ */
+const generateHash = (i: number, s: string): string => (i < 0 || i > s.length - 1 ? '' : `.${s[i]}${generateHash(i - 1, s)}`);

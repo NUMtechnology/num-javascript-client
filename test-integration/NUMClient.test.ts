@@ -25,7 +25,7 @@ import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
 import { CallbackHandler, createClient, createDefaultCallbackHandler, NumProtocolErrorCode } from '../src/client';
 import { NumLocation } from '../src/context';
-import { createDnsClient, DoHResolver } from '../src/dnsclient';
+import { DoHResolver } from '../src/dnsclient';
 import { parseNumUri } from '../src/numuri';
 import { DummyResourceLoader } from './DummyResourceLoader';
 
@@ -33,15 +33,16 @@ import { DummyResourceLoader } from './DummyResourceLoader';
 const log = loglevel as Logger;
 
 
-const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
-const dnsClient = createDnsClient(1000, DEFAULT_RESOLVER);
-
+const DEFAULT_RESOLVERS = [
+  new DoHResolver('BAD', 'https://jhsgfdjhsgdkweg32767236eddghagsf.com/dns-query'),
+  new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query')
+];
 
 const dummyResourceLoader = new DummyResourceLoader();
 
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
-    const client = createClient(dnsClient);
+    const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel('debug');
     client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
@@ -101,7 +102,7 @@ describe('NUMClient', () => {
     const numUri = parseNumUri('num.uk:1');
     const handler = createDefaultCallbackHandler();
 
-    const client = createClient(dnsClient);
+    const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel('debug');
     client.setResourceLoader(dummyResourceLoader);
 
@@ -137,7 +138,7 @@ describe('NUMClient', () => {
       }
     };
 
-    const client = createClient(dnsClient);
+    const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel('debug');
     client.setResourceLoader(dummyResourceLoader);
 
@@ -176,7 +177,7 @@ describe('NUMClient', () => {
       }
     };
 
-    const client = createClient(dnsClient);
+    const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel('debug');
     client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);

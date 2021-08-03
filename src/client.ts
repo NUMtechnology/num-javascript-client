@@ -18,7 +18,7 @@ import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
 import { mapper } from 'object-unpacker';
 import { Context, NumLocation, UserVariable } from './context';
-import { DnsClient } from './dnsclient';
+import { DoHResolver } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
 import { setenvDomainLookups } from './lookupgenerators';
@@ -36,7 +36,7 @@ import { createResourceLoader, ResourceLoader } from './resourceloader';
  *
  * @returns client
  */
-export const createClient = (dnsClient?: DnsClient): NumClient => new NumClientImpl(dnsClient);
+export const createClient = (resolvers?: Array<DoHResolver>): NumClient => new NumClientImpl(resolvers);
 
 /**
  * Num client
@@ -175,6 +175,12 @@ const DNS_REQUEST_TIMEOUT_MS = 500;
 
 const ajv = new Ajv({ allowUnionTypes: true });
 
+const DEFAULT_RESOLVERS = [
+  //new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+  new DoHResolver('BAD', 'https://jhsgfdjhsgdkweg32767236eddghagsf.com/dns-query'),
+  new DoHResolver('Google', 'https://dns.google.com/resolve'),
+];
+
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
 //------------------------------------------------------------------------------------------------------------------------
@@ -304,8 +310,8 @@ class NumClientImpl implements NumClient {
    *
    * @param [dnsClient]
    */
-  constructor(dnsClient?: DnsClient) {
-    this.dnsServices = createDnsServices(DNS_REQUEST_TIMEOUT_MS, dnsClient);
+  constructor(resolvers?: Array<DoHResolver>) {
+    this.dnsServices = resolvers ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers) : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
     this.modlServices = createModlServices();
     this.resourceLoader = createResourceLoader();
     this.configProvider = createModuleConfigProvider(this.resourceLoader);
