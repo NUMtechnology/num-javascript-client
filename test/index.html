@@ -10,7 +10,7 @@
   <script src="../dist/bundle.js"></script>
   <h1>NUM Protocol Example</h1>
   <div>
-    NUM URI = <input type="text" value="num.uk:1" id='urivalue' onchange="reloadRecord()">
+    NUM URI = <input type="text" value="aviva.co.uk:1" id='urivalue' onchange="reloadRecord()">
     <input type="button" value="Reload" onclick="reloadRecord()">
   </div>
   <div style="border: 1px solid blue;width: fit-content;">
@@ -18,7 +18,12 @@
   </div>
   <script>
 
-    const client = NumClient.createClient();
+    const CUSTOM_RESOLVERS = [
+      new NumClient.DoHResolver('BAD', 'https://jhsgfdjhsgdkweg32767236eddghagsf.com/dns-query'),
+      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query')
+    ];
+
+    const client = NumClient.createClient(CUSTOM_RESOLVERS);
     //client.setDnsEnv('test');
     //client.setModuleEnv('test');
     //client.setenv('test');

@@ -172,30 +172,31 @@ class DnsServicesImpl implements DnsServices {
       return Promise.resolve('');
     }
 
-    try {
-      const question = new Question(query, 'TXT', checkDnsSecValidity);
+    const question = new Question(query, 'TXT', checkDnsSecValidity);
 
-      const result = await this.dnsClients[this.clientIndex].query(question);
+    return this.dnsClients[this.clientIndex]
+      .query(question)
+      .then((result) => {
+        log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
 
-      log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
-
-      const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
-      // Punydecode the result.
-      return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
-    } catch (e: any) {
-      if (e && typeof e === 'object' && e.status) {
-        if (e.status !== 0) {
-          return '';
+        const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
+        // Punydecode the result.
+        return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
+      })
+      .catch((e) => {
+        if (e && typeof e === 'object' && e.status) {
+          if (e.status !== 0) {
+            return Promise.resolve('');
+          }
+          throw e;
         }
-        throw e;
-      }
 
-      // Change the client we're using an try again
-      this.clientIndex = (this.clientIndex + 1) % this.dnsClients.length;
+        // Change the client we're using an try again
+        this.clientIndex = (this.clientIndex + 1) % this.dnsClients.length;
 
-      log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name} due to ${JSON.stringify(e)}`);
+        log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name} due to ${JSON.stringify(e)}`);
 
-      return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1);
-    }
+        return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1);
+      });
   }
 }
