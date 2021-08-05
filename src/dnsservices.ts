@@ -157,7 +157,7 @@ class DnsServicesImpl implements DnsServices {
    * @returns record from dns
    */
   async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string> {
-    return this._getRecordFromDns(query, checkDnsSecValidity, this.dnsClients.length);
+    return this._getRecordFromDns(query, checkDnsSecValidity, this.dnsClients.length, this.clientIndex);
   }
 
   /**
@@ -167,14 +167,14 @@ class DnsServicesImpl implements DnsServices {
    * @param checkDnsSecValidity
    * @returns record from dns
    */
-  async _getRecordFromDns(query: string, checkDnsSecValidity: boolean, attempts: number): Promise<string> {
+  async _getRecordFromDns(query: string, checkDnsSecValidity: boolean, attempts: number, dohIndex: number): Promise<string> {
     if (attempts === 0) {
       return Promise.resolve('');
     }
 
     const question = new Question(query, 'TXT', checkDnsSecValidity);
 
-    return this.dnsClients[this.clientIndex]
+    return this.dnsClients[dohIndex]
       .query(question)
       .then((result) => {
         log.debug(`Performed dns lookup ${JSON.stringify(question)} and got ${JSON.stringify(result)}`);
@@ -192,11 +192,11 @@ class DnsServicesImpl implements DnsServices {
         }
 
         // Change the client we're using an try again
-        this.clientIndex = (this.clientIndex + 1) % this.dnsClients.length;
+        dohIndex = (dohIndex + 1) % this.dnsClients.length;
 
-        log.warn(`Switching to DoH: ${this.dnsClients[this.clientIndex].getResolver().name} due to ${JSON.stringify(e)}`);
+        log.warn(`Switching to DoH: ${this.dnsClients[dohIndex].getResolver().name} due to ${JSON.stringify(e)}`);
 
-        return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1);
+        return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1, dohIndex);
       });
   }
 }
