@@ -1,7 +1,15 @@
 /* eslint-disable max-len */
 import { createClient, DefaultCallbackHandler, NumClient, NumProtocolErrorCode } from './client';
 import { createDnsClient, DoHResolver } from './dnsclient';
-import { normaliseDomainName, normalisePath, transformBranch } from './lookupgenerators';
+import {
+  createDomainLookupGenerator,
+  createEmailLookupGenerator,
+  createTNUMLookupGenerator,
+  createUrlLookupGenerator,
+  normaliseDomainName,
+  normalisePath,
+  transformBranch,
+} from './lookupgenerators';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
 import {
   buildNumUri,
@@ -40,4 +48,16 @@ export { MODULE_9 };
 export { MODULE_10 };
 export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
 export { DoHResolver, createDnsClient };
-export { resolvePath, ResourceLoader, normalisePath, createModuleDnsQueries, ModuleDnsQueries, transformBranch, normaliseDomainName };
+export {
+  resolvePath,
+  ResourceLoader,
+  normalisePath,
+  createModuleDnsQueries,
+  ModuleDnsQueries,
+  transformBranch,
+  normaliseDomainName,
+  createTNUMLookupGenerator,
+  createDomainLookupGenerator,
+  createEmailLookupGenerator,
+  createUrlLookupGenerator,
+};
