@@ -7,7 +7,7 @@ import { Answer, DoHResolver } from '../src/dnsclient';
 import { createDnsServices } from '../src/dnsservices';
 
 const log = loglevel as Logger;
-const REQ_COUNT = 100;
+const REQ_COUNT = 5;
 const DELAY_MULTIPLIER = 200;
 
 log.setLevel('debug');
