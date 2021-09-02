@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
-import axios from 'axios';
 import log from 'loglevel';
 import punycode from 'punycode';
+import { AxiosProxy, axiosProxy } from './axiosproxy';
 import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
 
 const NXDOMAIN = 3;
@@ -73,10 +72,13 @@ export interface DnsClient {
 /**
  * Creates dns client
  *
- * @param [resolver]
+ * @param timeout for the axios query
+ * @param resolver the DoHResolver
+ * @param proxy the AxiosProxy instance if not the default
  * @returns dns client
  */
-export const createDnsClient = (timeout: number, resolver: DoHResolver): DnsClient => new DnsClientImpl(timeout, resolver);
+export const createDnsClient = (timeout: number, resolver: DoHResolver, proxy?: AxiosProxy): DnsClient =>
+  new DnsClientImpl(timeout, resolver, proxy ? proxy : axiosProxy);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -84,7 +86,7 @@ export const createDnsClient = (timeout: number, resolver: DoHResolver): DnsClie
 /**
  * Answer
  */
-interface Answer {
+export interface Answer {
   readonly name: string;
   readonly type: number;
   readonly data: string;
@@ -98,15 +100,17 @@ interface Answer {
 class DnsClientImpl implements DnsClient {
   private readonly resolver: DoHResolver;
   private timeout: number;
+  private readonly axiosProxy: AxiosProxy;
 
   /**
    * Creates an instance of dns client impl.
    *
    * @param [resolver]
    */
-  constructor(timeout: number, resolver: DoHResolver) {
+  constructor(timeout: number, resolver: DoHResolver, proxy: AxiosProxy) {
     this.resolver = resolver;
     this.timeout = timeout;
+    this.axiosProxy = proxy;
     log.info(`DNS client configured with resolver: ${this.resolver.url}`);
   }
 
@@ -158,7 +162,7 @@ class DnsClientImpl implements DnsClient {
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0') + '&ct=application/dns-json';
     const url = `${resolver.url}?${params}`;
 
-    const response = await axios.get(url, { timeout: this.timeout });
+    const response = await this.axiosProxy.get(url, { timeout: this.timeout });
 
     if (response.data) {
       if (response.data.Status === 0) {

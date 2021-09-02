@@ -15,6 +15,7 @@
 
 import log from 'loglevel';
 import punycode from 'punycode';
+import { AxiosProxy } from './axiosproxy';
 import { createDnsClient, DnsClient, DoHResolver, Question } from './dnsclient';
 import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
@@ -38,7 +39,8 @@ export interface DnsServices {
  * @param [DoHResolver]
  * @returns dns services
  */
-export const createDnsServices = (timeout: number, resolvers: Array<DoHResolver>): DnsServices => new DnsServicesImpl(timeout, resolvers);
+export const createDnsServices = (timeout: number, resolvers: Array<DoHResolver>, proxy?: AxiosProxy): DnsServices =>
+  new DnsServicesImpl(timeout, resolvers, proxy);
 
 //------------------------------------------------------------------------------------------------------------------------
 // Internals
@@ -56,8 +58,8 @@ class DnsServicesImpl implements DnsServices {
    *
    * @param [dnsClient]
    */
-  constructor(timeout: number, resolvers: Array<DoHResolver>) {
-    this.dnsClients = resolvers.map((r) => createDnsClient(timeout, r));
+  constructor(timeout: number, resolvers: Array<DoHResolver>, proxy?: AxiosProxy) {
+    this.dnsClients = resolvers.map((r) => createDnsClient(timeout, r, proxy));
     this.clientIndex = 0;
   }
 
@@ -157,7 +159,7 @@ class DnsServicesImpl implements DnsServices {
    * @returns record from dns
    */
   async getRecordFromDns(query: string, checkDnsSecValidity: boolean): Promise<string> {
-    return this._getRecordFromDns(query, checkDnsSecValidity, this.dnsClients.length, this.clientIndex);
+    return this._getRecordFromDns(query, checkDnsSecValidity, 5, this.clientIndex);
   }
 
   /**
@@ -173,6 +175,8 @@ class DnsServicesImpl implements DnsServices {
     }
 
     const question = new Question(query, 'TXT', checkDnsSecValidity);
+
+    log.debug(`Using DoH: ${this.dnsClients[dohIndex].getResolver().name}`);
 
     return this.dnsClients[dohIndex]
       .query(question)
