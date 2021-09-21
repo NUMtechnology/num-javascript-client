@@ -171,10 +171,9 @@ function lookup(uri1, uri2) {
   const numUri1 = num.parseNumUri(uri1);
   const numUri2 = num.parseNumUri(uri2);
 
-  const DEFAULT_RESOLVER = new num.DoHResolver('Google', 'https://dns.google.com/resolve');
-  const dnsClient = num.createDnsClient(DEFAULT_RESOLVER);
+  const DEFAULT_RESOLVER = new num.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query');
 
-  const client = num.createClient(dnsClient);          // Use a custom DNS client
+  const client = num.createClient([DEFAULT_RESOLVER]);
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
@@ -192,6 +191,9 @@ function lookup(uri1, uri2) {
     setResult: (r) => {
       console.log(r);                                 // `r` is the NUM record as a JSON string
     },
+    setErrorCode: (e) => {
+      console.log(JSON.stringify(e));
+    }
   };
 
   const result1 = client.retrieveNumRecord(ctx1, handler);
@@ -217,30 +219,43 @@ This simple example can be modified as necessary by following the previous examp
 </head>
 
 <body>
-  <script src="https://unpkg.com/num-client/web/num-client-latest.js"></script>
-  <h1>num.uk:1</h1>
-  <pre id='num'></pre>
-  
+  <script src="../dist/bundle.js"></script>
+  <h1>NUM Protocol Example</h1>
+  <div>
+    NUM URI = <input type="text" value="num.uk:1" id='urivalue' onchange="reloadRecord()">
+    <input type="button" value="Reload" onclick="reloadRecord()">
+  </div>
+  <div style="border: 1px solid blue;width: fit-content;">
+    <pre id='num'></pre>
+  </div>
   <script>
 
-    window.addEventListener('load', function () {
+    const CUSTOM_RESOLVERS = [
+      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query')
+    ];
 
-      const num = require('num-client');
+    const client = NumClient.createClient(CUSTOM_RESOLVERS);
 
-      function lookup(uri) {
-        const numUri = num.parseNumUri(uri);
 
-        const client = num.createClient();
-        const ctx = client.createContext(numUri);
+    function lookup(uri) {
+      const numUri = NumClient.parseNumUri(uri);
 
-        return client.retrieveNumRecord(ctx);
-      }
+      const ctx = client.createContext(numUri);
 
-      lookup('num.uk:1').then((result) => {
-        const pretty = JSON.stringify(JSON.parse(result), null, 4);
-        
+      return client.retrieveNumRecord(ctx);
+    }
+
+    function reloadRecord() {
+      const uri = document.getElementById('urivalue').value;
+      lookup(uri).then((result) => {
+        const pretty = JSON.stringify(JSON.parse(result), null, 1);
         document.getElementById('num').innerHTML = pretty;
       });
+
+    }
+
+    window.addEventListener('load', function () {
+      reloadRecord();
     });
 
   </script>
