@@ -98,9 +98,8 @@ By default the `NUMClient` uses the Google DoH resolver, although it can be chan
 const lookup = async () => {
   // ...
   const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
-  const dnsClient = createDnsClient(DEFAULT_RESOLVER);
 
-  const client = createClient(dnsClient); // Use a custom DoH service
+  const client = createClient([DEFAULT_RESOLVER]); // Use a custom DoH service
   // ...
 };
 ```
@@ -127,18 +126,21 @@ const lookup = async () => {
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
 
-  const handler: CallbackHandler = {                  // Provide a custom CallbackHandler
-    setLocation: (l: Location): void => {
-      console.log(l);                                 // `l` is the `Location` where the result was found
+  const handler: CallbackHandler = {
+    setLocation: (l: NumLocation): void => {
+      console.log(l); // `l` is the `Location` where the result was found
     },
     setResult: (r: string): void => {
-      console.log(r);                                 // `r` is the NUM record as a JSON string
+      console.log(r); // `r` is the NUM record as a JSON string
     },
+    setErrorCode: (r: string): void => {
+      console.log(r); // `r` is the NUM record as a JSON string
+    }
   };
 
   client.retrieveNumRecord(ctx, handler).then((_r) => {
     // Ignore because the callback handler will handle it
-  });
+  }, (err) => console.error(err));
 }
 ```
 # JavaScript Examples
