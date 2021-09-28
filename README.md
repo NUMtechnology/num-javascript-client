@@ -133,8 +133,8 @@ const lookup = async () => {
     setResult: (r: string): void => {
       console.log(r); // `r` is the NUM record as a JSON string
     },
-    setErrorCode: (r: string): void => {
-      console.log(r); // `r` is the NUM record as a JSON string
+    setErrorCode: (e: string): void => {
+      console.log(e); // `e` is the error message
     }
   };
 

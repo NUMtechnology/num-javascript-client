@@ -30,7 +30,7 @@ import { DummyResourceLoader } from './DummyResourceLoader';
 
 const log = loglevel as Logger;
 
-log.setLevel('info');
+log.setLevel('error');
 
 const dummyResourceLoader = new DummyResourceLoader();
 

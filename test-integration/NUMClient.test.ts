@@ -43,7 +43,7 @@ const dummyResourceLoader = new DummyResourceLoader();
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
   });
@@ -53,7 +53,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -78,7 +78,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -103,7 +103,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -139,7 +139,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -178,7 +178,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
     const result = await client.retrieveNumRecord(ctx, handler);
@@ -191,7 +191,7 @@ describe('NUMClient', () => {
     const numUri3 = parseNumUri('lloydsbank.com:1');
 
     const client = createClient();
-    log.setLevel('debug');
+    log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);

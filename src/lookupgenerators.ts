@@ -261,7 +261,7 @@ export const normaliseDomainName = (domainName: string): string => {
       if (e instanceof NumException) {
         throw e;
       } else {
-        throw new NumBadUrlException(`Invalid URL: ${domainName}`, e);
+        throw new NumBadUrlException(`Invalid URL: ${domainName}`, e as Error);
       }
     }
   }

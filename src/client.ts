@@ -165,8 +165,6 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
 
-log.setLevel('info');
-
 const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/locales/');
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_COUNTRY = 'gb';

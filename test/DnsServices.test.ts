@@ -10,7 +10,7 @@ const log = loglevel as Logger;
 const REQ_COUNT = 5;
 const DELAY_MULTIPLIER = 200;
 
-log.setLevel('debug');
+log.setLevel('error');
 
 class AxiosProxyDummyImpl implements AxiosProxy {
   async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
