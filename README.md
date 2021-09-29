@@ -149,16 +149,7 @@ This example shows the minimal requirements for using the NUM Client:
 ```javascript
 const num = require('num-client');
 
-function lookup(uri) {
-  const numUri = num.parseNumUri(uri);
-
-  const client = num.createClient();
-  const ctx = client.createContext(numUri);
-
-  return client.retrieveNumRecord(ctx);
-}
-
-lookup('num.uk:1').then((result) => console.log(result));
+num.lookup('num.uk:1').then((result) => console.log(result));
 ```
 ## Full Usage
 This example shows how to use all features of the client, including 

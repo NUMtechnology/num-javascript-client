@@ -25,7 +25,7 @@ import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider } from './moduleconfig';
-import { NumUri, PositiveInteger } from './numuri';
+import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -37,6 +37,18 @@ import { createResourceLoader, ResourceLoader } from './resourceloader';
  * @returns client
  */
 export const createClient = (resolvers?: Array<DoHResolver>): NumClient => new NumClientImpl(resolvers);
+
+/**
+ * Utility function for developers who just want to try out the API. Not recommended for producton use.
+ */
+export const lookup = (uri: string): Promise<string | null> => {
+  const numUri: NumUri = parseNumUri(uri);
+
+  const client: NumClient = createClient();
+  const ctx = client.createContext(numUri);
+
+  return client.retrieveNumRecord(ctx);
+};
 
 /**
  * Num client

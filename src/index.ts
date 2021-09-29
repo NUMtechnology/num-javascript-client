@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { createClient, DefaultCallbackHandler, NumClient, NumProtocolErrorCode } from './client';
+import { createClient, DefaultCallbackHandler, lookup, NumClient, NumProtocolErrorCode } from './client';
 import { createDnsClient, DoHResolver } from './dnsclient';
 import {
   createDomainLookupGenerator,
@@ -46,7 +46,7 @@ export { MODULE_7 };
 export { MODULE_8 };
 export { MODULE_9 };
 export { MODULE_10 };
-export { createClient, NumProtocolErrorCode, DefaultCallbackHandler };
+export { createClient, NumProtocolErrorCode, DefaultCallbackHandler, lookup };
 export { DoHResolver, createDnsClient };
 export {
   resolvePath,
