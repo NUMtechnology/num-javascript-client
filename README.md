@@ -93,13 +93,16 @@ const lookup = async () => {
 }
 ```
 ## Overriding the Default DoH Endpoint
-By default the `NUMClient` uses the Google DoH resolver, although it can be changed if required by providing a `DoHResolver` to a service that supports [the JSON API for DNS over HTTPS (DoH)](https://developers.google.com/speed/public-dns/docs/doh/json).:
+By default the `NUMClient` uses the Cloudflare and Quad9 DoH resolvers, although it can be changed if required by providing a `DoHResolver` to a service that supports [the JSON API for DNS over HTTPS (DoH)](https://developers.google.com/speed/public-dns/docs/doh/json).:
 ```Typescript
 const lookup = async () => {
   // ...
-  const DEFAULT_RESOLVER = new DoHResolver('Google', 'https://dns.google.com/resolve');
+  const DEFAULT_RESOLVERS = [
+    new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+    new DoHResolver('Quad9', 'https://dns10.quad9.net:5053/dns-query'),
+  ];
 
-  const client = createClient([DEFAULT_RESOLVER]); // Use a custom DoH service
+  const client = createClient(DEFAULT_RESOLVERS); // Use a custom DoH service
   // ...
 };
 ```
@@ -164,9 +167,12 @@ function lookup(uri1, uri2) {
   const numUri1 = num.parseNumUri(uri1);
   const numUri2 = num.parseNumUri(uri2);
 
-  const DEFAULT_RESOLVER = new num.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query');
+  const DEFAULT_RESOLVERS = [
+    new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+    new DoHResolver('Quad9', 'https://dns10.quad9.net:5053/dns-query'),
+  ];
 
-  const client = num.createClient([DEFAULT_RESOLVER]);
+  const client = num.createClient(DEFAULT_RESOLVERS);
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
