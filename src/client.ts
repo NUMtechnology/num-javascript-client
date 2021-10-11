@@ -185,7 +185,10 @@ const DNS_REQUEST_TIMEOUT_MS = 500;
 
 const ajv = new Ajv({ allowUnionTypes: true });
 
-const DEFAULT_RESOLVERS = [new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'), new DoHResolver('Google', 'https://dns.google.com/resolve')];
+const DEFAULT_RESOLVERS = [
+  new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+  new DoHResolver('Quad9', 'https://dns10.quad9.net:5053/dns-query'),
+];
 
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging

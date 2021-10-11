@@ -13,20 +13,26 @@
     NUM URI = <input type="text" value="aviva.co.uk:1" id='urivalue' onchange="reloadRecord()">
     <input type="button" value="Reload" onclick="reloadRecord()">
   </div>
+  <div>
+    <label for="env">Environment:</label>
+
+    <select name="env" id="env" onchange="setEnvironment()">
+      <option value="test">Test</option>
+      <option value="staging">Staging</option>
+      <option value="prod" selected>Prod</option>
+    </select>
+  </div>
   <div style="border: 1px solid blue;width: fit-content;">
     <pre id='num'></pre>
   </div>
   <script>
 
     const CUSTOM_RESOLVERS = [
-      //new NumClient.DoHResolver('BAD', 'https://jhsgfdjhsgdkweg32767236eddghagsf.com/dns-query'),
-      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query')
+      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+      new NumClient.DoHResolver('Quad9', 'https://dns10.quad9.net:5053/dns-query')
     ];
 
     const client = NumClient.createClient(CUSTOM_RESOLVERS);
-    //client.setDnsEnv('test');
-    //client.setModuleEnv('test');
-    //client.setenv('test');
 
 
     function lookup(uri) {
@@ -50,6 +56,13 @@
       reloadRecord();
     });
 
+    function setEnvironment() {
+      const e = document.getElementById('env').value;
+      client.setDnsEnv(e);
+      client.setModuleEnv(e);
+      client.setenv(e);
+      reloadRecord();
+    }
   </script>
 </body>
 
