@@ -93,7 +93,7 @@ const lookup = async () => {
 }
 ```
 ## Overriding the Default DoH Endpoint
-By default the `NUMClient` uses the Cloudflare and Quad9 DoH resolvers, although it can be changed if required by providing a `DoHResolver` to a service that supports [the JSON API for DNS over HTTPS (DoH)](https://developers.google.com/speed/public-dns/docs/doh/json).:
+By default the `NUMClient` uses the Cloudflare and Google DoH resolvers, although it can be changed if required by providing a `DoHResolver` to a service that supports [the JSON API for DNS over HTTPS (DoH)](https://developers.google.com/speed/public-dns/docs/doh/json).:
 ```Typescript
 const lookup = async () => {
   // ...
