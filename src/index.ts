@@ -8,6 +8,7 @@ import {
   createUrlLookupGenerator,
   normaliseDomainName,
   normalisePath,
+  setenvDomainLookups,
   transformBranch,
 } from './lookupgenerators';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
@@ -60,4 +61,5 @@ export {
   createDomainLookupGenerator,
   createEmailLookupGenerator,
   createUrlLookupGenerator,
+  setenvDomainLookups,
 };
