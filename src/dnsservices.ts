@@ -188,11 +188,10 @@ class DnsServicesImpl implements DnsServices {
         return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
       })
       .catch((e) => {
-        if (e && typeof e === 'object' && e.status) {
-          if (e.status !== 0) {
+        if (e && typeof e === 'object') {
+          if ((e.status && e.status !== 0) || e.message === 'Found spf' || e.message === 'Found CNAME') {
             return Promise.resolve('');
           }
-          throw e;
         }
 
         // Change the client we're using an try again

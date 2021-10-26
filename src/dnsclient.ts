@@ -176,19 +176,18 @@ class DnsClientImpl implements DnsClient {
           return data.map(joinParts);
         } else {
           log.warn('Domain was resolved but no records were found');
-          return [];
         }
       } else if (response.data.AD && question.dnssec) {
         log.warn('DNSSEC checks not implemented.');
-        return [];
       } else if (response.data.Status === NXDOMAIN) {
         throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
       } else {
         throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }
     } else {
-      throw new Error('Response was empty');
+      log.error('Response was empty');
     }
+    return [];
   }
 }
 
