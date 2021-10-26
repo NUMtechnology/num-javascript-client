@@ -175,7 +175,8 @@ class DnsClientImpl implements DnsClient {
 
           return data.map(joinParts);
         } else {
-          throw new Error('Domain was resolved but no records were found');
+          log.warn('Domain was resolved but no records were found');
+          return [];
         }
       } else if (response.data.AD && question.dnssec) {
         log.warn('DNSSEC checks not implemented.');
