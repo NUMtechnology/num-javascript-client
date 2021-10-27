@@ -184,7 +184,7 @@ const DEFAULT_COUNTRY = 'gb';
 const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
 const DNS_REQUEST_TIMEOUT_MS = 500;
 
-const ajv = new Ajv({ allowUnionTypes: true });
+const ajv = new Ajv({ strict: false });
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
 addFormats(ajv);
 
