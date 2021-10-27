@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import chalk from 'chalk';
 import log from 'loglevel';
 import prefix from 'loglevel-plugin-prefix';
@@ -184,6 +185,8 @@ const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
 const DNS_REQUEST_TIMEOUT_MS = 500;
 
 const ajv = new Ajv({ allowUnionTypes: true });
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+addFormats(ajv);
 
 const DEFAULT_RESOLVERS = [new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'), new DoHResolver('Google', 'https://dns.google.com/resolve')];
 

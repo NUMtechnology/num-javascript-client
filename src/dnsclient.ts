@@ -185,7 +185,7 @@ class DnsClientImpl implements DnsClient {
         throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }
     } else {
-      log.error('Response was empty');
+      throw new Error('Response was empty');
     }
     return [];
   }
