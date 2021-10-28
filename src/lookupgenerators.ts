@@ -25,7 +25,8 @@ let TLZ = 'num.net';
 const EMAIL_SEP = 'e';
 const POP_3LZ = 'populator';
 const DEFAULT_DEPTH = 3;
-
+const WWW_REGEX = new RegExp(/^www\.\w+\.\w+/);
+const SCHEME_REGEX = new RegExp(/^[a-zA-Z][0-9a-zA-Z+.-]+:/);
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
@@ -253,7 +254,7 @@ export const normaliseDomainName = (domainName: string): string => {
     throw new NumInvalidParameterException('Empty domain name cannot be normalised');
   }
 
-  if (domainName.startsWith('http')) {
+  if (SCHEME_REGEX.test(domainName)) {
     try {
       const host = new URL(domainName).hostname;
       return normaliseDomainName(host);
@@ -267,7 +268,7 @@ export const normaliseDomainName = (domainName: string): string => {
   }
 
   let result = domainName;
-  if (result.startsWith('www.')) {
+  if (WWW_REGEX.test(result)) {
     result = result.substring(4);
   }
 

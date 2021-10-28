@@ -123,4 +123,49 @@ describe('NumUri Parsing', () => {
     expect(uri.port.n).equal(65000);
     expect(uri.path.s).equal('/');
   });
+
+  it('can handle URIs with http', () => {
+    const uri = parseNumUri('http.com');
+
+    expect(uri.userinfo.s).equal('');
+    expect(uri.host.s).equal('http.com');
+    expect(uri.port.n).equal(0);
+    expect(uri.path.s).equal('/');
+  });
+
+  it('can handle URIs with http1', () => {
+    const uri = parseNumUri('http1.com');
+
+    expect(uri.userinfo.s).equal('');
+    expect(uri.host.s).equal('http1.com');
+    expect(uri.port.n).equal(0);
+    expect(uri.path.s).equal('/');
+  });
+
+  it('can handle URIs with https', () => {
+    const uri = parseNumUri('https.com');
+
+    expect(uri.userinfo.s).equal('');
+    expect(uri.host.s).equal('https.com');
+    expect(uri.port.n).equal(0);
+    expect(uri.path.s).equal('/');
+  });
+
+  it('can handle URIs with https1', () => {
+    const uri = parseNumUri('https1.com');
+
+    expect(uri.userinfo.s).equal('');
+    expect(uri.host.s).equal('https1.com');
+    expect(uri.port.n).equal(0);
+    expect(uri.path.s).equal('/');
+  });
+
+  it('can handle URIs with www', () => {
+    const uri = parseNumUri('www.com');
+
+    expect(uri.userinfo.s).equal('');
+    expect(uri.host.s).equal('www.com');
+    expect(uri.port.n).equal(0);
+    expect(uri.path.s).equal('/');
+  });
 });

@@ -137,4 +137,18 @@ describe('DomainLookupGenerator', () => {
     expect(s11).equal(EXPECTED_POPULATOR);
     expect(s12).equal(EXPECTED_POPULATOR);
   });
+
+  it('should be able to handle many NUM ID formats 4', () => {
+    const s1 = createDomainLookupGenerator(parseNumUri('www.com')).getPopulatorLocation(MODULE_1);
+    const s2 = createDomainLookupGenerator(parseNumUri('http.com')).getPopulatorLocation(MODULE_1);
+    const s3 = createDomainLookupGenerator(parseNumUri('https.com')).getPopulatorLocation(MODULE_1);
+    const s4 = createDomainLookupGenerator(parseNumUri('http1.com')).getPopulatorLocation(MODULE_1);
+    const s5 = createDomainLookupGenerator(parseNumUri('https1.com')).getPopulatorLocation(MODULE_1);
+
+    expect(s1).equal('1._www.com.populator.num.net.');
+    expect(s2).equal('1._http.com.populator.num.net.');
+    expect(s3).equal('1._https.com.populator.num.net.');
+    expect(s4).equal('1._http1.com.populator.num.net.');
+    expect(s5).equal('1._https1.com.populator.num.net.');
+  });
 });
