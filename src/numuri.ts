@@ -194,18 +194,20 @@ export const MODULE_10 = new PositiveInteger(10);
  * Hostname
  */
 export class Hostname {
+  readonly s: string;
   /**
    * Creates an instance of hostname.
    *
-   * @param s
+   * @param name
    */
-  constructor(readonly s: string) {
-    if (!Hostname.isValid(s)) {
-      throw new Error(`Invalid domain name: '${s}'`);
+  constructor(name: string) {
+    this.s = name.toLowerCase();
+    if (!Hostname.isValid(this.s)) {
+      throw new Error(`Invalid domain name: '${this.s}'`);
     }
-    s.split('.').forEach((i) => {
+    this.s.split('.').forEach((i) => {
       if (i.length > MAX_LABEL_LENGTH) {
-        throw new Error(`Invalid domain name: '${s}'`);
+        throw new Error(`Invalid domain name: '${this.s}'`);
       }
     });
   }
@@ -225,22 +227,26 @@ export class Hostname {
  * Url path
  */
 export class UrlPath {
+  readonly s: string;
   /**
    * Creates an instance of url path.
    *
-   * @param s
+   * @param path
    */
-  constructor(readonly s: string) {
-    if (!s.startsWith('/') || !PATH_REGEX.exec(s)) {
-      throw new Error(`Invalid URL path: '${s}'`);
+  constructor(readonly path: string) {
+    this.s = path.toLowerCase();
+
+    if (!this.s.startsWith('/') || !PATH_REGEX.exec(this.s)) {
+      throw new Error(`Invalid URL path: '${this.s}'`);
     }
-    if (s !== '/') {
+    if (this.s !== '/') {
       // Check each path component
-      s.substr(1)
+      this.s
+        .substr(1)
         .split('/')
         .forEach((pc) => {
           if (pc.length === 0) {
-            throw new Error(`Invalid URL path: '${s}' - zero length path component`);
+            throw new Error(`Invalid URL path: '${this.s}' - zero length path component`);
           }
           if (pc.length > MAX_LABEL_LENGTH) {
             throw new Error(`Invalid URL path: '${pc}' - path component too long`);
@@ -274,26 +280,28 @@ export const NO_PATH = new UrlPath('/');
  * Url user info
  */
 export class UrlUserInfo {
+  readonly s: string;
   /**
    * Creates an instance of url user info.
    *
-   * @param s
+   * @param uinfo
    */
-  constructor(readonly s: string) {
+  constructor(readonly uinfo: string) {
+    this.s = uinfo.toLowerCase();
     if (
-      (notEmpty(s) && !USERINFO_REGEX.exec(s)) ||
-      s.length > MAX_LOCAL_PART_LENGTH ||
-      s.startsWith('.') ||
-      s.endsWith('.') ||
-      s.includes('..') ||
-      s.includes('\\') ||
-      s.includes('\n') ||
-      s.includes('\r') ||
-      s.includes('\t') ||
-      s.includes('\b') ||
-      s.includes('\f')
+      (notEmpty(this.s) && !USERINFO_REGEX.exec(this.s)) ||
+      this.s.length > MAX_LOCAL_PART_LENGTH ||
+      this.s.startsWith('.') ||
+      this.s.endsWith('.') ||
+      this.s.includes('..') ||
+      this.s.includes('\\') ||
+      this.s.includes('\n') ||
+      this.s.includes('\r') ||
+      this.s.includes('\t') ||
+      this.s.includes('\b') ||
+      this.s.includes('\f')
     ) {
-      throw new Error(`Invalid URL userinfo: ${s}`);
+      throw new Error(`Invalid URL userinfo: ${this.s}`);
     }
   }
 }

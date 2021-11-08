@@ -41,7 +41,7 @@ describe('UrlUserInfo', () => {
 
   it('should not be able to create an invalid UrlUserInfo', () => {
     for (const info of invalidUserInfoStrings) {
-      expect(() => new UrlUserInfo(info)).to.throw(`Invalid URL userinfo: ${info}`, `Expected an Error for: ${info}`);
+      expect(() => new UrlUserInfo(info)).to.throw(`Invalid URL userinfo: ${info.toLowerCase()}`, `Expected an Error for: ${info}`);
     }
   });
 });
