@@ -27,7 +27,19 @@ const NXDOMAIN = 3;
  * DoHresolver
  */
 export class DoHResolver {
-  constructor(readonly name: string, readonly url: string) {}
+  public activeFrom: number;
+
+  constructor(readonly name: string, readonly url: string) {
+    this.activeFrom = Date.now();
+  }
+
+  isActive(): boolean {
+    return this.activeFrom <= Date.now();
+  }
+
+  disableForSeconds(n: number): void {
+    this.activeFrom = Date.now() + 1000 * n;
+  }
 }
 
 /**

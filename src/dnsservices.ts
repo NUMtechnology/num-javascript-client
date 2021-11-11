@@ -176,6 +176,8 @@ class DnsServicesImpl implements DnsServices {
 
     const question = new Question(query, 'TXT', checkDnsSecValidity);
 
+    dohIndex = this.findActiveResolver(dohIndex);
+
     log.debug(`Using DoH: ${this.dnsClients[dohIndex].getResolver().name}`);
 
     return this.dnsClients[dohIndex]
@@ -194,12 +196,34 @@ class DnsServicesImpl implements DnsServices {
           }
         }
 
-        // Change the client we're using an try again
-        dohIndex = (dohIndex + 1) % this.dnsClients.length;
+        // The current resolver failed so disable it for a while.
+        log.info(`The current resolver failed so disable it for a while: ${this.dnsClients[dohIndex].getResolver().name}`);
+        this.dnsClients[dohIndex].getResolver().disableForSeconds(5);
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        dohIndex = this.findActiveResolver(dohIndex);
 
         log.warn(`Switching to DoH: ${this.dnsClients[dohIndex].getResolver().name} due to ${JSON.stringify(e)}`);
 
         return this._getRecordFromDns(query, checkDnsSecValidity, attempts - 1, dohIndex);
       });
+  }
+
+  private findActiveResolver(dohIndex: number): number {
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    for (let i = 0; i < this.dnsClients.length; i++) {
+      // Change the client we're using and try again
+      dohIndex = (dohIndex + 1) % this.dnsClients.length;
+      if (this.dnsClients[dohIndex].getResolver().isActive()) {
+        log.info(`Found an active resolver: ${this.dnsClients[dohIndex].getResolver().name}`);
+        break;
+      }
+    }
+    // If we can't find an active resolver just enable the current one.
+    if (!this.dnsClients[dohIndex].getResolver().isActive()) {
+      log.info(`Can't find an active resolver so re-using this one: ${this.dnsClients[dohIndex].getResolver().name}`);
+      this.dnsClients[dohIndex].getResolver().activeFrom = Date.now();
+    }
+    return dohIndex;
   }
 }
