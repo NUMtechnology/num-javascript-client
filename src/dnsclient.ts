@@ -174,7 +174,7 @@ class DnsClientImpl implements DnsClient {
     const params = `name=${question.name}&type=${question.type}&dnssec=` + (question.dnssec ? '1' : '0') + '&ct=application/dns-json';
     const url = `${resolver.url}?${params}`;
 
-    const response = await this.axiosProxy.get(url, { timeout: this.timeout });
+    const response = await this.axiosProxy.get(url, { timeout: this.timeout, headers: { accept: 'application/dns-json' } });
 
     if (response.data) {
       if (response.data.Status === 0) {

@@ -212,12 +212,12 @@ class DnsServicesImpl implements DnsServices {
   private findActiveResolver(dohIndex: number): number {
     // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < this.dnsClients.length; i++) {
-      // Change the client we're using and try again
-      dohIndex = (dohIndex + 1) % this.dnsClients.length;
       if (this.dnsClients[dohIndex].getResolver().isActive()) {
         log.info(`Found an active resolver: ${this.dnsClients[dohIndex].getResolver().name}`);
         break;
       }
+      // Change the client we're using and try again
+      dohIndex = (dohIndex + 1) % this.dnsClients.length;
     }
     // If we can't find an active resolver just enable the current one.
     if (!this.dnsClients[dohIndex].getResolver().isActive()) {

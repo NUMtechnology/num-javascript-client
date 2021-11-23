@@ -30,8 +30,8 @@
     const CUSTOM_RESOLVERS = [
       // A bad resolver shows the DoH failover behaviour
       new NumClient.DoHResolver('BAD', 'https://xxx_yyy_zzz.co.uk/dns-query'),
-      new NumClient.DoHResolver('NUM', 'https://api.apps.num.uk/v1/doh/dns-query')
-
+      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+      new NumClient.DoHResolver('Google', 'https://dns.google.com/resolve')
     ];
 
     const client = NumClient.createClient(CUSTOM_RESOLVERS);
