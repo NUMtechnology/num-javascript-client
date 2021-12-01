@@ -17,7 +17,7 @@ import log from 'loglevel';
 import punycode from 'punycode';
 import { AxiosProxy } from './axiosproxy';
 import { createDnsClient, DnsClient, DoHResolver, Question } from './dnsclient';
-import { RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
+import { NumLookupBadDoHResponse, NumLookupEmptyResult, RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
 
@@ -171,7 +171,7 @@ class DnsServicesImpl implements DnsServices {
    */
   async _getRecordFromDns(query: string, checkDnsSecValidity: boolean, attempts: number, dohIndex: number): Promise<string> {
     if (attempts === 0) {
-      return Promise.resolve('');
+      throw new NumLookupEmptyResult();
     }
 
     const question = new Question(query, 'TXT', checkDnsSecValidity);
@@ -191,8 +191,11 @@ class DnsServicesImpl implements DnsServices {
       })
       .catch((e) => {
         if (e && typeof e === 'object') {
-          if ((e.status && e.status !== 0) || e.message === 'Found spf' || e.message === 'Found CNAME') {
-            return Promise.resolve('');
+          if (e.status && e.status !== 0) {
+            throw new NumLookupBadDoHResponse();
+          }
+          if (e.message === 'Found spf' || e.message === 'Found CNAME') {
+            throw new NumLookupEmptyResult();
           }
         }
 
@@ -219,10 +222,10 @@ class DnsServicesImpl implements DnsServices {
       // Change the client we're using and try again
       dohIndex = (dohIndex + 1) % this.dnsClients.length;
     }
-    // If we can't find an active resolver just enable the current one.
+    // If we can't find an active resolver then throw an exception.
     if (!this.dnsClients[dohIndex].getResolver().isActive()) {
-      log.info(`Can't find an active resolver so re-using this one: ${this.dnsClients[dohIndex].getResolver().name}`);
-      this.dnsClients[dohIndex].getResolver().activeFrom = Date.now();
+      log.info("Can't find an active resolver so aborting.");
+      throw new NumLookupBadDoHResponse();
     }
     return dohIndex;
   }

@@ -23,9 +23,10 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import loglevel, { Logger } from 'loglevel';
-import { CallbackHandler, createClient, createDefaultCallbackHandler, NumProtocolErrorCode } from '../src/client';
+import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
 import { NumLocation } from '../src/context';
 import { DoHResolver } from '../src/dnsclient';
+import { NumProtocolErrorCode } from '../src/exceptions';
 import { parseNumUri } from '../src/numuri';
 import { DummyResourceLoader } from './DummyResourceLoader';
 

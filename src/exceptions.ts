@@ -22,6 +22,8 @@
 export class NumException extends Error {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumException.prototype);
   }
 }
 
@@ -31,6 +33,8 @@ export class NumException extends Error {
 export class NumInvalidParameterException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumInvalidParameterException.prototype);
   }
 }
 
@@ -43,6 +47,8 @@ export class NumBadUrlException extends NumException {
   constructor(msg: string, cause: Error) {
     super(msg);
     this.cause = cause;
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumBadUrlException.prototype);
   }
 }
 
@@ -52,6 +58,8 @@ export class NumBadUrlException extends NumException {
 export class NumInvalidDnsQueryException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumInvalidDnsQueryException.prototype);
   }
 }
 
@@ -61,6 +69,8 @@ export class NumInvalidDnsQueryException extends NumException {
 export class NumNotImplementedException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumNotImplementedException.prototype);
   }
 }
 
@@ -70,6 +80,8 @@ export class NumNotImplementedException extends NumException {
 export class NumInvalidRedirectException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumInvalidRedirectException.prototype);
   }
 }
 
@@ -79,6 +91,8 @@ export class NumInvalidRedirectException extends NumException {
 export class BadDnsStatusException extends NumException {
   constructor(readonly status: number, msg: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, BadDnsStatusException.prototype);
   }
 }
 
@@ -88,6 +102,8 @@ export class BadDnsStatusException extends NumException {
 export class InvalidDnsResponseException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, InvalidDnsResponseException.prototype);
   }
 }
 
@@ -97,6 +113,8 @@ export class InvalidDnsResponseException extends NumException {
 export class RrSetHeaderFormatException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, RrSetHeaderFormatException.prototype);
   }
 }
 
@@ -106,6 +124,8 @@ export class RrSetHeaderFormatException extends NumException {
 export class RrSetIncompleteException extends NumException {
   constructor(msg: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, RrSetIncompleteException.prototype);
   }
 }
 
@@ -115,6 +135,8 @@ export class RrSetIncompleteException extends NumException {
 export class NumMaximumRedirectsExceededException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumMaximumRedirectsExceededException.prototype);
   }
 }
 
@@ -124,6 +146,8 @@ export class NumMaximumRedirectsExceededException extends NumException {
 export class RelativePathException extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, RelativePathException.prototype);
   }
 }
 
@@ -133,5 +157,57 @@ export class RelativePathException extends NumException {
 export class NumLookupRedirect extends NumException {
   constructor(msg?: string) {
     super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumLookupRedirect.prototype);
+  }
+}
+
+/**
+ * Num lookup no data
+ */
+export class NumLookupEmptyResult extends NumException {
+  constructor(msg?: string) {
+    super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumLookupEmptyResult.prototype);
+  }
+}
+
+/**
+ * Num lookup DoH error
+ */
+export class NumLookupBadDoHResponse extends NumException {
+  constructor(msg?: string) {
+    super(msg);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumLookupBadDoHResponse.prototype);
+  }
+}
+
+/**
+ * Used to report errors in the NUM protocol
+ */
+export enum NumProtocolErrorCode {
+  errorCreatingContext = 'ERROR_CREATING_CONTEXT',
+  compactSchemaError = 'COMPACT_SCHEMA_ERROR',
+  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND_ERROR',
+  noUnpackerConfigFileFound = 'NO_UNPACKER_CONFIG_FILE_FOUND',
+  expandedSchemaError = 'EXPANDED_SCHEMA_ERROR',
+  moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
+  tooManyRedirects = 'TOO_MANY_REDIRECTS',
+  internalError = 'INTERNAL_ERROR',
+  noModlRecordFound = 'NO_MODL_RECORD_FOUND',
+  schemaNotFound = 'SCHEMA_NOT_FOUND',
+  badDoHResponse = 'DOH_SERVICE_ERROR',
+}
+
+/**
+ * Error reporting.
+ */
+export class NumProtocolException extends NumException {
+  constructor(readonly errorCode: NumProtocolErrorCode, message: string) {
+    super(message);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NumProtocolException.prototype);
   }
 }

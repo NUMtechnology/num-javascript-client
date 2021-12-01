@@ -21,7 +21,14 @@ import { mapper } from 'object-unpacker';
 import { Context, NumLocation, UserVariable } from './context';
 import { DoHResolver } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
-import { NumLookupRedirect, NumMaximumRedirectsExceededException } from './exceptions';
+import {
+  NumLookupBadDoHResponse,
+  NumLookupEmptyResult,
+  NumLookupRedirect,
+  NumMaximumRedirectsExceededException,
+  NumProtocolErrorCode,
+  NumProtocolException,
+} from './exceptions';
 import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
@@ -128,22 +135,6 @@ export interface NumClient {
 }
 
 /**
- * Used to report errors in the NUM protocol
- */
-export enum NumProtocolErrorCode {
-  errorCreatingContext = 'ERROR_CREATING_CONTEXT',
-  compactSchemaError = 'COMPACT_SCHEMA_ERROR',
-  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND_ERROR',
-  noUnpackerConfigFileFound = 'NO_UNPACKER_CONFIG_FILE_FOUND',
-  expandedSchemaError = 'EXPANDED_SCHEMA_ERROR',
-  moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
-  tooManyRedirects = 'TOO_MANY_REDIRECTS',
-  internalError = 'INTERNAL_ERROR',
-  noModlRecordFound = 'NO_MODL_RECORD_FOUND',
-  schemaNotFound = 'SCHEMA_NOT_FOUND',
-}
-
-/**
  * Callback handler - these methods are invoked when the lookup is complete.
  */
 export interface CallbackHandler {
@@ -232,15 +223,6 @@ prefix.apply(log.getLogger('critical'), {
 });
 
 //------------------------------------------------------------------------------------------------------------------------
-
-/**
- * Error reporting.
- */
-class NumProtocolException extends Error {
-  constructor(readonly errorCode: NumProtocolErrorCode, message: string) {
-    super(message);
-  }
-}
 
 /**
  * Default callback handler - a minimal class for responding to Callbacks from the NumClient
@@ -419,8 +401,21 @@ class NumClientImpl implements NumClient {
         } else if (e instanceof NumLookupRedirect) {
           ctx.location = NumLocation.independent;
           ctx.handleQueryRedirect(e.message);
+        } else if (e instanceof NumLookupEmptyResult) {
+          log.warn('Empty result');
+          ctx.result = null;
+          ctx.location = NumLocation.none;
+          handler?.setErrorCode(NumProtocolErrorCode.noModlRecordFound);
+          return null;
+        } else if (e instanceof NumLookupBadDoHResponse) {
+          log.warn('Bad DoH Service');
+          ctx.location = NumLocation.none;
+          handler?.setErrorCode(NumProtocolErrorCode.badDoHResponse);
+          return null;
         } else if (e instanceof Error) {
           log.warn(`Unhandled exception: ${e.message}`);
+          ctx.location = NumLocation.none;
+          handler?.setErrorCode(NumProtocolErrorCode.noModlRecordFound);
           handler?.setErrorCode(NumProtocolErrorCode.internalError);
           return null;
         }

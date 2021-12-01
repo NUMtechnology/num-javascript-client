@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
-import { createClient, DefaultCallbackHandler, lookup, NumClient, NumProtocolErrorCode } from './client';
+import { createClient, DefaultCallbackHandler, lookup, NumClient } from './client';
 import { createDnsClient, DoHResolver } from './dnsclient';
+import { NumProtocolErrorCode } from './exceptions';
 import {
   createDomainLookupGenerator,
   createEmailLookupGenerator,
