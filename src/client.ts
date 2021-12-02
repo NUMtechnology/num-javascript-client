@@ -27,7 +27,7 @@ import {
   NumLookupRedirect,
   NumMaximumRedirectsExceededException,
   NumProtocolErrorCode,
-  NumProtocolException
+  NumProtocolException,
 } from './exceptions';
 import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
@@ -302,9 +302,8 @@ class NumClientImpl implements NumClient {
    * @param [dnsClient]
    */
   constructor(resolvers?: Array<DoHResolver>) {
-    this.dnsServices = (resolvers && resolvers.length > 0)
-      ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers)
-      : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
+    this.dnsServices =
+      resolvers && resolvers.length > 0 ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers) : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
 
     this.modlServices = createModlServices();
     this.resourceLoader = createResourceLoader();

@@ -34,6 +34,7 @@
       new NumClient.DoHResolver('Google', 'https://dns.google.com/resolve')
     ];
 
+    const handler = NumClient.createDefaultCallbackHandler();
     const client = NumClient.createClient(CUSTOM_RESOLVERS);
 
 
@@ -42,14 +43,23 @@
 
       const ctx = client.createContext(numUri);
 
-      return client.retrieveNumRecord(ctx);
+      return client.retrieveNumRecord(ctx, handler);
     }
 
     function reloadRecord() {
+      handler.result = null;
+      handler.errorCode = null;
+      handler.location = null;
+
       const uri = document.getElementById('urivalue').value;
       lookup(uri).then((result) => {
-        const pretty = JSON.stringify(JSON.parse(result), null, 1);
-        document.getElementById('num').innerHTML = pretty;
+        if (result) {
+          const pretty = JSON.stringify(JSON.parse(result), null, 1);
+          document.getElementById('num').innerHTML = pretty;
+        } else {
+          const pretty = JSON.stringify(handler, null, 1);
+          document.getElementById('num').innerHTML = pretty;
+        }
       });
 
     }
