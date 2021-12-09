@@ -187,7 +187,7 @@ class DnsServicesImpl implements DnsServices {
 
         const rebuiltModlRecord = this.rebuildTxtRecordContent(result);
         // Punydecode the result.
-        return result && result.includes(';@d=01;') ? punycode.decode(rebuiltModlRecord) : rebuiltModlRecord;
+        return punydecode(rebuiltModlRecord);
       })
       .catch((e) => {
         if (e && typeof e === 'object') {
@@ -230,3 +230,5 @@ class DnsServicesImpl implements DnsServices {
     return dohIndex;
   }
 }
+
+export const punydecode = (rec: string): string => (rec && rec.includes(';@pn=1;') ? punycode.decode(rec) : rec);
