@@ -190,13 +190,13 @@ export class NumLookupBadDoHResponse extends NumException {
 export enum NumProtocolErrorCode {
   errorCreatingContext = 'ERROR_CREATING_CONTEXT',
   compactSchemaError = 'COMPACT_SCHEMA_ERROR',
-  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND_ERROR',
-  noUnpackerConfigFileFound = 'NO_UNPACKER_CONFIG_FILE_FOUND',
+  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND',
+  noUnpackerConfigFileFound = 'UNPACKER_CONFIG_FILE_NOT_FOUND',
   expandedSchemaError = 'EXPANDED_SCHEMA_ERROR',
   moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
   tooManyRedirects = 'TOO_MANY_REDIRECTS',
   internalError = 'INTERNAL_ERROR',
-  noModlRecordFound = 'NO_MODL_RECORD_FOUND',
+  noModlRecordFound = 'MODL_RECORD_NOT_FOUND',
   schemaNotFound = 'SCHEMA_NOT_FOUND',
   badDoHResponse = 'DOH_SERVICE_ERROR',
 }
