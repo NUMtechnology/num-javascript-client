@@ -78,7 +78,7 @@ describe('DnsServices Tests', () => {
     const resolvers = [
       new DoHResolver('Resolver 1', 'dummyResolverUrl'),
       new DoHResolver('Resolver 2', 'dummyResolverUrl'),
-      // new DoHResolver('Resolver 3', 'dummyResolverUrl'),
+      new DoHResolver('Resolver 3', 'dummyResolverUrl'),
       // new DoHResolver('Resolver 4', 'dummyResolverUrl'),
       // new DoHResolver('Resolver 5', 'dummyResolverUrl'),
       // new DoHResolver('Resolver 6', 'dummyResolverUrl'),
