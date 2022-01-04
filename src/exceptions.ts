@@ -196,7 +196,7 @@ export enum NumProtocolErrorCode {
   moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
   tooManyRedirects = 'TOO_MANY_REDIRECTS',
   internalError = 'INTERNAL_ERROR',
-  noModlRecordFound = 'MODL_RECORD_NOT_FOUND',
+  noModlRecordFound = 'NUM_RECORD_NOT_FOUND',
   schemaNotFound = 'SCHEMA_NOT_FOUND',
   badDoHResponse = 'DOH_SERVICE_ERROR',
 }
