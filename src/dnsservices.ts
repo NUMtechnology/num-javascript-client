@@ -195,7 +195,7 @@ class DnsServicesImpl implements DnsServices {
             throw new NumLookupBadDoHResponse();
           }
           if (e.message === 'Found spf' || e.message === 'Found CNAME') {
-            throw new NumLookupEmptyResult();
+            return '';
           }
         }
 
