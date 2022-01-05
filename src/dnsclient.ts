@@ -18,6 +18,7 @@ import punycode from 'punycode';
 import { AxiosProxy, axiosProxy } from './axiosproxy';
 import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
 
+const SERVFAIL = 2;
 const NXDOMAIN = 3;
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -149,6 +150,8 @@ class DnsClientImpl implements DnsClient {
       if (err instanceof BadDnsStatusException) {
         if (err.status === NXDOMAIN) {
           log.warn('Bad DNS status - NXDOMAIN');
+        } else if (err.status === SERVFAIL) {
+          log.warn('Bad DNS status - SERVFAIL');
         } else {
           log.warn(`Error resolving ${question.name} with ${this.resolver.name}`);
         }
@@ -193,6 +196,8 @@ class DnsClientImpl implements DnsClient {
         log.warn('DNSSEC checks not implemented.');
       } else if (response.data.Status === NXDOMAIN) {
         throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
+      } else if (response.data.Status === SERVFAIL) {
+        throw new BadDnsStatusException(response.data.Status, 'Response is SERVFAIL');
       } else {
         throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }
