@@ -10,13 +10,13 @@ const log = loglevel as Logger;
 
 log.setLevel('error');
 
-class servFailProxy implements AxiosProxy {
+class refusedProxy implements AxiosProxy {
   async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {
 
-    log.warn('----------> Sending SERVFAIL');
+    log.warn('----------> Sending REFUSED');
 
     const data = {
-      Status: 2
+      Status: 5
     };
 
     const result: AxiosResponse = {
@@ -32,18 +32,18 @@ class servFailProxy implements AxiosProxy {
   }
 }
 
-describe('SERVFAIL Tests', () => {
-  it('should be able to handle DNS SERVFAIL gracefully', () => {
+describe('REFUSED Tests', () => {
+  it('should be able to handle DNS REFUSED gracefully', () => {
 
     const resolvers = [
       new DoHResolver('Resolver 1', 'dummyResolverUrl')
     ];
-    const service = createDnsServices(1000, resolvers, new servFailProxy());
+    const service = createDnsServices(1000, resolvers, new refusedProxy());
 
     return service.getRecordFromDns('dummy.com', false).then(result => {
       expect(result).to.equal('');
     }, (err) => {
       expect.fail('Expected empty result');
-    });
+    })
   });
 });

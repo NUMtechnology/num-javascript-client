@@ -20,6 +20,7 @@ import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions
 
 const SERVFAIL = 2;
 const NXDOMAIN = 3;
+const REFUSED = 5;
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -148,12 +149,18 @@ class DnsClientImpl implements DnsClient {
       data = await this.queryUsingResolver(question, this.resolver);
     } catch (err) {
       if (err instanceof BadDnsStatusException) {
-        if (err.status === NXDOMAIN) {
-          log.warn('Bad DNS status - NXDOMAIN');
-        } else if (err.status === SERVFAIL) {
-          log.warn('Bad DNS status - SERVFAIL');
-        } else {
-          log.warn(`Error resolving ${question.name} with ${this.resolver.name}`);
+        switch (err.status) {
+          case NXDOMAIN:
+            log.warn('Bad DNS status - NXDOMAIN');
+            break;
+          case SERVFAIL:
+            log.warn('Bad DNS status - SERVFAIL');
+            break;
+          case REFUSED:
+            log.warn('Bad DNS status - REFUSED');
+            break;
+          default:
+            log.warn(`Error resolving ${question.name} with ${this.resolver.name}`);
         }
       } else {
         log.warn(`Error resolving ${question.name} with ${this.resolver.name}. ${JSON.stringify(err)}`);
@@ -180,26 +187,32 @@ class DnsClientImpl implements DnsClient {
     const response = await this.axiosProxy.get(url, { timeout: this.timeout, headers: { accept: 'application/dns-json' } });
 
     if (response.data) {
-      if (response.data.Status === 0) {
-        if (response.data.Answer) {
-          const data = response.data.Answer as Answer[];
-          const answerName = data[0].name.endsWith('.') ? data[0].name : data[0].name + '.';
-          if (question.name !== answerName) {
-            log.error(`Q = ${JSON.stringify(question)}, A = ${JSON.stringify(data[0])}`);
-          }
-
-          return data.map(joinParts);
-        } else {
-          log.warn('Domain was resolved but no records were found');
-        }
-      } else if (response.data.AD && question.dnssec) {
+      if (response.data.AD && question.dnssec) {
         log.warn('DNSSEC checks not implemented.');
-      } else if (response.data.Status === NXDOMAIN) {
-        throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
-      } else if (response.data.Status === SERVFAIL) {
-        throw new BadDnsStatusException(response.data.Status, 'Response is SERVFAIL');
-      } else {
-        throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
+      }
+
+      switch (response.data.Status) {
+        case 0:
+          if (response.data.Answer) {
+            const data = response.data.Answer as Answer[];
+            const answerName = data[0].name.endsWith('.') ? data[0].name : data[0].name + '.';
+            if (question.name !== answerName) {
+              log.error(`Q = ${JSON.stringify(question)}, A = ${JSON.stringify(data[0])}`);
+            }
+
+            return data.map(joinParts);
+          } else {
+            log.warn('Domain was resolved but no records were found');
+          }
+          break;
+        case NXDOMAIN:
+          throw new BadDnsStatusException(response.data.Status, 'Response is NXDOMAIN');
+        case SERVFAIL:
+          throw new BadDnsStatusException(response.data.Status, 'Response is SERVFAIL');
+        case REFUSED:
+          throw new BadDnsStatusException(response.data.Status, 'Response is REFUSED');
+        default:
+          throw new BadDnsStatusException(response.data.Status, 'Status from service should be 0 if resolution was successful');
       }
     } else {
       throw new Error('Response was empty');
