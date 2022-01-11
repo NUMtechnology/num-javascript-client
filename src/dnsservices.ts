@@ -191,9 +191,11 @@ class DnsServicesImpl implements DnsServices {
       })
       .catch((e) => {
         if (e && typeof e === 'object') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (e.status && e.status !== 0) {
             throw new NumLookupBadDoHResponse();
           }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (e.message === 'Found spf' || e.message === 'Found CNAME') {
             return '';
           }

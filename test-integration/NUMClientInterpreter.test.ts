@@ -44,11 +44,11 @@ describe('NUMClient with Interpreter', () => {
     const modl = '@n=1;o(n=NUM;s=Organising the world\'s open data;c[tw=NUMprotocol;li=company/20904983])';
     const moduleNumber = new PositiveInteger(1);
     const userVariables = new Map<string, UserVariable>();
-    const result = await client.interpret(modl, moduleNumber, userVariables);
+    const result = await client.interpret(modl, moduleNumber, userVariables, '2');
 
     expect(result).not.equal(null);
 
-    const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+    const expected = '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)

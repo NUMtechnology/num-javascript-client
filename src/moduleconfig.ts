@@ -11,15 +11,20 @@ export class ProcessingChain {
   constructor(readonly modlToJson: boolean, readonly validateCompactJson: boolean, readonly unpack: boolean, readonly validateExpandedJson: boolean) {}
 }
 
+export enum SubstitutionsType {
+  standard = 'standard',
+  locale = 'locale',
+}
+
 export class ModuleConfig {
   constructor(
-    readonly moduleNumber: PositiveInteger,
-    readonly moduleVersion: PositiveInteger,
-    readonly processingChain: ProcessingChain,
-    readonly compactSchemaUrl: string | null,
-    readonly schemaMapUrl: string | null,
-    readonly expandedSchemaUrl: string | null,
-    readonly localeFilesBaseUrl: string | null
+    readonly moduleId: PositiveInteger,
+    readonly moduleName: string,
+    readonly compactSchema: boolean,
+    readonly expandedSchema: boolean,
+    readonly substitutions: boolean,
+    readonly substitutionsType: SubstitutionsType,
+    readonly track: string
   ) {}
 }
 
@@ -31,11 +36,36 @@ class ModuleConfigProviderImpl implements ModuleConfigProvider {
   }
 
   async getConfig(moduleNumber: PositiveInteger): Promise<ModuleConfig | null> {
-    const response = await this.resourceLoader.load(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/module-spec.json`);
+    const response = await this.resourceLoader.load(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/config.json`);
 
     if (response) {
-      return (response as unknown) as ModuleConfig;
+      return toModuleConfig(response);
     }
     return null;
   }
 }
+
+export const toModuleConfig = (r: Record<string, unknown>): ModuleConfig | null => {
+  let subs: SubstitutionsType;
+  switch (r.substitutions_type) {
+    case 'locale':
+      subs = SubstitutionsType.locale;
+      break;
+    case 'standard':
+      subs = SubstitutionsType.standard;
+      break;
+    case undefined:
+    default:
+      subs = SubstitutionsType.standard;
+  }
+
+  return new ModuleConfig(
+    new PositiveInteger(r.module_id as number),
+    r.module_name as string,
+    r.compact_schema as boolean,
+    r.expanded_schema as boolean,
+    r.substitutions as boolean,
+    subs,
+    r.track as string
+  );
+};

@@ -26,13 +26,14 @@ import {
   NumLookupEmptyResult,
   NumLookupRedirect,
   NumMaximumRedirectsExceededException,
+  NumNotImplementedException,
   NumProtocolErrorCode,
   NumProtocolException,
 } from './exceptions';
 import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
-import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider } from './moduleconfig';
+import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider, SubstitutionsType } from './moduleconfig';
 import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 
@@ -98,8 +99,9 @@ export interface NumClient {
    * @param modl a raw MODL string
    * @param moduleNumber a PositiveInteger module number
    * @param userVariables a Map of user-supplied values such as 'C' and 'L' for country and language respectively.
+   * @param targetExpandedVersion the version number of the required expanded schema, as a string value.
    */
-  interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null>;
+  interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>, targetExpandedVersion: string): Promise<string | null>;
 
   /**
    * Set the execution environment.
@@ -169,11 +171,14 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
 
-const DEFAULT_LOCALES_BASE_URL = new URL('https://modules.numprotocol.com/1/locales/');
+const DEFAULT_BASE_URL = 'https://modules.numprotocol.com/';
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_COUNTRY = 'gb';
-const DEFAULT_LOCALE_FILE_NAME = 'en-gb.json';
+const DEFAULT_LOCALE_FILE_NAME = 'en-us.json';
 const DNS_REQUEST_TIMEOUT_MS = 500;
+
+const expandedSchemaPathComponent = 'expanded';
+const compactSchemaPathComponent = 'compact';
 
 const ajv = new Ajv({ strict: false });
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -376,7 +381,7 @@ class NumClientImpl implements NumClient {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
-          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
           if (json) {
             log.debug(`json = ${json}`);
             if (handler) {
@@ -438,7 +443,7 @@ class NumClientImpl implements NumClient {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
           // We need to interpret the record to check for redirects, but we ignore the result.
-          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables);
+          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
           if (handler) {
             handler.setResult(modl);
           }
@@ -523,75 +528,76 @@ class NumClientImpl implements NumClient {
    * @returns interpret
    */
   // eslint-disable-next-line complexity
-  public async interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>): Promise<string | null> {
+  public async interpret(
+    modl: string,
+    moduleNumber: PositiveInteger,
+    userVariables: Map<string, UserVariable>,
+    targetExpandedVersion: string
+  ): Promise<string | null> {
+    // Interpret the MODL
+    let jsonResult = this.modlServices.interpretNumRecord(modl);
+    log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
+
     if (moduleNumber.n !== 0) {
-      // Process the resulting JSON according to the ModuleConfig.json
+      // Process the resulting JSON according to the config.json file
       const moduleConfig = await this.configProvider.getConfig(moduleNumber);
       if (moduleConfig) {
-        // Skip everything if specified
-        if (!moduleConfig.processingChain.modlToJson) {
-          return modl;
-        }
-
-        // Interpret the MODL
-        let jsonResult = this.modlServices.interpretNumRecord(modl);
-        log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
+        const compactVersion: string = jsonResult['@v'] ? `${jsonResult['@v'] as number}` : '1';
 
         // Validate the compact schema if there is one and if the config says we should
-        if (moduleConfig.processingChain.validateCompactJson && moduleConfig.compactSchemaUrl) {
+        if (moduleConfig.compactSchema) {
           // load the schema and use it to validate jsonResult
-          if (!(await this.validateSchema(moduleConfig.compactSchemaUrl, jsonResult))) {
+          if (!(await this.validateSchema(moduleNumber.n, compactSchemaPathComponent, compactVersion, jsonResult))) {
             throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
           }
         } else {
           log.info('Not configured to validate against the compact schema.');
         }
 
-        // Attempt to load a locale file.
-        const localeFile = await this.loadLocaleFile(moduleConfig, userVariables);
-        if (!localeFile) {
-          throw new NumProtocolException(NumProtocolErrorCode.localeFileNotFoundError, `Unable to locate a locale file using ${JSON.stringify(userVariables)}`);
-        }
-
+        let substitutionsData: Record<string, unknown> | null = {};
         // Apply the schema mapping and Resolve references if one is defined
-        if (moduleConfig.schemaMapUrl && moduleConfig.processingChain.unpack) {
-          const schemaMapResponse = await this.resourceLoader.load(moduleConfig.schemaMapUrl);
-
-          if (schemaMapResponse) {
-            jsonResult = mapper.convert(localeFile, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
-            log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
-          } else {
-            // No schema map
-            log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+        if (moduleConfig.substitutions) {
+          // Attempt to load a substitutions file.
+          substitutionsData = await this.loadSubstitutionsFile(moduleConfig, userVariables);
+          if (!substitutionsData) {
             throw new NumProtocolException(
-              NumProtocolErrorCode.noUnpackerConfigFileFound,
-              `Could not load the configure Unpacker config file: ${moduleConfig.schemaMapUrl}`
+              NumProtocolErrorCode.substitutionsFileNotFoundError,
+              `Unable to locate a substitutions file using ${JSON.stringify(userVariables)}`
             );
           }
         }
 
+        const schemaMapUrl = await this.generateSchemaMapUrl(moduleConfig, compactVersion, targetExpandedVersion);
+        const schemaMapResponse = await this.resourceLoader.load(schemaMapUrl);
+
+        if (schemaMapResponse) {
+          jsonResult = mapper.convert(substitutionsData, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
+          log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
+        } else {
+          // No schema map
+          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
+          throw new NumProtocolException(NumProtocolErrorCode.noUnpackerConfigFileFound, `Could not load the configured Unpacker config file: ${schemaMapUrl}`);
+        }
+
         // Validate the expanded schema if there is one and if the config says we should
-        if (moduleConfig.processingChain.validateExpandedJson && moduleConfig.expandedSchemaUrl) {
+        if (moduleConfig.expandedSchema) {
+          if (!jsonResult['@version']) {
+            throw new NumProtocolException(NumProtocolErrorCode.missingExpandedSchemaVersion, JSON.stringify(jsonResult));
+          }
+          const expandedVersion = `${jsonResult['@version'] as number}`;
           // load the schema and use it to validate the expanded JSON
-          if (!(await this.validateSchema(moduleConfig.expandedSchemaUrl, jsonResult))) {
+          if (!(await this.validateSchema(moduleNumber.n, expandedSchemaPathComponent, expandedVersion, jsonResult))) {
             throw new NumProtocolException(NumProtocolErrorCode.expandedSchemaError, 'The record does not match the expanded schema');
           }
         } else {
           log.info('Not configured to validate against the expanded schema.');
         }
-
-        return JSON.stringify(jsonResult);
       } else {
         log.error('No module config file available.');
         throw new NumProtocolException(NumProtocolErrorCode.moduleConfigFileNotFound, `Unable to load the module config file for module ${moduleNumber.n} `);
       }
-    } else {
-      // Interpret the MODL
-      const jsonResult = this.modlServices.interpretNumRecord(modl);
-      const jsonString = JSON.stringify(jsonResult);
-      log.debug(`Interpreter raw JSON result: ${jsonString}`);
-      return jsonString;
     }
+    return JSON.stringify(jsonResult);
   }
 
   /**
@@ -635,14 +641,15 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables);
+        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
         return true;
       }
     }
     return false;
   }
 
-  private async validateSchema(schemaUrl: string, json: Record<string, unknown>): Promise<boolean> {
+  private async validateSchema(moduleNumber: number, schemaType: string, version: string, json: Record<string, unknown>): Promise<boolean> {
+    const schemaUrl = `${DEFAULT_BASE_URL}${moduleNumber}/${schemaType}/v${version}/schema.json`;
     let existingSchema = ajv.getSchema(schemaUrl);
     if (!existingSchema) {
       const schema = await this.resourceLoader.load(schemaUrl);
@@ -670,38 +677,109 @@ class NumClientImpl implements NumClient {
     return false;
   }
 
-  private async loadLocaleFile(moduleConfig: ModuleConfig, userVariables: Map<string, UserVariable>): Promise<Record<string, unknown> | null> {
-    // Attempt to load a locale file.
-    // Choose the locale base URL
-    const baseUrl = moduleConfig.localeFilesBaseUrl ? moduleConfig.localeFilesBaseUrl : DEFAULT_LOCALES_BASE_URL;
-    let country = userVariables.get('_C')?.toString();
-    let language = userVariables.get('_L')?.toString();
-    if (!language) {
-      language = DEFAULT_LANGUAGE;
-    }
-    if (!country) {
-      country = DEFAULT_COUNTRY;
-    }
-    const localeFilename = `${language}-${country}.json`;
-    const localeUrl = baseUrl.toString() + localeFilename;
+  private async loadSubstitutionsFile(moduleConfig: ModuleConfig, userVariables: Map<string, UserVariable>): Promise<Record<string, unknown> | null> {
+    // Attempt to load a substitutions file.
+    let subsFileName = '';
+    let subsFileResponse: Record<string, unknown> | null = null;
 
-    log.debug(`Loading locale file: ${localeUrl}`);
-    // Try loading the locale file and fallback to the default if we can't find one.
-    let localeFileResponse = await this.resourceLoader.load(localeUrl);
+    if (moduleConfig.substitutionsType === SubstitutionsType.locale) {
+      let country = userVariables.get('_C')?.toString();
+      let language = userVariables.get('_L')?.toString();
+      if (!language) {
+        language = DEFAULT_LANGUAGE;
+      }
+      if (!country) {
+        country = DEFAULT_COUNTRY;
+      }
+      const localeFilename = `${language}-${country}.json`;
+      subsFileName = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/${localeFilename}`;
 
-    if (!localeFileResponse) {
-      if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
-        log.debug(`Unable to load locale file: ${localeUrl}`);
-        return null;
-      } else {
-        const defaultLocaleUrl = baseUrl.toString() + DEFAULT_LOCALE_FILE_NAME;
-        localeFileResponse = await this.resourceLoader.load(defaultLocaleUrl);
-        if (!localeFileResponse) {
-          log.debug(`Unable to load locale file: ${defaultLocaleUrl}`);
+      // Try loading the substitutions file and fallback to the default if we can't find one.
+      subsFileResponse = await this.resourceLoader.load(subsFileName);
+
+      if (!subsFileResponse) {
+        if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
+          log.debug(`Unable to load substitutions file: ${subsFileName}`);
           return null;
+        } else {
+          const fallbackLocale = await this.generateFallbackLocaleFileName(moduleConfig, language);
+          subsFileResponse = await this.resourceLoader.load(fallbackLocale);
+          if (!subsFileResponse) {
+            log.debug(`Unable to load substitutions file: ${fallbackLocale}`);
+            return null;
+          }
         }
       }
+    } else if (moduleConfig.substitutionsType === SubstitutionsType.standard) {
+      subsFileName = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/substitutions.json`;
+
+      subsFileResponse = await this.resourceLoader.load(subsFileName);
+
+      if (!subsFileResponse) {
+        log.debug(`Unable to load substitutions file: ${subsFileName}`);
+        return null;
+      }
+    } else {
+      throw new NumNotImplementedException(`Unknown substitutionsType value: ${JSON.stringify(moduleConfig.substitutionsType)}`);
     }
-    return localeFileResponse;
+    return subsFileResponse;
+  }
+
+  private async generateSchemaMapUrl(moduleConfig: ModuleConfig, compactVersion: string, targetExpandedVersion: string): Promise<string> {
+    const mapJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/transformation/map.json`;
+    const mapJson = await this.resourceLoader.load(mapJsonUrl);
+    if (!mapJson) {
+      throw new NumProtocolException(NumProtocolErrorCode.missingTransformationsMap, `No map.json available at ${mapJsonUrl}`);
+    }
+
+    return mapJsonToTransformationFileName(moduleConfig.moduleId.n, mapJson, compactVersion, targetExpandedVersion);
+  }
+
+  private async generateFallbackLocaleFileName(moduleConfig: ModuleConfig, lang: string): Promise<string> {
+    const listJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/list.json`;
+    const listJson = (await this.resourceLoader.load(listJsonUrl)) as Array<string> | null;
+
+    if (listJson) {
+      return findFirstWithSameLanguage(listJson, lang, moduleConfig);
+    } else {
+      throw new NumProtocolException(
+        NumProtocolErrorCode.missingLocalesList,
+        `No list.json file found for module ${moduleConfig.moduleId.n} at ${listJsonUrl}`
+      );
+    }
   }
 }
+
+export const mapJsonToTransformationFileName = (
+  module: number,
+  mapJson: Record<string, unknown>,
+  compactVersion: string,
+  targetExpandedVersion: string
+): string => {
+  const c = mapJson[`compact-v${compactVersion}`] as Record<string, Record<string, string>>;
+  const e = c[`expanded-v${targetExpandedVersion}`];
+  if (e) {
+    const transformationFileName: string = e['transformation-file'];
+    if (transformationFileName) {
+      return `${DEFAULT_BASE_URL}${module}/transformation/${transformationFileName}`;
+    } else {
+      throw new NumProtocolException(
+        NumProtocolErrorCode.invalidTargetExpandedSchemaForModule,
+        `Module: ${module} has no target expanded schema v${targetExpandedVersion} configured for compact schema version v${compactVersion}`
+      );
+    }
+  } else {
+    throw new NumProtocolException(
+      NumProtocolErrorCode.invalidTargetExpandedSchemaForModule,
+      `Module: ${module} has no target expanded schema v${targetExpandedVersion} configured for compact schema version v${compactVersion}`
+    );
+  }
+};
+
+export const findFirstWithSameLanguage = (listJson: string[], lang: string, moduleConfig: ModuleConfig): string => {
+  let found = listJson.find((v) => v.startsWith(lang));
+  if (!found) {
+    found = 'en-us';
+  }
+  return `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/${found}.json`;
+};

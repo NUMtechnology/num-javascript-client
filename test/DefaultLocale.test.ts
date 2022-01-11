@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { expect } from 'chai';
+import { createResourceLoader } from '../src/resourceloader';
+import { findFirstWithSameLanguage } from '../src/client';
 import { toModuleConfig } from '../src/moduleconfig';
 // Copyright 2020 NUM Technology Ltd
 //
@@ -17,30 +16,33 @@ import { toModuleConfig } from '../src/moduleconfig';
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+const loader = createResourceLoader();
 
-describe('ModuleConfig', () => {
-  it('should be able to create a module config object from a JSON object', () => {
+describe('TransformationMapFile', () => {
+  it('should be able to generate a valid file path from a valid map.json', async () => {
+    const l = [
+      "en-gb",
+      "en-us",
+      "fr-fr",
+      "fr-ca"
+    ];
 
-    const specObj = {
-      "module_id": 1,
+    const config = {
+      "module_id": 2,
       "module_name": "Contacts",
       "compact_schema": true,
       "expanded_schema": true,
       "substitutions": true,
       "substitutions_type": "locale",
       "track": "draft"
-    } as Record<string, unknown>;
+    };
 
-    const moduleSpec = toModuleConfig(specObj);
-
-    expect(moduleSpec).not.null;
-    expect(moduleSpec?.moduleId.n).to.equal(1);
-    expect(moduleSpec?.moduleName).to.equal('Contacts');
-    expect(moduleSpec?.compactSchema).to.equal(true);
-    expect(moduleSpec?.expandedSchema).to.equal(true);
-    expect(moduleSpec?.substitutions).to.equal(true);
-    expect(moduleSpec?.substitutionsType).to.equal('locale');
-    expect(moduleSpec?.track).to.equal('draft');
+    const mc = toModuleConfig(config);
+    expect(mc).not.null;
+    if (mc) {
+      expect(findFirstWithSameLanguage(l, 'en', mc)).equal('https://modules.numprotocol.com/2/locales/en-gb.json');
+      expect(findFirstWithSameLanguage(l, 'xx', mc)).equal('https://modules.numprotocol.com/2/locales/en-us.json');
+      expect(findFirstWithSameLanguage(l, 'fr', mc)).equal('https://modules.numprotocol.com/2/locales/fr-fr.json');
+    }
   });
-
 });

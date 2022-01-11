@@ -43,6 +43,7 @@ export class Context {
   public location = NumLocation.independent;
   public result: string | null = null;
   public readonly numAddress: NumUri;
+  public targetExpandedSchemaVersion: string;
   _queries: ModuleDnsQueries;
   redirectCount = 0;
   userVariables: Map<string, UserVariable>;
@@ -60,8 +61,17 @@ export class Context {
     this.numAddress = numAddress;
     this._queries = createModuleDnsQueries(numAddress.port, numAddress);
     this.userVariables = new Map<string, UserVariable>();
+    this.targetExpandedSchemaVersion = '1';
   }
 
+  /**
+   * Change the target expanded schema version.
+   *
+   * @param v the target version number as a string.
+   */
+  setTargetExpandedSchemaVersion(v: string): void {
+    this.targetExpandedSchemaVersion = v;
+  }
   /**
    * Sets user variable
    *

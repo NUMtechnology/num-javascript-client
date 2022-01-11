@@ -58,11 +58,12 @@ describe('NUMClient', () => {
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
     const result = await client.retrieveNumRecord(ctx, handler);
 
     expect(result).not.equal(null);
 
-    const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+    const expected = '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -83,11 +84,12 @@ describe('NUMClient', () => {
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
     const result = await client.retrieveNumRecord(ctx, handler);
 
     expect(result).not.equal(null);
 
-    const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organisation","name":"SES Water","slogan":null,"contacts":[{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Moving Home New Customers","action":"https://seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","value":"seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","controller":null},{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Make a Payment Online","action":"https://ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","value":"ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","controller":null},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Customer Services","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["wd@9-17"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Automated Freephone Payment Line","action":"tel:+44800 587 2936","value":"+44800 587 2936","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Emergency Line","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Thames Water 24 hour Service","action":"tel:+44845 920 0800","value":"+44845 920 0800","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Southern Water 24 hour Service","action":"tel:+44845 278 0845","value":"+44845 278 0845","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/SESWater","controller":"twitter.com","value":"@SESWater"},{"method_type":"facebook","method_display_name":"Facebook","description_default":"View Facebook profile","description":null,"action":"https://www.facebook.com/SESWaterOfficial","controller":"facebook.com","value":"/SESWaterOfficial"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/seswater","controller":"linkedin.com","value":"/company/seswater"}]}';
+    const expected = '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organisation","name":"SES Water","slogan":null,"contacts":[{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Moving Home New Customers","action":"https://seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","value":"seswater.co.uk/your-account/moving-home/moving-into-our-area/moving-into-our-area-form","controller":null},{"method_type":"url","method_display_name":"Web URL","description_default":"Click","description":"Make a Payment Online","action":"https://ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","value":"ip.e-paycapita.com/AIP/accountSearch.do?link=showAccountSearchPage&requestId=pk0znolfk2tpa4u9kkgtted9ntd03uo","controller":null},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Customer Services","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["wd@9-17"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Automated Freephone Payment Line","action":"tel:+44800 587 2936","value":"+44800 587 2936","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Emergency Line","action":"tel:+44173 777 2000","value":"+44173 777 2000","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Thames Water 24 hour Service","action":"tel:+44845 920 0800","value":"+44845 920 0800","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"telephone","method_display_name":"Telephone","description_default":"Call","description":"Southern Water 24 hour Service","action":"tel:+44845 278 0845","value":"+44845 278 0845","controller":null,"hours":{"time_zone_location":"LON","available":["d@0-24"]}},{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/SESWater","controller":"twitter.com","value":"@SESWater"},{"method_type":"facebook","method_display_name":"Facebook","description_default":"View Facebook profile","description":null,"action":"https://www.facebook.com/SESWaterOfficial","controller":"facebook.com","value":"/SESWaterOfficial"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/seswater","controller":"linkedin.com","value":"/company/seswater"}]}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -108,12 +110,13 @@ describe('NUMClient', () => {
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
     ctx.setUserVariable('_L', 'en');
     ctx.setUserVariable('_C', 'us');
 
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).not.equal(null);
-    const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+    const expected = '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
     const same = deepEql(
       JSON.parse(result as string),
       JSON.parse(expected)
@@ -144,8 +147,9 @@ describe('NUMClient', () => {
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
     await client.retrieveNumRecord(ctx, handler).then((r) => {
-      const expected = '{"@n":1,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+      const expected = '{"@n":1, "@version":2,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
 
       if (r) {
 
@@ -182,6 +186,7 @@ describe('NUMClient', () => {
     log.setLevel('error');
     client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
     const result = await client.retrieveNumRecord(ctx, handler);
     expect(result).equal(null);
   });
@@ -196,8 +201,11 @@ describe('NUMClient', () => {
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);
+    ctx1.setTargetExpandedSchemaVersion('2');
     const ctx2 = client.createContext(numUri2);
+    ctx2.setTargetExpandedSchemaVersion('2');
     const ctx3 = client.createContext(numUri3);
+    ctx3.setTargetExpandedSchemaVersion('2');
 
     const result1 = client.retrieveNumRecord(ctx1);
     const result2 = client.retrieveNumRecord(ctx2);

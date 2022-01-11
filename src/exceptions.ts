@@ -187,10 +187,11 @@ export class NumLookupBadDoHResponse extends NumException {
 /**
  * Used to report errors in the NUM protocol
  */
+
 export enum NumProtocolErrorCode {
   errorCreatingContext = 'ERROR_CREATING_CONTEXT',
   compactSchemaError = 'COMPACT_SCHEMA_ERROR',
-  localeFileNotFoundError = 'LOCALE_FILE_NOT_FOUND',
+  substitutionsFileNotFoundError = 'SUBSTITUTIONS_FILE_NOT_FOUND',
   noUnpackerConfigFileFound = 'UNPACKER_CONFIG_FILE_NOT_FOUND',
   expandedSchemaError = 'EXPANDED_SCHEMA_ERROR',
   moduleConfigFileNotFound = 'MODULE_CONFIG_FILE_NOT_FOUND',
@@ -199,6 +200,10 @@ export enum NumProtocolErrorCode {
   noModlRecordFound = 'NUM_RECORD_NOT_FOUND',
   schemaNotFound = 'SCHEMA_NOT_FOUND',
   badDoHResponse = 'DOH_SERVICE_ERROR',
+  missingExpandedSchemaVersion = 'EXPANDED_SCHEMA_VERSION_KEY_NOT_FOUND',
+  invalidTargetExpandedSchemaForModule = 'INVALID_TARGET_EXPANDED_SCHEMA_FOR_MODULE',
+  missingTransformationsMap = 'TRANSFORMATIONS_MAP_NOT_FOUND',
+  missingLocalesList = 'LOCALES_LIST_NOT_FOUND',
 }
 
 /**

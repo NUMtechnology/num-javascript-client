@@ -10,16 +10,16 @@
   <script src="../dist/bundle.js"></script>
   <h1>NUM Protocol Example</h1>
   <div>
-    NUM URI = <input type="text" value="aviva.co.uk:1" id='urivalue' onchange="reloadRecord()">
+    NUM URI = <input type="text" value="num.uk:3" id='urivalue' onchange="reloadRecord()">
     <input type="button" value="Reload" onclick="reloadRecord()">
   </div>
   <div>
     <label for="env">Environment:</label>
 
     <select name="env" id="env" onchange="setEnvironment()">
-      <option value="test">Test</option>
+      <option value="test" selected>Test</option>
       <option value="staging">Staging</option>
-      <option value="prod" selected>Prod</option>
+      <option value="prod">Prod</option>
     </select>
   </div>
   <div style="border: 1px solid blue;width: fit-content;">
@@ -37,11 +37,17 @@
     const handler = NumClient.createDefaultCallbackHandler();
     const client = NumClient.createClient(CUSTOM_RESOLVERS);
 
+    client.setDnsEnv('test');
+    client.setModuleEnv('test');
+    client.setenv('test');
 
     function lookup(uri) {
       const numUri = NumClient.parseNumUri(uri);
 
       const ctx = client.createContext(numUri);
+      if(numUri.port.n === 1 ) {
+        ctx.setTargetExpandedSchemaVersion('2');
+      }
 
       return client.retrieveNumRecord(ctx, handler);
     }
