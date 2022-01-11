@@ -67,6 +67,7 @@ const lookup = async () => {
   const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
+  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
   const result = await client.retrieveNumRecord(ctx); // Use the context to retrieve a NUM record
   console.log(result);                                // Handle the result
 }
@@ -82,6 +83,8 @@ const lookup = async () => {
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
+  ctx1.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
+  ctx2.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   const result1 = client.retrieveNumRecord(ctx1);
   const result2 = client.retrieveNumRecord(ctx2);
@@ -113,6 +116,7 @@ const lookup = async () => {
   const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
+  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   ctx.setUserVariable('_L', 'en');                    // Set the user's language
   ctx.setUserVariable('_C', 'gb');                    // Set the user's country
@@ -128,6 +132,7 @@ const lookup = async () => {
   const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
+  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   const handler: CallbackHandler = {
     setLocation: (l: NumLocation): void => {
@@ -176,6 +181,8 @@ function lookup(uri1, uri2) {
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
+  ctx1.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
+  ctx2.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   ctx1.setUserVariable('_L', 'en');                    // Set the user's language
   ctx1.setUserVariable('_C', 'gb');                    // Set the user's country
@@ -240,6 +247,9 @@ This simple example can be modified as necessary by following the previous examp
       const numUri = NumClient.parseNumUri(uri);
 
       const ctx = client.createContext(numUri);
+      if(numUri.port.n === 1 ) {
+        ctx.setTargetExpandedSchemaVersion('2');
+      }
 
       return client.retrieveNumRecord(ctx);
     }
