@@ -231,4 +231,4 @@ class DnsServicesImpl implements DnsServices {
   }
 }
 
-export const punydecode = (rec: string): string => (rec && rec.includes(';@pn=1;') ? punycode.decode(rec) : rec);
+export const punydecode = (rec: string): string => (rec && rec.includes(';@pn=1;') ? punycode.decode(rec).replace('@pn=1;', '') : rec);
