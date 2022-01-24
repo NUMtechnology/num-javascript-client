@@ -195,12 +195,16 @@ class DnsClientImpl implements DnsClient {
         case 0:
           if (response.data.Answer) {
             const data = response.data.Answer as Answer[];
-            const answerName = data[0].name.endsWith('.') ? data[0].name : data[0].name + '.';
-            if (question.name !== answerName) {
-              log.error(`Q = ${JSON.stringify(question)}, A = ${JSON.stringify(data[0])}`);
-            }
+            if (data.length > 0) {
+              const answerName = data[0].name.endsWith('.') ? data[0].name : data[0].name + '.';
+              if (question.name !== answerName) {
+                log.error(`Q = ${JSON.stringify(question)}, A = ${JSON.stringify(data[0])}`);
+              }
 
-            return data.map(joinParts);
+              return data.map(joinParts);
+            } else {
+              log.warn('Domain was resolved but the answer was empty');
+            }
           } else {
             log.warn('Domain was resolved but no records were found');
           }
