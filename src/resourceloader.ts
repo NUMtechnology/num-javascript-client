@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import log from 'loglevel';
 import { LruCache } from './lrucache';
 
@@ -9,7 +9,7 @@ import { LruCache } from './lrucache';
 export interface ResourceLoader {
   setenv(env: string);
 
-  load(url: string): Promise<Record<string, unknown> | null>;
+  load(url: string): Promise<AxiosResponse<any> | null>;
 }
 
 export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl() as ResourceLoader;
@@ -19,7 +19,7 @@ export const createResourceLoader = (): ResourceLoader => new ResourceLoaderImpl
 //------------------------------------------------------------------------------------------------------------------------
 
 class ResourceLoaderImpl implements ResourceLoader {
-  private static cache: LruCache<Record<string, unknown>>;
+  private static cache: LruCache<Promise<AxiosResponse<any>>>;
   private env: string | null;
 
   constructor() {
@@ -31,7 +31,7 @@ class ResourceLoaderImpl implements ResourceLoader {
     this.env = env === 'test' || env === 'staging' ? env : null;
   }
 
-  async load(url: string): Promise<Record<string, unknown> | null> {
+  async load(url: string): Promise<AxiosResponse<any> | null> {
     try {
       if (url) {
         url = this.env ? url.replace('modules.numprotocol.com', `${this.env}.modules.numprotocol.com`) : url;
@@ -39,10 +39,9 @@ class ResourceLoaderImpl implements ResourceLoader {
         if (cached) {
           return cached;
         } else {
-          const loadedResource = await axios.get(url);
-          const result = loadedResource.data as Record<string, unknown>;
-          ResourceLoaderImpl.cache.put(url, result);
-          return result;
+          const loadedResourcePromise: Promise<AxiosResponse<any>> = axios.get(url);
+          ResourceLoaderImpl.cache.put(url, loadedResourcePromise);
+          return loadedResourcePromise;
         }
       }
     } catch (e) {

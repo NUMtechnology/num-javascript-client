@@ -39,7 +39,7 @@ class ModuleConfigProviderImpl implements ModuleConfigProvider {
     const response = await this.resourceLoader.load(`${DEFAULT_MODULES_BASE_URL}/${moduleNumber.n}/config.json`);
 
     if (response) {
-      return toModuleConfig(response);
+      return toModuleConfig(response.data as Record<string, unknown>);
     }
     return null;
   }

@@ -19,16 +19,19 @@ const loader = createResourceLoader();
 describe('ResourceLoader', () => {
   it('should be able to load a valid resource', async () => {
     const rcf = await loader.load('https://modules.numprotocol.com/1/rcf.txt');
-    expect(rcf).not.equal(null);
+    expect(rcf).not.null;
+    expect((rcf?.data as string).includes('*id=contact;')).true;
   });
 
   it('should return null for an invalid resource', async () => {
-    const rcf = await loader.load('https://modules.numprotocol.com/1/blahblah.txt');
-    expect(rcf).equal(null);
+    loader.load('https://modules.numprotocol.com/1/blahblah.txt').then((rcf) => {
+      expect(rcf).equal(null);
+    });
   });
 
   it('should return null for an invalid web site', async () => {
-    const rcf = await loader.load('https://doesnotexisthdgfksajhdgfkahsdgfhkjdgsdjhfg.com/1/blahblah.txt');
-    expect(rcf).equal(null);
+    loader.load('https://doesnotexisthdgfksajhdgfkahsdgfhkjdgsdjhfg.com/1/blahblah.txt').then((rcf) => {
+      expect(rcf).equal(null);
+    });
   });
 });

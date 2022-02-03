@@ -36,6 +36,7 @@ import { createModlServices, ModlServices } from './modlservices';
 import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider, SubstitutionsType } from './moduleconfig';
 import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
+import { AxiosResponse } from 'axios';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -570,8 +571,8 @@ class NumClientImpl implements NumClient {
         const schemaMapUrl = await this.generateSchemaMapUrl(moduleConfig, compactVersion, targetExpandedVersion);
         const schemaMapResponse = await this.resourceLoader.load(schemaMapUrl);
 
-        if (schemaMapResponse) {
-          jsonResult = mapper.convert(substitutionsData, jsonResult as any, schemaMapResponse) as Record<string, unknown>;
+        if (schemaMapResponse && schemaMapResponse.data) {
+          jsonResult = mapper.convert(substitutionsData, jsonResult as any, schemaMapResponse.data) as Record<string, unknown>;
           log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
         } else {
           // No schema map
@@ -655,8 +656,8 @@ class NumClientImpl implements NumClient {
       const schema = await this.resourceLoader.load(schemaUrl);
 
       // Validate the schema if there is one
-      if (schema) {
-        existingSchema = ajv.getSchema(schemaUrl) ? ajv.getSchema(schemaUrl) : ajv.compile(schema);
+      if (schema && schema.data) {
+        existingSchema = ajv.getSchema(schemaUrl) ? ajv.getSchema(schemaUrl) : ajv.compile(schema.data);
       } else {
         const msg = `Unable to load the JSON schema from : ${schemaUrl}`;
         log.error(msg);
@@ -680,7 +681,7 @@ class NumClientImpl implements NumClient {
   private async loadSubstitutionsFile(moduleConfig: ModuleConfig, userVariables: Map<string, UserVariable>): Promise<Record<string, unknown> | null> {
     // Attempt to load a substitutions file.
     let subsFileName = '';
-    let subsFileResponse: Record<string, unknown> | null = null;
+    let subsFileResponse: AxiosResponse<any> | null = null;
 
     if (moduleConfig.substitutionsType === SubstitutionsType.locale) {
       let country = userVariables.get('_C')?.toString();
@@ -697,14 +698,14 @@ class NumClientImpl implements NumClient {
       // Try loading the substitutions file and fallback to the default if we can't find one.
       subsFileResponse = await this.resourceLoader.load(subsFileName);
 
-      if (!subsFileResponse) {
+      if (!subsFileResponse || !subsFileResponse.data) {
         if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
           log.debug(`Unable to load substitutions file: ${subsFileName}`);
           return null;
         } else {
           const fallbackLocale = await this.generateFallbackLocaleFileName(moduleConfig, language);
           subsFileResponse = await this.resourceLoader.load(fallbackLocale);
-          if (!subsFileResponse) {
+          if (!subsFileResponse || !subsFileResponse.data) {
             log.debug(`Unable to load substitutions file: ${fallbackLocale}`);
             return null;
           }
@@ -715,32 +716,32 @@ class NumClientImpl implements NumClient {
 
       subsFileResponse = await this.resourceLoader.load(subsFileName);
 
-      if (!subsFileResponse) {
+      if (!subsFileResponse || !subsFileResponse.data) {
         log.debug(`Unable to load substitutions file: ${subsFileName}`);
         return null;
       }
     } else {
       throw new NumNotImplementedException(`Unknown substitutionsType value: ${JSON.stringify(moduleConfig.substitutionsType)}`);
     }
-    return subsFileResponse;
+    return subsFileResponse.data as Record<string, unknown>;
   }
 
   private async generateSchemaMapUrl(moduleConfig: ModuleConfig, compactVersion: string, targetExpandedVersion: string): Promise<string> {
     const mapJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/transformation/map.json`;
     const mapJson = await this.resourceLoader.load(mapJsonUrl);
-    if (!mapJson) {
+    if (!mapJson || !mapJson.data) {
       throw new NumProtocolException(NumProtocolErrorCode.missingTransformationsMap, `No map.json available at ${mapJsonUrl}`);
     }
 
-    return mapJsonToTransformationFileName(moduleConfig.moduleId.n, mapJson, compactVersion, targetExpandedVersion);
+    return mapJsonToTransformationFileName(moduleConfig.moduleId.n, mapJson.data as Record<string, unknown>, compactVersion, targetExpandedVersion);
   }
 
   private async generateFallbackLocaleFileName(moduleConfig: ModuleConfig, lang: string): Promise<string> {
     const listJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/list.json`;
-    const listJson = (await this.resourceLoader.load(listJsonUrl)) as Array<string> | null;
+    const listJson = await this.resourceLoader.load(listJsonUrl);
 
-    if (listJson) {
-      return findFirstWithSameLanguage(listJson, lang, moduleConfig);
+    if (listJson && listJson.data) {
+      return findFirstWithSameLanguage(listJson.data as Array<string>, lang, moduleConfig);
     } else {
       throw new NumProtocolException(
         NumProtocolErrorCode.missingLocalesList,

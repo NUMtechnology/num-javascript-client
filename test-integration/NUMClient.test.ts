@@ -44,7 +44,7 @@ const dummyResourceLoader = new DummyResourceLoader();
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
   });
@@ -54,7 +54,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -69,8 +69,8 @@ describe('NUMClient', () => {
       JSON.parse(expected)
     );
     if (!same) {
-      console.log(`Actual  : ${result}`);
-      console.log(`Expected: ${expected}`);
+      log.info(`Actual  : ${result}`);
+      log.info(`Expected: ${expected}`);
     }
     expect(same).to.equal(true);
   });
@@ -80,7 +80,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -95,8 +95,8 @@ describe('NUMClient', () => {
       JSON.parse(expected)
     );
     if (!same) {
-      console.log(`Actual  : ${result}`);
-      console.log(`Expected: ${expected}`);
+      log.info(`Actual  : ${result}`);
+      log.info(`Expected: ${expected}`);
     }
     expect(same).to.equal(true);
   });
@@ -106,7 +106,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -122,8 +122,8 @@ describe('NUMClient', () => {
       JSON.parse(expected)
     );
     if (!same) {
-      console.log(`Actual  : ${result}`);
-      console.log(`Expected: ${expected}`);
+      log.info(`Actual  : ${result}`);
+      log.info(`Expected: ${expected}`);
     }
     expect(same).to.equal(true);
   });
@@ -143,7 +143,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -158,8 +158,8 @@ describe('NUMClient', () => {
           JSON.parse(expected)
         );
         if (!same) {
-          console.log(`Actual  : ${r}`);
-          console.log(`Expected: ${expected}`);
+          log.info(`Actual  : ${r}`);
+          log.info(`Expected: ${expected}`);
         }
         expect(same).to.equal(true);
       } else {
@@ -183,7 +183,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
     ctx.setTargetExpandedSchemaVersion('2');
@@ -197,7 +197,7 @@ describe('NUMClient', () => {
     const numUri3 = parseNumUri('lloydsbank.com:1');
 
     const client = createClient();
-    log.setLevel('error');
+    log.setLevel('info');
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);

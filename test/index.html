@@ -10,8 +10,16 @@
   <script src="../dist/bundle.js"></script>
   <h1>NUM Protocol Example</h1>
   <div>
-    NUM URI = <input type="text" value="num.uk:3" id='urivalue' onchange="reloadRecord()">
+    NUM URI = <input type="text" value="numexample.com:1" id='urivalue' onchange="reloadRecord()">
     <input type="button" value="Reload" onclick="reloadRecord()">
+  </div>
+  <div>
+    <label for="version">Schema Version:</label>
+    <select name="version" id="version">
+      <option value=1>1</option>
+      <option value=2 selected>2</option>
+      <option value=3>3</option>
+    </select>
   </div>
   <div>
     <label for="env">Environment:</label>
@@ -45,9 +53,8 @@
       const numUri = NumClient.parseNumUri(uri);
 
       const ctx = client.createContext(numUri);
-      if(numUri.port.n === 1 ) {
-        ctx.setTargetExpandedSchemaVersion('2');
-      }
+      
+      ctx.setTargetExpandedSchemaVersion(document.getElementById("version").value);
 
       return client.retrieveNumRecord(ctx, handler);
     }
