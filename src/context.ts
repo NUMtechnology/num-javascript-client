@@ -16,10 +16,10 @@ import { Hostname, NumUri, parseNumUri } from './numuri';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
 import { NumInvalidRedirectException, NumMaximumRedirectsExceededException } from './exceptions';
 import { resolvePath } from './urlrelativepathresolver';
-import pino from 'pino';
+import { log } from 'num-easy-log';
 
 const MAX_NUM_REDIRECTS = 3;
-const log = pino();
+
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
@@ -107,10 +107,10 @@ export class Context {
    * @throws NumInvalidRedirectException          on Error
    */
   handleQueryRedirect(redirect: string): void {
-    log.info('Query Redirected to: {}', redirect);
+    log.info(`Query Redirected to: ${redirect}`);
     const redirectCount = this.incrementRedirectCount();
     if (redirectCount >= MAX_NUM_REDIRECTS) {
-      log.debug('Maximum Redirects Exceeded. (max={})', MAX_NUM_REDIRECTS);
+      log.debug(`Maximum Redirects Exceeded. (max=${MAX_NUM_REDIRECTS})`);
       throw new NumMaximumRedirectsExceededException();
     }
 

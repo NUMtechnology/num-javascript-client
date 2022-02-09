@@ -4,9 +4,8 @@ import { expect } from 'chai';
 import { AxiosProxy } from '../src/axiosproxy';
 import { Answer, DoHResolver } from '../src/dnsclient';
 import { createDnsServices } from '../src/dnsservices';
-import pino from 'pino';
+import { log } from 'num-easy-log'
 
-const log = pino();
 const REQ_COUNT = 5;
 const DELAY_MULTIPLIER = 200;
 

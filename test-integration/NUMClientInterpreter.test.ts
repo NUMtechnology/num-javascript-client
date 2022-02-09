@@ -25,10 +25,7 @@ import { createClient } from '../src/client';
 import { UserVariable } from '../src/context';
 import { PositiveInteger } from '../src/numuri';
 import { DummyResourceLoader } from './DummyResourceLoader';
-import pino from 'pino';
-
-
-const log = pino();
+import { log } from 'num-easy-log'
 
 const dummyResourceLoader = new DummyResourceLoader();
 

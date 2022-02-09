@@ -17,10 +17,9 @@ import punycode from 'punycode';
 import { AxiosProxy } from './axiosproxy';
 import { createDnsClient, DnsClient, DoHResolver, Question } from './dnsclient';
 import { NumLookupBadDoHResponse, NumLookupEmptyResult, RrSetHeaderFormatException, RrSetIncompleteException } from './exceptions';
-import pino from 'pino';
+import { log } from 'num-easy-log';
 
 const MATCH_MULTIPART_RECORD_FRAGMENT = /(^\d+\|.*)|(\d+\/\d+\|@n=\d+;.*)/;
-const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

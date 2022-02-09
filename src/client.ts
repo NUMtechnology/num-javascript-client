@@ -34,7 +34,7 @@ import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider, Substit
 import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 import { AxiosResponse } from 'axios';
-import pino from 'pino';
+import { log } from 'num-easy-log';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -184,12 +184,6 @@ const ajv = new Ajv({ strict: false });
 addFormats(ajv);
 
 const DEFAULT_RESOLVERS = [new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'), new DoHResolver('Google', 'https://dns.google.com/resolve')];
-
-//------------------------------------------------------------------------------------------------------------------------
-// Set up logging
-//------------------------------------------------------------------------------------------------------------------------
-
-const log = pino();
 
 //------------------------------------------------------------------------------------------------------------------------
 

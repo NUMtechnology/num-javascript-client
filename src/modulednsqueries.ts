@@ -22,9 +22,8 @@ import {
   LookupGenerator,
 } from './lookupgenerators';
 import { Hostname, NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
-import pino from 'pino';
+import { log } from 'num-easy-log';
 
-const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

@@ -1,10 +1,7 @@
 import { readFileSync } from 'fs';
 import { ResourceLoader } from '../src/resourceloader';
 import { AxiosResponse } from 'axios';
-import pino from 'pino';
-
-
-const log = pino();
+import { log } from 'num-easy-log'
 
 export class DummyResourceLoader implements ResourceLoader {
   setenv(env: string) {

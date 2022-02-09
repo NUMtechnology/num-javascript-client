@@ -16,9 +16,7 @@ import { expect } from 'chai';
 import { Context } from '../src/context';
 import { createLookupLocationStateMachine } from '../src/lookupstatemachine';
 import { parseNumUri } from '../src/numuri';
-import pino from 'pino';
-
-const log = pino();
+import { log } from 'num-easy-log'
 
 const testUri = parseNumUri('example.com:1');
 
@@ -31,7 +29,7 @@ describe('LookupLocationStateMachine', () => {
     while (!sm.complete()) {
       ctx.location = await sm.step(true);
       count++;
-      log.debug('ctx.location: ', ctx.location);
+      log.debug(`ctx.location: ${ctx.location}`);
     }
     expect(count).to.equal(1);
   });
@@ -44,7 +42,7 @@ describe('LookupLocationStateMachine', () => {
     while (!sm.complete()) {
       ctx.location = await sm.step(1);
       count++;
-      log.debug('ctx.location: ', ctx.location);
+      log.debug(`ctx.location: ${ctx.location}`);
     }
     expect(count).to.equal(2);
   });
@@ -57,7 +55,7 @@ describe('LookupLocationStateMachine', () => {
     while (!sm.complete()) {
       ctx.location = await sm.step(2);
       count++;
-      log.debug('ctx.location: ', ctx.location);
+      log.debug(`ctx.location: ${ctx.location}`);
     }
     expect(count).to.equal(2);
   });
@@ -70,7 +68,7 @@ describe('LookupLocationStateMachine', () => {
     while (!sm.complete()) {
       ctx.location = await sm.step(3);
       count++;
-      log.debug('ctx.location: ', ctx.location);
+      log.debug(`ctx.location: ${ctx.location}`);
     }
     expect(count).to.equal(2);
   });

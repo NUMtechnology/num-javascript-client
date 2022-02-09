@@ -4,9 +4,7 @@ import { expect } from 'chai';
 import { AxiosProxy } from '../src/axiosproxy';
 import { DoHResolver } from '../src/dnsclient';
 import { createDnsServices } from '../src/dnsservices';
-import pino from 'pino';
-
-const log = pino();
+import { log } from 'num-easy-log'
 
 class servFailProxy implements AxiosProxy {
   async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {

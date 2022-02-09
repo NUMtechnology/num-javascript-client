@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "A NUM Protocol Client in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,8 +12,8 @@
     "axios": "^0.21.1",
     "crypto-js": "^4.0.0",
     "delay": "^4.4.0",
-    "modl-interpreter": "0.0.19",
-    "object-unpacker": "0.0.21",
+    "modl-interpreter": "0.0.20",
+    "object-unpacker": "0.0.22",
     "process": "^0.11.10",
     "punycode": "^2.1.1",
     "url": "^0.11.0"

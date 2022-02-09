@@ -16,12 +16,11 @@
 import punycode from 'punycode';
 import { AxiosProxy, axiosProxy } from './axiosproxy';
 import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
-import pino from 'pino';
+import { log } from 'num-easy-log';
 
 const SERVFAIL = 2;
 const NXDOMAIN = 3;
 const REFUSED = 5;
-const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
