@@ -15,8 +15,6 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import chalk from 'chalk';
-import log from 'loglevel';
-import prefix from 'loglevel-plugin-prefix';
 import { mapper } from 'object-unpacker';
 import { Context, NumLocation, UserVariable } from './context';
 import { DoHResolver } from './dnsclient';
@@ -37,6 +35,7 @@ import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider, Substit
 import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
 import { AxiosResponse } from 'axios';
+import pino from 'pino';
 
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
@@ -208,25 +207,7 @@ const colors = (lvl: string) => {
   }
 };
 
-prefix.reg(log);
-
-prefix.apply(log, {
-  format: (level: string, name: string | undefined, timestamp: Date | string) => {
-    const levelName = level.toUpperCase();
-    const levelColour = colors(levelName);
-    const colouredLevel: string = levelColour(levelName);
-    if (name) {
-      return `${chalk.gray(timestamp.toString())} ${colouredLevel} ${chalk.green(name + ':')}`;
-    } else {
-      return `${chalk.gray(timestamp.toString())} ${colouredLevel}`;
-    }
-  },
-});
-
-prefix.apply(log.getLogger('critical'), {
-  format: (level: string, name: string | undefined, timestamp: Date | string) =>
-    name ? chalk.red.bold(`[${timestamp.toString()}] ${level} ${name}:`) : chalk.red.bold(`[${timestamp.toString()}] ${level}:`),
-});
+const log = pino();
 
 //------------------------------------------------------------------------------------------------------------------------
 

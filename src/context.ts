@@ -14,12 +14,12 @@
 //
 import { Hostname, NumUri, parseNumUri } from './numuri';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
-import log from 'loglevel';
 import { NumInvalidRedirectException, NumMaximumRedirectsExceededException } from './exceptions';
 import { resolvePath } from './urlrelativepathresolver';
+import pino from 'pino';
 
 const MAX_NUM_REDIRECTS = 3;
-
+const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

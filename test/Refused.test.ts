@@ -1,14 +1,12 @@
 
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { expect } from 'chai';
-import loglevel, { Logger } from 'loglevel';
 import { AxiosProxy } from '../src/axiosproxy';
 import { DoHResolver } from '../src/dnsclient';
 import { createDnsServices } from '../src/dnsservices';
+import pino from 'pino';
 
-const log = loglevel as Logger;
-
-log.setLevel('error');
+const log = pino();
 
 class refusedProxy implements AxiosProxy {
   async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {

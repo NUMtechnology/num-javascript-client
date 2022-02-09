@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import log from 'loglevel';
 import punycode from 'punycode';
 import { URL } from 'url';
 import { NumBadUrlException, NumException, NumInvalidParameterException } from './exceptions';
 import { hashByDepth } from './hashutils';
 import { Hostname, MODULE_0, NO_USER_INFO, NumUri, PositiveInteger, UrlUserInfo } from './numuri';
+import pino from 'pino';
 
 const _NUM = '._num.';
 const DNPREFIX = '_';
@@ -27,6 +27,7 @@ const POP_3LZ = 'populator';
 const DEFAULT_DEPTH = 3;
 const WWW_REGEX = new RegExp(/^www\.\w+\.\w+/);
 const SCHEME_REGEX = new RegExp(/^[a-zA-Z][0-9a-zA-Z+.-]+:/);
+const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

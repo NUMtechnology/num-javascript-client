@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import log from 'loglevel';
 import punycode from 'punycode';
 import { AxiosProxy, axiosProxy } from './axiosproxy';
 import { BadDnsStatusException, InvalidDnsResponseException } from './exceptions';
+import pino from 'pino';
 
 const SERVFAIL = 2;
 const NXDOMAIN = 3;
 const REFUSED = 5;
-
+const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

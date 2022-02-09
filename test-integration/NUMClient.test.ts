@@ -22,16 +22,16 @@
 import { fail } from 'assert';
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
-import loglevel, { Logger } from 'loglevel';
 import { CallbackHandler, createClient, createDefaultCallbackHandler } from '../src/client';
 import { NumLocation } from '../src/context';
 import { DoHResolver } from '../src/dnsclient';
 import { NumProtocolErrorCode } from '../src/exceptions';
 import { parseNumUri } from '../src/numuri';
 import { DummyResourceLoader } from './DummyResourceLoader';
+import pino from 'pino';
 
 
-const log = loglevel as Logger;
+const log = pino();
 
 
 const DEFAULT_RESOLVERS = [
@@ -44,7 +44,7 @@ const dummyResourceLoader = new DummyResourceLoader();
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
   });
@@ -54,7 +54,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -80,7 +80,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -106,7 +106,7 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -143,7 +143,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
@@ -183,7 +183,7 @@ describe('NUMClient', () => {
     };
 
     const client = createClient(DEFAULT_RESOLVERS);
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
     ctx.setTargetExpandedSchemaVersion('2');
@@ -197,7 +197,7 @@ describe('NUMClient', () => {
     const numUri3 = parseNumUri('lloydsbank.com:1');
 
     const client = createClient();
-    log.setLevel('info');
+    log.level = 'info';
     client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);

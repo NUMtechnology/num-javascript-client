@@ -21,16 +21,14 @@
 //
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
-import loglevel, { Logger } from 'loglevel';
 import { createClient } from '../src/client';
 import { UserVariable } from '../src/context';
 import { PositiveInteger } from '../src/numuri';
 import { DummyResourceLoader } from './DummyResourceLoader';
+import pino from 'pino';
 
 
-const log = loglevel as Logger;
-
-log.setLevel('error');
+const log = pino();
 
 const dummyResourceLoader = new DummyResourceLoader();
 

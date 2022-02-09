@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import log from 'loglevel';
 import { NumLocation } from './context';
+import pino from 'pino';
 
+const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------

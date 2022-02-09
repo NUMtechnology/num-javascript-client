@@ -1,16 +1,14 @@
 
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { expect } from 'chai';
-import loglevel, { Logger } from 'loglevel';
 import { AxiosProxy } from '../src/axiosproxy';
 import { Answer, DoHResolver } from '../src/dnsclient';
 import { createDnsServices } from '../src/dnsservices';
+import pino from 'pino';
 
-const log = loglevel as Logger;
+const log = pino();
 const REQ_COUNT = 5;
 const DELAY_MULTIPLIER = 200;
-
-log.setLevel('error');
 
 class AxiosProxyDummyImpl implements AxiosProxy {
   async get(url: string, config?: AxiosRequestConfig | undefined): Promise<AxiosResponse<any>> {

@@ -13,12 +13,12 @@
 // limitations under the License.
 //
 import { expect } from 'chai';
-import loglevel, { Logger } from 'loglevel';
 import { Context } from '../src/context';
 import { createLookupLocationStateMachine } from '../src/lookupstatemachine';
 import { parseNumUri } from '../src/numuri';
+import pino from 'pino';
 
-const log = loglevel as Logger;
+const log = pino();
 
 const testUri = parseNumUri('example.com:1');
 

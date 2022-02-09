@@ -13,7 +13,6 @@
 // limitations under the License.
 //
 
-import log from 'loglevel';
 import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
 import {
   createDomainLookupGenerator,
@@ -23,7 +22,9 @@ import {
   LookupGenerator,
 } from './lookupgenerators';
 import { Hostname, NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
+import pino from 'pino';
 
+const log = pino();
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
