@@ -14,7 +14,6 @@
 //
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import chalk from 'chalk';
 import { mapper } from 'object-unpacker';
 import { Context, NumLocation, UserVariable } from './context';
 import { DoHResolver } from './dnsclient';
@@ -189,23 +188,6 @@ const DEFAULT_RESOLVERS = [new DoHResolver('Cloudflare', 'https://cloudflare-dns
 //------------------------------------------------------------------------------------------------------------------------
 // Set up logging
 //------------------------------------------------------------------------------------------------------------------------
-
-const colors = (lvl: string) => {
-  switch (lvl) {
-    case 'TRACE':
-      return chalk.magenta;
-    case 'DEBUG':
-      return chalk.cyan;
-    case 'INFO':
-      return chalk.blue;
-    case 'WARN':
-      return chalk.yellow;
-    case 'ERROR':
-      return chalk.red;
-    default:
-      return chalk.red;
-  }
-};
 
 const log = pino();
 
