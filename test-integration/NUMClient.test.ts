@@ -71,6 +71,34 @@ describe('NUMClient', () => {
     expect(same).to.equal(true);
   });
 
+  it('should be able to disable schema validation.', async () => {
+    const numUri = parseNumUri('num.uk:1');
+    const handler = createDefaultCallbackHandler();
+
+    const client = createClient();
+    client.disableSchemaValidation();
+
+    log.setLevel(Level.info);
+    client.setResourceLoader(dummyResourceLoader);
+
+    const ctx = client.createContext(numUri);
+    ctx.setTargetExpandedSchemaVersion('2');
+    const result = await client.retrieveNumRecord(ctx, handler);
+
+    expect(result).not.equal(null);
+
+    const expected = '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organisation","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+    const same = deepEql(
+      JSON.parse(result as string),
+      JSON.parse(expected)
+    );
+    if (!same) {
+      log.info(`Actual  : ${result}`);
+      log.info(`Expected: ${expected}`);
+    }
+    expect(same).to.equal(true);
+  });
+
   it('should be able to lookup a NUM record using the NUMClient when the INDEPENDENT record is invalid MODL', async () => {
     const numUri = parseNumUri('seswater.co.uk:1');
     const handler = createDefaultCallbackHandler();

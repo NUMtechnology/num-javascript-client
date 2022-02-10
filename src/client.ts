@@ -133,6 +133,11 @@ export interface NumClient {
    * @param t the DoH request timeout in milliseconds
    */
   setTimeoutMillis(t: number): void;
+
+  /**
+   * Required by chrome browser extensions.
+   */
+  disableSchemaValidation(): void;
 }
 
 /**
@@ -258,6 +263,7 @@ class NumClientImpl implements NumClient {
   readonly modlServices: ModlServices;
   private configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
+  private schemaValidationIsDisabled: boolean;
 
   /**
    * Creates an instance of num client impl.
@@ -265,12 +271,20 @@ class NumClientImpl implements NumClient {
    * @param [dnsClient]
    */
   constructor(resolvers?: Array<DoHResolver>) {
+    this.schemaValidationIsDisabled = false;
     this.dnsServices =
       resolvers && resolvers.length > 0 ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers) : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
 
     this.modlServices = createModlServices();
     this.resourceLoader = createResourceLoader();
     this.configProvider = createModuleConfigProvider(this.resourceLoader);
+  }
+
+  /**
+   * Required by chrome browser extensions.
+   */
+  disableSchemaValidation(): void {
+    this.schemaValidationIsDisabled = true;
   }
 
   /**
@@ -503,7 +517,7 @@ class NumClientImpl implements NumClient {
         const compactVersion: string = jsonResult['@v'] ? `${jsonResult['@v'] as number}` : '1';
 
         // Validate the compact schema if there is one and if the config says we should
-        if (moduleConfig.compactSchema) {
+        if (moduleConfig.compactSchema && !this.schemaValidationIsDisabled) {
           // load the schema and use it to validate jsonResult
           if (!(await this.validateSchema(moduleNumber.n, compactSchemaPathComponent, compactVersion, jsonResult))) {
             throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
@@ -538,7 +552,7 @@ class NumClientImpl implements NumClient {
         }
 
         // Validate the expanded schema if there is one and if the config says we should
-        if (moduleConfig.expandedSchema) {
+        if (moduleConfig.expandedSchema && !this.schemaValidationIsDisabled) {
           if (!jsonResult['@version']) {
             throw new NumProtocolException(NumProtocolErrorCode.missingExpandedSchemaVersion, JSON.stringify(jsonResult));
           }

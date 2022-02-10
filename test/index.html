@@ -44,6 +44,7 @@
 
     const handler = NumClient.createDefaultCallbackHandler();
     const client = NumClient.createClient(CUSTOM_RESOLVERS);
+    client.disableSchemaValidation();
 
     client.setDnsEnv('test');
     client.setModuleEnv('test');
