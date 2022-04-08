@@ -13,7 +13,7 @@
     "crypto-js": "^4.0.0",
     "delay": "^4.4.0",
     "modl-interpreter": "0.0.20",
-    "object-unpacker": "0.0.22",
+    "object-unpacker": "1.0.0-rc.3",
     "process": "^0.11.10",
     "punycode": "^2.1.1",
     "url": "^0.11.0"
