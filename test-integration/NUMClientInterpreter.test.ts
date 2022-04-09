@@ -36,7 +36,7 @@ describe('NUMClient with Interpreter', () => {
     const client = createClient();
     client.setResourceLoader(dummyResourceLoader);
 
-    const modl = '@n=1;o(n=NUM;s=Organising the world\'s open data;c[tw=NUMprotocol;li=company/20904983])';
+    const modl = '@n=1;o(n=NUM;s=Organising the world\'s open data;c[tw(v=NUMprotocol);li(v=company/20904983)])';
     const moduleNumber = new PositiveInteger(1);
     const userVariables = new Map<string, UserVariable>();
     const result = await client.interpret(modl, moduleNumber, userVariables, '2');
