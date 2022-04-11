@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-import CryptoJS from 'crypto-js';
+import sha1 from 'sha1';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const anyBase = require('any-base');
 
@@ -35,7 +35,7 @@ const hexToBase36 = anyBase(anyBase.HEX, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
  * @return  the hash value.
  */
 export const hashByDepth = (normalisedDomain: string, depth: number): string => {
-  const hashed = CryptoJS.SHA1(normalisedDomain).toString();
+  const hashed = sha1(normalisedDomain).toString();
   const converted = hexToBase36(hashed).toLowerCase();
 
   return generateHash(depth - 1, converted);
