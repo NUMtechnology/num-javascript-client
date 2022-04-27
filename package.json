@@ -1,6 +1,6 @@
 {
   "name": "num-client",
-  "version": "3.0.1",
+  "version": "3.0.2-rc1",
   "description": "A NUM Protocol Client in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
     "ajv": "^8.0.3",
     "ajv-formats": "^2.1.1",
     "any-base": "^1.1.0",
-    "axios": "^0.21.1",
+    "axios": "0.21.1",
     "delay": "^4.4.0",
     "modl-interpreter": "0.0.20",
     "object-unpacker": "1.0.1",
