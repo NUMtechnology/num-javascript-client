@@ -177,7 +177,7 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 
 const DEFAULT_BASE_URL = 'https://modules.numprotocol.com/';
 const DEFAULT_LANGUAGE = 'en';
-const DEFAULT_COUNTRY = 'gb';
+const DEFAULT_COUNTRY = 'us';
 const DEFAULT_LOCALE_FILE_NAME = 'en-us.json';
 const DNS_REQUEST_TIMEOUT_MS = 500;
 
