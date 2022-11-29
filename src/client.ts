@@ -414,8 +414,6 @@ class NumClientImpl implements NumClient {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
-          // We need to interpret the record to check for redirects, but we ignore the result.
-          await this.interpret(modl, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
           if (handler) {
             handler.setResult(modl);
           }
