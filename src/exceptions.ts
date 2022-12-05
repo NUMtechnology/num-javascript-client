@@ -200,10 +200,6 @@ export enum NumProtocolErrorCode {
   noModlRecordFound = 'NUM_RECORD_NOT_FOUND',
   schemaNotFound = 'SCHEMA_NOT_FOUND',
   badDoHResponse = 'DOH_SERVICE_ERROR',
-  missingExpandedSchemaVersion = 'EXPANDED_SCHEMA_VERSION_KEY_NOT_FOUND',
-  invalidTargetExpandedSchemaForModule = 'INVALID_TARGET_EXPANDED_SCHEMA_FOR_MODULE',
-  missingTransformationsMap = 'TRANSFORMATIONS_MAP_NOT_FOUND',
-  missingLocalesList = 'LOCALES_LIST_NOT_FOUND',
 }
 
 /**

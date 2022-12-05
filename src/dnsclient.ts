@@ -70,7 +70,7 @@ export interface DnsClient {
    *
    * @param t the timeout
    */
-  setTimeout(t: number);
+  setTimeout(t: number): void;
 
   /**
    *

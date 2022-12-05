@@ -46,7 +46,6 @@ export class Context {
   public targetExpandedSchemaVersion: string;
   _queries: ModuleDnsQueries;
   redirectCount = 0;
-  userVariables: Map<string, UserVariable>;
   /**
    * Dnssec is checked if this is `true` - NOT YET IMPLEMENTED
    */
@@ -60,7 +59,6 @@ export class Context {
   constructor(numAddress: NumUri) {
     this.numAddress = numAddress;
     this._queries = createModuleDnsQueries(numAddress.port, numAddress);
-    this.userVariables = new Map<string, UserVariable>();
     this.targetExpandedSchemaVersion = '1';
   }
 
@@ -72,16 +70,6 @@ export class Context {
   setTargetExpandedSchemaVersion(v: string): void {
     this.targetExpandedSchemaVersion = v;
   }
-  /**
-   * Sets user variable
-   *
-   * @param name
-   * @param value
-   */
-  setUserVariable(name: string, value: UserVariable): void {
-    this.userVariables.set(name, value);
-  }
-
   /**
    * Count redirects and return the current number of redirects.
    *

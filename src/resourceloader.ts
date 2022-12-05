@@ -7,7 +7,7 @@ import { log } from 'num-easy-log';
 //------------------------------------------------------------------------------------------------------------------------
 
 export interface ResourceLoader {
-  setenv(env: string);
+  setenv(env: string): void;
 
   load(url: string): Promise<AxiosResponse<any> | null>;
 }

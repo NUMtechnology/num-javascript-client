@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import { mapper } from 'object-unpacker';
-import { Context, NumLocation, UserVariable } from './context';
+import { Context, NumLocation } from './context';
 import { DoHResolver } from './dnsclient';
 import { createDnsServices, DnsServices } from './dnsservices';
 import {
@@ -23,17 +20,14 @@ import {
   NumLookupEmptyResult,
   NumLookupRedirect,
   NumMaximumRedirectsExceededException,
-  NumNotImplementedException,
   NumProtocolErrorCode,
   NumProtocolException,
 } from './exceptions';
 import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
-import { createModuleConfigProvider, ModuleConfig, ModuleConfigProvider, SubstitutionsType } from './moduleconfig';
-import { NumUri, parseNumUri, PositiveInteger } from './numuri';
+import { NumUri, parseNumUri } from './numuri';
 import { createResourceLoader, ResourceLoader } from './resourceloader';
-import { AxiosResponse } from 'axios';
 import { log } from 'num-easy-log';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +49,7 @@ export const lookup = (uri: string): Promise<string | null> => {
   const client: NumClient = createClient();
   const ctx = client.createContext(numUri);
 
-  return client.retrieveNumRecord(ctx);
+  return client.retrieveNumRecordJson(ctx);
 };
 
 /**
@@ -76,7 +70,7 @@ export interface NumClient {
    * @param handler
    * @returns num record
    */
-  retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
+  retrieveNumRecordJson(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
 
   /**
    * Returns the raw MODL record, after redirection if appropriate
@@ -85,7 +79,7 @@ export interface NumClient {
    * @param handler
    * @returns MODL record
    */
-  retrieveModlRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
+  retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null>;
 
   /**
    *
@@ -100,7 +94,7 @@ export interface NumClient {
    * @param userVariables a Map of user-supplied values such as 'C' and 'L' for country and language respectively.
    * @param targetExpandedVersion the version number of the required expanded schema, as a string value.
    */
-  interpret(modl: string, moduleNumber: PositiveInteger, userVariables: Map<string, UserVariable>, targetExpandedVersion: string): Promise<string | null>;
+  interpret(modl: string): string | null;
 
   /**
    * Set the execution environment.
@@ -133,11 +127,6 @@ export interface NumClient {
    * @param t the DoH request timeout in milliseconds
    */
   setTimeoutMillis(t: number): void;
-
-  /**
-   * Required by chrome browser extensions.
-   */
-  disableSchemaValidation(): void;
 }
 
 /**
@@ -175,18 +164,7 @@ export const createDefaultCallbackHandler = (): CallbackHandler => new DefaultCa
 // Internals
 //------------------------------------------------------------------------------------------------------------------------
 
-const DEFAULT_BASE_URL = 'https://modules.numprotocol.com/';
-const DEFAULT_LANGUAGE = 'en';
-const DEFAULT_COUNTRY = 'us';
-const DEFAULT_LOCALE_FILE_NAME = 'en-us.json';
 const DNS_REQUEST_TIMEOUT_MS = 500;
-
-const expandedSchemaPathComponent = 'expanded';
-const compactSchemaPathComponent = 'compact';
-
-const ajv = new Ajv({ strict: false });
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-addFormats(ajv);
 
 const DEFAULT_RESOLVERS = [new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'), new DoHResolver('Google', 'https://dns.google.com/resolve')];
 
@@ -261,9 +239,7 @@ export class DefaultCallbackHandler implements CallbackHandler {
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
-  private configProvider: ModuleConfigProvider;
   private resourceLoader: ResourceLoader;
-  private schemaValidationIsDisabled: boolean;
 
   /**
    * Creates an instance of num client impl.
@@ -271,20 +247,11 @@ class NumClientImpl implements NumClient {
    * @param [dnsClient]
    */
   constructor(resolvers?: Array<DoHResolver>) {
-    this.schemaValidationIsDisabled = false;
     this.dnsServices =
       resolvers && resolvers.length > 0 ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers) : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
 
     this.modlServices = createModlServices();
     this.resourceLoader = createResourceLoader();
-    this.configProvider = createModuleConfigProvider(this.resourceLoader);
-  }
-
-  /**
-   * Required by chrome browser extensions.
-   */
-  disableSchemaValidation(): void {
-    this.schemaValidationIsDisabled = true;
   }
 
   /**
@@ -293,7 +260,6 @@ class NumClientImpl implements NumClient {
    */
   setResourceLoader(loader: ResourceLoader): void {
     this.resourceLoader = loader;
-    this.configProvider = createModuleConfigProvider(this.resourceLoader);
   }
 
   /**
@@ -348,12 +314,12 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns num record
    */
-  async retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
+  async retrieveNumRecordJson(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
     while (true) {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
         if (modl) {
-          const json = await this.interpret(modl, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
+          const json = this.interpret(modl);
           if (json) {
             log.debug(`json = ${json}`);
             if (handler) {
@@ -409,7 +375,7 @@ class NumClientImpl implements NumClient {
    * @param handler
    * @returns modl record
    */
-  async retrieveModlRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
+  async retrieveNumRecord(ctx: Context, handler?: CallbackHandler): Promise<string | null> {
     while (true) {
       try {
         const modl = await this.retrieveModlRecordInternal(ctx);
@@ -493,80 +459,14 @@ class NumClientImpl implements NumClient {
    * Interprets a MODL record for the given module
    *
    * @param modl
-   * @param moduleNumber
-   * @param userVariables
-   * @returns interpret
+   * @returns json
    */
   // eslint-disable-next-line complexity
-  public async interpret(
-    modl: string,
-    moduleNumber: PositiveInteger,
-    userVariables: Map<string, UserVariable>,
-    targetExpandedVersion: string
-  ): Promise<string | null> {
+  public interpret(modl: string): string | null {
     // Interpret the MODL
-    let jsonResult = this.modlServices.interpretNumRecord(modl);
+    const jsonResult = this.modlServices.interpretNumRecord(modl);
     log.debug(`Interpreter raw JSON result: ${JSON.stringify(jsonResult)}`);
 
-    if (moduleNumber.n !== 0) {
-      // Process the resulting JSON according to the config.json file
-      const moduleConfig = await this.configProvider.getConfig(moduleNumber);
-      if (moduleConfig) {
-        const compactVersion: string = jsonResult['@v'] ? `${jsonResult['@v'] as number}` : '1';
-
-        // Validate the compact schema if there is one and if the config says we should
-        if (moduleConfig.compactSchema && !this.schemaValidationIsDisabled) {
-          // load the schema and use it to validate jsonResult
-          if (!(await this.validateSchema(moduleNumber.n, compactSchemaPathComponent, compactVersion, jsonResult))) {
-            throw new NumProtocolException(NumProtocolErrorCode.compactSchemaError, 'The record does not match the compact schema');
-          }
-        } else {
-          log.info('Not configured to validate against the compact schema.');
-        }
-
-        let substitutionsData: Record<string, unknown> | null = {};
-        // Apply the schema mapping and Resolve references if one is defined
-        if (moduleConfig.substitutions) {
-          // Attempt to load a substitutions file.
-          substitutionsData = await this.loadSubstitutionsFile(moduleConfig, userVariables);
-          if (!substitutionsData) {
-            throw new NumProtocolException(
-              NumProtocolErrorCode.substitutionsFileNotFoundError,
-              `Unable to locate a substitutions file using ${JSON.stringify(userVariables)}`
-            );
-          }
-        }
-
-        const schemaMapUrl = await this.generateSchemaMapUrl(moduleConfig, compactVersion, targetExpandedVersion);
-        const schemaMapResponse = await this.resourceLoader.load(schemaMapUrl);
-
-        if (schemaMapResponse && schemaMapResponse.data) {
-          jsonResult = mapper.convert(substitutionsData, jsonResult as any, schemaMapResponse.data) as Record<string, unknown>;
-          log.debug(`Object Unpacker JSON result: ${JSON.stringify(jsonResult)}`);
-        } else {
-          // No schema map
-          log.error(`Unable to load schema map defined in ${JSON.stringify(moduleConfig)}`);
-          throw new NumProtocolException(NumProtocolErrorCode.noUnpackerConfigFileFound, `Could not load the configured Unpacker config file: ${schemaMapUrl}`);
-        }
-
-        // Validate the expanded schema if there is one and if the config says we should
-        if (moduleConfig.expandedSchema && !this.schemaValidationIsDisabled) {
-          if (!jsonResult['@version']) {
-            throw new NumProtocolException(NumProtocolErrorCode.missingExpandedSchemaVersion, JSON.stringify(jsonResult));
-          }
-          const expandedVersion = `${jsonResult['@version'] as number}`;
-          // load the schema and use it to validate the expanded JSON
-          if (!(await this.validateSchema(moduleNumber.n, expandedSchemaPathComponent, expandedVersion, jsonResult))) {
-            throw new NumProtocolException(NumProtocolErrorCode.expandedSchemaError, 'The record does not match the expanded schema');
-          }
-        } else {
-          log.info('Not configured to validate against the expanded schema.');
-        }
-      } else {
-        log.error('No module config file available.');
-        throw new NumProtocolException(NumProtocolErrorCode.moduleConfigFileNotFound, `Unable to load the module config file for module ${moduleNumber.n} `);
-      }
-    }
     return JSON.stringify(jsonResult);
   }
 
@@ -611,145 +511,10 @@ class NumClientImpl implements NumClient {
       } else if (result.includes('error_')) {
         return false;
       } else {
-        ctx.result = await this.interpret(result, ctx.numAddress.port, ctx.userVariables, ctx.targetExpandedSchemaVersion);
+        ctx.result = this.interpret(result);
         return true;
       }
     }
     return false;
   }
-
-  private async validateSchema(moduleNumber: number, schemaType: string, version: string, json: Record<string, unknown>): Promise<boolean> {
-    const schemaUrl = `${DEFAULT_BASE_URL}${moduleNumber}/${schemaType}/v${version}/schema.json`;
-    let existingSchema = ajv.getSchema(schemaUrl);
-    if (!existingSchema) {
-      const schema = await this.resourceLoader.load(schemaUrl);
-
-      // Validate the schema if there is one
-      if (schema && schema.data) {
-        existingSchema = ajv.getSchema(schemaUrl) ? ajv.getSchema(schemaUrl) : ajv.compile(schema.data);
-      } else {
-        const msg = `Unable to load the JSON schema from : ${schemaUrl}`;
-        log.error(msg);
-        throw new NumProtocolException(NumProtocolErrorCode.schemaNotFound, msg);
-      }
-    }
-    if (!existingSchema) {
-      const msg = `Cannot find the JSON schema at ${schemaUrl}`;
-      log.error(msg);
-      throw new NumProtocolException(NumProtocolErrorCode.schemaNotFound, msg);
-    }
-    if (existingSchema(json)) {
-      log.info(`JSON matches the schema at ${schemaUrl}`);
-      return true;
-    } else {
-      log.error(`Fails to match the JSON schema at ${schemaUrl} - data: ${JSON.stringify(json)}`);
-    }
-    return false;
-  }
-
-  private async loadSubstitutionsFile(moduleConfig: ModuleConfig, userVariables: Map<string, UserVariable>): Promise<Record<string, unknown> | null> {
-    // Attempt to load a substitutions file.
-    let subsFileName = '';
-    let subsFileResponse: AxiosResponse<any> | null = null;
-
-    if (moduleConfig.substitutionsType === SubstitutionsType.locale) {
-      let country = userVariables.get('_C')?.toString();
-      let language = userVariables.get('_L')?.toString();
-      if (!language) {
-        language = DEFAULT_LANGUAGE;
-      }
-      if (!country) {
-        country = DEFAULT_COUNTRY;
-      }
-      const localeFilename = `${language}-${country}.json`;
-      subsFileName = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/${localeFilename}`;
-
-      // Try loading the substitutions file and fallback to the default if we can't find one.
-      subsFileResponse = await this.resourceLoader.load(subsFileName);
-
-      if (!subsFileResponse || !subsFileResponse.data) {
-        if (localeFilename === DEFAULT_LOCALE_FILE_NAME) {
-          log.debug(`Unable to load substitutions file: ${subsFileName}`);
-          return null;
-        } else {
-          const fallbackLocale = await this.generateFallbackLocaleFileName(moduleConfig, language);
-          subsFileResponse = await this.resourceLoader.load(fallbackLocale);
-          if (!subsFileResponse || !subsFileResponse.data) {
-            log.debug(`Unable to load substitutions file: ${fallbackLocale}`);
-            return null;
-          }
-        }
-      }
-    } else if (moduleConfig.substitutionsType === SubstitutionsType.standard) {
-      subsFileName = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/substitutions.json`;
-
-      subsFileResponse = await this.resourceLoader.load(subsFileName);
-
-      if (!subsFileResponse || !subsFileResponse.data) {
-        log.debug(`Unable to load substitutions file: ${subsFileName}`);
-        return null;
-      }
-    } else {
-      throw new NumNotImplementedException(`Unknown substitutionsType value: ${JSON.stringify(moduleConfig.substitutionsType)}`);
-    }
-    return subsFileResponse.data as Record<string, unknown>;
-  }
-
-  private async generateSchemaMapUrl(moduleConfig: ModuleConfig, compactVersion: string, targetExpandedVersion: string): Promise<string> {
-    const mapJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/transformation/map.json`;
-    const mapJson = await this.resourceLoader.load(mapJsonUrl);
-    if (!mapJson || !mapJson.data) {
-      throw new NumProtocolException(NumProtocolErrorCode.missingTransformationsMap, `No map.json available at ${mapJsonUrl}`);
-    }
-
-    return mapJsonToTransformationFileName(moduleConfig.moduleId.n, mapJson.data as Record<string, unknown>, compactVersion, targetExpandedVersion);
-  }
-
-  private async generateFallbackLocaleFileName(moduleConfig: ModuleConfig, lang: string): Promise<string> {
-    const listJsonUrl = `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/list.json`;
-    const listJson = await this.resourceLoader.load(listJsonUrl);
-
-    if (listJson && listJson.data) {
-      return findFirstWithSameLanguage(listJson.data as Array<string>, lang, moduleConfig);
-    } else {
-      throw new NumProtocolException(
-        NumProtocolErrorCode.missingLocalesList,
-        `No list.json file found for module ${moduleConfig.moduleId.n} at ${listJsonUrl}`
-      );
-    }
-  }
 }
-
-export const mapJsonToTransformationFileName = (
-  module: number,
-  mapJson: Record<string, unknown>,
-  compactVersion: string,
-  targetExpandedVersion: string
-): string => {
-  const c = mapJson[`compact-v${compactVersion}`] as Record<string, Record<string, string>>;
-  const e = c[`expanded-v${targetExpandedVersion}`];
-  if (e) {
-    const transformationFileName: string = e['transformation-file'];
-    if (transformationFileName) {
-      return `${DEFAULT_BASE_URL}${module}/transformation/${transformationFileName}`;
-    } else {
-      throw new NumProtocolException(
-        NumProtocolErrorCode.invalidTargetExpandedSchemaForModule,
-        `Module: ${module} has no target expanded schema v${targetExpandedVersion} configured for compact schema version v${compactVersion}`
-      );
-    }
-  } else {
-    throw new NumProtocolException(
-      NumProtocolErrorCode.invalidTargetExpandedSchemaForModule,
-      `Module: ${module} has no target expanded schema v${targetExpandedVersion} configured for compact schema version v${compactVersion}`
-    );
-  }
-};
-
-export const findFirstWithSameLanguage = (listJson: string[], lang: string, moduleConfig: ModuleConfig): string => {
-  let found = listJson.find((v) => v.startsWith(lang));
-  if (!found) {
-    found = 'en-us';
-  }
-  return `${DEFAULT_BASE_URL}${moduleConfig.moduleId.n}/locales/${found}.json`;
-};
