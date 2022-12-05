@@ -5,7 +5,6 @@ import { NumProtocolErrorCode } from './exceptions';
 import {
   createDomainLookupGenerator,
   createEmailLookupGenerator,
-  createTNUMLookupGenerator,
   createUrlLookupGenerator,
   normaliseDomainName,
   normalisePath,
@@ -58,7 +57,6 @@ export {
   ModuleDnsQueries,
   transformBranch,
   normaliseDomainName,
-  createTNUMLookupGenerator,
   createDomainLookupGenerator,
   createEmailLookupGenerator,
   createUrlLookupGenerator,
