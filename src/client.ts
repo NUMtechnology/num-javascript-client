@@ -23,11 +23,9 @@ import {
   NumProtocolErrorCode,
   NumProtocolException,
 } from './exceptions';
-import { setenvDomainLookups } from './lookupgenerators';
 import { createLookupLocationStateMachine } from './lookupstatemachine';
 import { createModlServices, ModlServices } from './modlservices';
-import { NumUri, parseNumUri } from './numuri';
-import { createResourceLoader, ResourceLoader } from './resourceloader';
+import { NumUri, parseNumUri, PositiveInteger } from './numuri';
 import { log } from 'num-easy-log';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -83,42 +81,10 @@ export interface NumClient {
 
   /**
    *
-   * @param loader Override the default ResourceLoader - mainly used for testing.
-   */
-  setResourceLoader(loader: ResourceLoader): void;
-
-  /**
-   *
    * @param modl a raw MODL string
    * @param moduleNumber a PositiveInteger module number
-   * @param userVariables a Map of user-supplied values such as 'C' and 'L' for country and language respectively.
-   * @param targetExpandedVersion the version number of the required expanded schema, as a string value.
    */
-  interpret(modl: string): string | null;
-
-  /**
-   * Set the execution environment.
-   * Calls setDnsEnv() and setModuleEnv() with the same environment name
-   *
-   * @param env `test` for the test environment
-   */
-  setenv(env: string): void;
-
-  /**
-   * Set the execution environment.
-   * Sets the environment to use for DNS
-   *
-   * @param env `test` for the test environment
-   */
-  setDnsEnv(env: string): void;
-
-  /**
-   * Set the execution environment.
-   * Sets the environment to use for the modules files.
-   *
-   * @param env `test` for the test environment
-   */
-  setModuleEnv(env: string): void;
+  interpret(modl: string, moduleNumber: PositiveInteger): string | null;
 
   /**
    * Set a timeout for DoH requests.
@@ -239,7 +205,6 @@ export class DefaultCallbackHandler implements CallbackHandler {
 class NumClientImpl implements NumClient {
   readonly dnsServices: DnsServices;
   readonly modlServices: ModlServices;
-  private resourceLoader: ResourceLoader;
 
   /**
    * Creates an instance of num client impl.
@@ -251,43 +216,6 @@ class NumClientImpl implements NumClient {
       resolvers && resolvers.length > 0 ? createDnsServices(DNS_REQUEST_TIMEOUT_MS, resolvers) : createDnsServices(DNS_REQUEST_TIMEOUT_MS, DEFAULT_RESOLVERS);
 
     this.modlServices = createModlServices();
-    this.resourceLoader = createResourceLoader();
-  }
-
-  /**
-   *
-   * @param loader Override the default resource loader for testing.
-   */
-  setResourceLoader(loader: ResourceLoader): void {
-    this.resourceLoader = loader;
-  }
-
-  /**
-   * Set the execution environment.
-   *
-   * @param env `test` for the test environment
-   */
-  setenv(env: string): void {
-    this.setDnsEnv(env);
-    this.setModuleEnv(env);
-  }
-
-  /**
-   * Set the execution environment.
-   *
-   * @param env `test` for the test environment
-   */
-  setDnsEnv(env: string): void {
-    setenvDomainLookups(env);
-  }
-
-  /**
-   * Set whete the modules files should be loaded from.
-   *
-   * @param env `test` for the test environment
-   */
-  setModuleEnv(env: string): void {
-    this.resourceLoader.setenv(env);
   }
 
   setTimeoutMillis(t: number): void {

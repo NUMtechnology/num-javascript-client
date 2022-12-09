@@ -106,18 +106,6 @@ const lookup = async () => {
   // ...
 };
 ```
-## Providing User Variable Values
-Some modules can be provided with User Variable values to customise the output, as in this example:
-```typescript
-const lookup = async () => {
-  const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
-  const client = createClient();                      // Create a NumClient
-  const ctx = client.createContext(numUri);           // Set the lookup context
-
-  const result = await client.retrieveNumRecord(ctx); // Use the context to retrieve a NUM record
-  console.log(result)                                 // Handle the result
-}
-```
 ## Using a `CallbackHandler`
 Lookups _can_ take several seconds, so you can provide a `CallbackHandler` rather than `await`ing the results:
 ```Typescript
@@ -155,8 +143,7 @@ num.lookup('num.uk:1').then((result) => console.log(result));
 This example shows how to use all features of the client, including 
 - overriding the DoH resolver,
 - reusing the `NUMClient`
-- setting user variables
--  using a callback handler
+- using a callback handler
 ```javascript
 const num = require('num-client');
 
@@ -215,15 +202,6 @@ This simple example can be modified as necessary by following the previous examp
       <input type="button" value="Reload" onclick="reloadRecord()" />
     </div>
     <div>
-      <label for="env">Environment:</label>
-
-      <select name="env" id="env" onchange="setEnvironment()">
-        <option value="test">Test</option>
-        <option value="staging">Staging</option>
-        <option value="prod" selected>Prod</option>
-      </select>
-    </div>
-    <div>
       <label for="recType">Result Type:</label>
 
       <select name="recType" id="recType" onchange="setResultType()">
@@ -246,10 +224,6 @@ This simple example can be modified as necessary by following the previous examp
 
       const handler = NumClient.createDefaultCallbackHandler();
       const client = NumClient.createClient(CUSTOM_RESOLVERS);
-
-      client.setDnsEnv('prod');
-      client.setModuleEnv('prod');
-      client.setenv('prod');
 
       function lookup(uri) {
         const numUri = NumClient.parseNumUri(uri);
@@ -289,13 +263,6 @@ This simple example can be modified as necessary by following the previous examp
         reloadRecord();
       }
 
-      function setEnvironment() {
-        const e = document.getElementById('env').value;
-        client.setDnsEnv(e);
-        client.setModuleEnv(e);
-        client.setenv(e);
-        reloadRecord();
-      }
     </script>
   </body>
 </html>

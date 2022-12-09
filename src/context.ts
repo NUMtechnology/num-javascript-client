@@ -23,7 +23,6 @@ const MAX_NUM_REDIRECTS = 3;
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
-export type UserVariable = string | number | boolean;
 
 /**
  * Location
@@ -43,7 +42,6 @@ export class Context {
   public location = NumLocation.independent;
   public result: string | null = null;
   public readonly numAddress: NumUri;
-  public targetExpandedSchemaVersion: string;
   _queries: ModuleDnsQueries;
   redirectCount = 0;
   /**
@@ -59,17 +57,8 @@ export class Context {
   constructor(numAddress: NumUri) {
     this.numAddress = numAddress;
     this._queries = createModuleDnsQueries(numAddress.port, numAddress);
-    this.targetExpandedSchemaVersion = '1';
   }
 
-  /**
-   * Change the target expanded schema version.
-   *
-   * @param v the target version number as a string.
-   */
-  setTargetExpandedSchemaVersion(v: string): void {
-    this.targetExpandedSchemaVersion = v;
-  }
   /**
    * Count redirects and return the current number of redirects.
    *

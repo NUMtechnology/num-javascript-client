@@ -27,7 +27,6 @@ import { NumLocation } from '../src/context';
 import { DoHResolver } from '../src/dnsclient';
 import { NumProtocolErrorCode } from '../src/exceptions';
 import { parseNumUri } from '../src/numuri';
-import { DummyResourceLoader } from './DummyResourceLoader';
 import { log, Level } from 'num-easy-log';
 
 const DEFAULT_RESOLVERS = [
@@ -35,13 +34,10 @@ const DEFAULT_RESOLVERS = [
   new DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
 ];
 
-const dummyResourceLoader = new DummyResourceLoader();
-
 describe('NUMClient', () => {
   it('should be able to create a new NUMClient', () => {
     const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
     expect(client).not.equal(null);
   });
 
@@ -51,11 +47,9 @@ describe('NUMClient', () => {
 
     const client = createClient();
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    const result = await client.retrieveNumRecord(ctx, handler);
+    const result = await client.retrieveNumRecordJson(ctx, handler);
 
     expect(result).not.equal(null);
 
@@ -74,14 +68,11 @@ describe('NUMClient', () => {
     const handler = createDefaultCallbackHandler();
 
     const client = createClient();
-    client.disableSchemaValidation();
 
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    const result = await client.retrieveNumRecord(ctx, handler);
+    const result = await client.retrieveNumRecordJson(ctx, handler);
 
     expect(result).not.equal(null);
 
@@ -101,11 +92,9 @@ describe('NUMClient', () => {
 
     const client = createClient();
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    const result = await client.retrieveNumRecord(ctx, handler);
+    const result = await client.retrieveNumRecordJson(ctx, handler);
 
     expect(result).not.equal(null);
 
@@ -125,14 +114,10 @@ describe('NUMClient', () => {
 
     const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    ctx.setUserVariable('_L', 'en');
-    ctx.setUserVariable('_C', 'us');
 
-    const result = await client.retrieveNumRecord(ctx, handler);
+    const result = await client.retrieveNumRecordJson(ctx, handler);
     expect(result).not.equal(null);
     const expected =
       '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
@@ -160,11 +145,9 @@ describe('NUMClient', () => {
 
     const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    await client.retrieveNumRecord(ctx, handler).then((r) => {
+    await client.retrieveNumRecordJson(ctx, handler).then((r) => {
       const expected =
         '{"@n":1, "@version":2,"object_type":"organization","object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
 
@@ -197,10 +180,8 @@ describe('NUMClient', () => {
 
     const client = createClient(DEFAULT_RESOLVERS);
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
     const ctx = client.createContext(numUri);
-    ctx.setTargetExpandedSchemaVersion('2');
-    const result = await client.retrieveNumRecord(ctx, handler);
+    const result = await client.retrieveNumRecordJson(ctx, handler);
     expect(result).equal(null);
   });
 
@@ -211,18 +192,14 @@ describe('NUMClient', () => {
 
     const client = createClient();
     log.setLevel(Level.info);
-    client.setResourceLoader(dummyResourceLoader);
 
     const ctx1 = client.createContext(numUri1);
-    ctx1.setTargetExpandedSchemaVersion('2');
     const ctx2 = client.createContext(numUri2);
-    ctx2.setTargetExpandedSchemaVersion('2');
     const ctx3 = client.createContext(numUri3);
-    ctx3.setTargetExpandedSchemaVersion('2');
 
-    const result1 = client.retrieveNumRecord(ctx1);
-    const result2 = client.retrieveNumRecord(ctx2);
-    const result3 = client.retrieveNumRecord(ctx3);
+    const result1 = client.retrieveNumRecordJson(ctx1);
+    const result2 = client.retrieveNumRecordJson(ctx2);
+    const result3 = client.retrieveNumRecordJson(ctx3);
 
     const result = await Promise.all([result1, result2, result3]);
 

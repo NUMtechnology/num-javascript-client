@@ -21,7 +21,7 @@ import { log } from 'num-easy-log';
 
 const _NUM = '._num.';
 const DNPREFIX = '_';
-let TLZ = 'num.net';
+const TLZ = 'num.net';
 const EMAIL_SEP = 'e';
 const POP_3LZ = 'populator';
 const DEFAULT_DEPTH = 3;
@@ -30,21 +30,6 @@ const SCHEME_REGEX = new RegExp(/^[a-zA-Z][0-9a-zA-Z+.-]+:/);
 //------------------------------------------------------------------------------------------------------------------------
 // Exports
 //------------------------------------------------------------------------------------------------------------------------
-export const setenvDomainLookups = (env: string): void => {
-  switch (env) {
-    case 'test':
-      TLZ = 'n001.uk';
-      break;
-    case 'staging':
-      TLZ = 'n002.uk';
-      break;
-    case 'prod':
-      TLZ = 'num.net';
-      break;
-    default:
-      TLZ = 'num.net';
-  }
-};
 
 /**
  * Lookup generator

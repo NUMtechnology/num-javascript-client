@@ -13,15 +13,6 @@
       <input type="button" value="Reload" onclick="reloadRecord()" />
     </div>
     <div>
-      <label for="env">Environment:</label>
-
-      <select name="env" id="env" onchange="setEnvironment()">
-        <option value="test">Test</option>
-        <option value="staging">Staging</option>
-        <option value="prod" selected>Prod</option>
-      </select>
-    </div>
-    <div>
       <label for="recType">Result Type:</label>
 
       <select name="recType" id="recType" onchange="setResultType()">
@@ -44,10 +35,6 @@
 
       const handler = NumClient.createDefaultCallbackHandler();
       const client = NumClient.createClient(CUSTOM_RESOLVERS);
-
-      client.setDnsEnv('prod');
-      client.setModuleEnv('prod');
-      client.setenv('prod');
 
       function lookup(uri) {
         const numUri = NumClient.parseNumUri(uri);
@@ -87,13 +74,6 @@
         reloadRecord();
       }
 
-      function setEnvironment() {
-        const e = document.getElementById('env').value;
-        client.setDnsEnv(e);
-        client.setModuleEnv(e);
-        client.setenv(e);
-        reloadRecord();
-      }
     </script>
   </body>
 </html>
