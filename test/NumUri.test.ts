@@ -115,15 +115,6 @@ describe('NumUri Parsing', () => {
     expect(uri.path.s).equal('/');
   });
 
-  it('can parse a TNUM URI', () => {
-    const uri = parseNumUri('num://+448000683827:65000');
-
-    expect(uri.userinfo.s).equal('');
-    expect(uri.host.s).equal('+448000683827');
-    expect(uri.port.n).equal(65000);
-    expect(uri.path.s).equal('/');
-  });
-
   it('can handle URIs with http', () => {
     const uri = parseNumUri('http.com');
 

@@ -67,7 +67,6 @@ const lookup = async () => {
   const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
-  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
   const result = await client.retrieveNumRecord(ctx); // Use the context to retrieve a NUM record
   console.log(result);                                // Handle the result
 }
@@ -83,8 +82,6 @@ const lookup = async () => {
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
-  ctx1.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
-  ctx2.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   const result1 = client.retrieveNumRecord(ctx1);
   const result2 = client.retrieveNumRecord(ctx2);
@@ -109,22 +106,6 @@ const lookup = async () => {
   // ...
 };
 ```
-## Providing User Variable Values
-Some modules can be provided with User Variable values to customise the output, as in this example:
-```typescript
-const lookup = async () => {
-  const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
-  const client = createClient();                      // Create a NumClient
-  const ctx = client.createContext(numUri);           // Set the lookup context
-  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
-
-  ctx.setUserVariable('_L', 'en');                    // Set the user's language
-  ctx.setUserVariable('_C', 'gb');                    // Set the user's country
-
-  const result = await client.retrieveNumRecord(ctx); // Use the context to retrieve a NUM record
-  console.log(result)                                 // Handle the result
-}
-```
 ## Using a `CallbackHandler`
 Lookups _can_ take several seconds, so you can provide a `CallbackHandler` rather than `await`ing the results:
 ```Typescript
@@ -132,7 +113,6 @@ const lookup = async () => {
   const numUri = parseNumUri('num.uk:1');             // Parse the NUM URI
   const client = createClient();                      // Create a NumClient
   const ctx = client.createContext(numUri);           // Set the lookup context
-  ctx.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
 
   const handler: CallbackHandler = {
     setLocation: (l: NumLocation): void => {
@@ -163,8 +143,7 @@ num.lookup('num.uk:1').then((result) => console.log(result));
 This example shows how to use all features of the client, including 
 - overriding the DoH resolver,
 - reusing the `NUMClient`
-- setting user variables
--  using a callback handler
+- using a callback handler
 ```javascript
 const num = require('num-client');
 
@@ -181,14 +160,6 @@ function lookup(uri1, uri2) {
 
   const ctx1 = client.createContext(numUri1);
   const ctx2 = client.createContext(numUri2);
-  ctx1.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
-  ctx2.setTargetExpandedSchemaVersion('2');            // Set the required expanded schema version (specific to each module but defaults to 1)
-
-  ctx1.setUserVariable('_L', 'en');                    // Set the user's language
-  ctx1.setUserVariable('_C', 'gb');                    // Set the user's country
-
-  ctx2.setUserVariable('_L', 'en');                    // Set the user's language
-  ctx2.setUserVariable('_C', 'us');                    // Set the user's country
 
   const handler = {                                    // Provide a custom CallbackHandler
     setLocation: (l) => {
@@ -218,57 +189,82 @@ This simple example can be modified as necessary by following the previous examp
 ```html
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>NUM Protocol Example</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>NUM Protocol Example</title>
-</head>
+  <body>
+    <script src="../dist/bundle.js"></script>
+    <h1>NUM Protocol Example</h1>
+    <div>
+      NUM URI = <input type="text" value="num.uk:1" id="urivalue" onchange="reloadRecord()" />
+      <input type="button" value="Reload" onclick="reloadRecord()" />
+    </div>
+    <div>
+      <label for="recType">Result Type:</label>
 
-<body>
-  <script src="../dist/bundle.js"></script>
-  <h1>NUM Protocol Example</h1>
-  <div>
-    NUM URI = <input type="text" value="num.uk:1" id='urivalue' onchange="reloadRecord()">
-    <input type="button" value="Reload" onclick="reloadRecord()">
-  </div>
-  <div style="border: 1px solid blue;width: fit-content;">
-    <pre id='num'></pre>
-  </div>
-  <script>
+      <select name="recType" id="recType" onchange="setResultType()">
+        <option value="modl">MODL</option>
+        <option value="json" selected>JSON</option>
+      </select>
+    </div>
+    <div style="border: 1px solid blue; width: fit-content">
+      <pre id="num"></pre>
+    </div>
+    <script>
+      let type = 'json';
 
-    const CUSTOM_RESOLVERS = [
-      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query')
-    ];
+      const CUSTOM_RESOLVERS = [
+        // A bad resolver shows the DoH failover behaviour
+        new NumClient.DoHResolver('BAD', 'https://xxx_yyy_zzz.co.uk/dns-query'),
+        new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+        new NumClient.DoHResolver('Google', 'https://dns.google.com/resolve'),
+      ];
 
-    const client = NumClient.createClient(CUSTOM_RESOLVERS);
+      const handler = NumClient.createDefaultCallbackHandler();
+      const client = NumClient.createClient(CUSTOM_RESOLVERS);
 
+      function lookup(uri) {
+        const numUri = NumClient.parseNumUri(uri);
 
-    function lookup(uri) {
-      const numUri = NumClient.parseNumUri(uri);
+        const ctx = client.createContext(numUri);
 
-      const ctx = client.createContext(numUri);
-      if(numUri.port.n === 1 ) {
-        ctx.setTargetExpandedSchemaVersion('2');
+        if (type === 'json') {
+          return client.retrieveNumRecordJson(ctx, handler);
+        } else {
+          return client.retrieveNumRecord(ctx, handler);
+        }
       }
 
-      return client.retrieveNumRecord(ctx);
-    }
+      function reloadRecord() {
+        handler.result = null;
+        handler.errorCode = null;
+        handler.location = null;
 
-    function reloadRecord() {
-      const uri = document.getElementById('urivalue').value;
-      lookup(uri).then((result) => {
-        const pretty = JSON.stringify(JSON.parse(result), null, 1);
-        document.getElementById('num').innerHTML = pretty;
+        const uri = document.getElementById('urivalue').value;
+        lookup(uri).then((result) => {
+          if (result) {
+            const pretty = (type == 'json') ? JSON.stringify(JSON.parse(result), null, 2) : result;
+            document.getElementById('num').innerHTML = pretty;
+          } else {
+            const pretty = JSON.stringify(handler, null, 1);
+            document.getElementById('num').innerHTML = pretty;
+          }
+        });
+      }
+
+      window.addEventListener('load', function () {
+        reloadRecord();
       });
 
-    }
+      function setResultType() {
+        type = document.getElementById('recType').value;
+        reloadRecord();
+      }
 
-    window.addEventListener('load', function () {
-      reloadRecord();
-    });
-
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
+
 ```

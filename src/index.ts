@@ -5,11 +5,9 @@ import { NumProtocolErrorCode } from './exceptions';
 import {
   createDomainLookupGenerator,
   createEmailLookupGenerator,
-  createTNUMLookupGenerator,
   createUrlLookupGenerator,
   normaliseDomainName,
   normalisePath,
-  setenvDomainLookups,
   transformBranch,
 } from './lookupgenerators';
 import { createModuleDnsQueries, ModuleDnsQueries } from './modulednsqueries';
@@ -33,7 +31,6 @@ import {
   UrlPath,
   UrlUserInfo,
 } from './numuri';
-import { ResourceLoader } from './resourceloader';
 import { resolvePath } from './urlrelativepathresolver';
 
 export { NumClient, parseNumUri, NumUri, PositiveInteger, Hostname, UrlUserInfo, UrlPath, buildNumUri };
@@ -52,16 +49,13 @@ export { createClient, NumProtocolErrorCode, DefaultCallbackHandler, lookup };
 export { DoHResolver, createDnsClient };
 export {
   resolvePath,
-  ResourceLoader,
   normalisePath,
   createModuleDnsQueries,
   ModuleDnsQueries,
   transformBranch,
   normaliseDomainName,
-  createTNUMLookupGenerator,
   createDomainLookupGenerator,
   createEmailLookupGenerator,
   createUrlLookupGenerator,
-  setenvDomainLookups,
   createDefaultCallbackHandler,
 };

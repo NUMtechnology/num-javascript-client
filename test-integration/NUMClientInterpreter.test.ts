@@ -22,27 +22,19 @@
 import { expect } from 'chai';
 import deepEql from 'deep-eql';
 import { createClient } from '../src/client';
-import { UserVariable } from '../src/context';
 import { PositiveInteger } from '../src/numuri';
-import { DummyResourceLoader } from './DummyResourceLoader';
-import { log } from 'num-easy-log';
-
-const dummyResourceLoader = new DummyResourceLoader();
 
 describe('NUMClient with Interpreter', () => {
-  it('should be able to lookup a NUM record using the NUMClient', async () => {
+  it('should be able to interpret a NUM record using the NUMClient', async () => {
     const client = createClient();
-    client.setResourceLoader(dummyResourceLoader);
 
     const modl = "@n=1;o(n=NUM;s=Organising the world's open data;c[tw(v=NUMprotocol);li(v=company/20904983)])";
     const moduleNumber = new PositiveInteger(1);
-    const userVariables = new Map<string, UserVariable>();
-    const result = await client.interpret(modl, moduleNumber, userVariables, '2');
+    const result = client.interpret(modl, moduleNumber);
 
     expect(result).not.equal(null);
 
-    const expected =
-      '{"@n":1,"@version":2,"object_type":"organization","object_display_name":"Organization","name":"NUM","slogan":"Organising the world\'s open data","contacts":[{"method_type":"twitter","method_display_name":"Twitter","description_default":"View Twitter profile","description":null,"action":"https://www.twitter.com/NUMprotocol","controller":"twitter.com","value":"@NUMprotocol"},{"method_type":"linkedin","method_display_name":"LinkedIn","description_default":"View LinkedIn page","description":null,"action":"https://www.linkedin.com/company/20904983","controller":"linkedin.com","value":"/company/20904983"}]}';
+    const expected = '{"@n":1,"o":{"n":"NUM","s":"Organising the world\'s open data","c":[{"tw":{"v":"NUMprotocol"}},{"li":{"v":"company/20904983"}}]}}';
     const same = deepEql(JSON.parse(result as string), JSON.parse(expected));
     if (!same) {
       console.log(`Actual  : ${result}`);

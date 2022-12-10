@@ -16,7 +16,7 @@
 
 import sha1 from 'sha1';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const anyBase = require('any-base');
+import anyBase from 'any-base';
 
 type AnyBase = (s: string) => string;
 

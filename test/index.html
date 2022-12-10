@@ -1,95 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>NUM Protocol Example</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>NUM Protocol Example</title>
-</head>
+  <body>
+    <script src="../dist/bundle.js"></script>
+    <h1>NUM Protocol Example</h1>
+    <div>
+      NUM URI = <input type="text" value="num.uk:1" id="urivalue" onchange="reloadRecord()" />
+      <input type="button" value="Reload" onclick="reloadRecord()" />
+    </div>
+    <div>
+      <label for="recType">Result Type:</label>
 
-<body>
-  <script src="../dist/bundle.js"></script>
-  <h1>NUM Protocol Example</h1>
-  <div>
-    NUM URI = <input type="text" value="numexample.com:1" id='urivalue' onchange="reloadRecord()">
-    <input type="button" value="Reload" onclick="reloadRecord()">
-  </div>
-  <div>
-    <label for="version">Schema Version:</label>
-    <select name="version" id="version">
-      <option value=1>1</option>
-      <option value=2 selected>2</option>
-      <option value=3>3</option>
-    </select>
-  </div>
-  <div>
-    <label for="env">Environment:</label>
+      <select name="recType" id="recType" onchange="setResultType()">
+        <option value="modl">MODL</option>
+        <option value="json" selected>JSON</option>
+      </select>
+    </div>
+    <div style="border: 1px solid blue; width: fit-content">
+      <pre id="num"></pre>
+    </div>
+    <script>
+      let type = 'json';
 
-    <select name="env" id="env" onchange="setEnvironment()">
-      <option value="test" selected>Test</option>
-      <option value="staging">Staging</option>
-      <option value="prod">Prod</option>
-    </select>
-  </div>
-  <div style="border: 1px solid blue;width: fit-content;">
-    <pre id='num'></pre>
-  </div>
-  <script>
+      const CUSTOM_RESOLVERS = [
+        // A bad resolver shows the DoH failover behaviour
+        new NumClient.DoHResolver('BAD', 'https://xxx_yyy_zzz.co.uk/dns-query'),
+        new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
+        new NumClient.DoHResolver('Google', 'https://dns.google.com/resolve'),
+      ];
 
-    const CUSTOM_RESOLVERS = [
-      // A bad resolver shows the DoH failover behaviour
-      new NumClient.DoHResolver('BAD', 'https://xxx_yyy_zzz.co.uk/dns-query'),
-      new NumClient.DoHResolver('Cloudflare', 'https://cloudflare-dns.com/dns-query'),
-      new NumClient.DoHResolver('Google', 'https://dns.google.com/resolve')
-    ];
+      const handler = NumClient.createDefaultCallbackHandler();
+      const client = NumClient.createClient(CUSTOM_RESOLVERS);
 
-    const handler = NumClient.createDefaultCallbackHandler();
-    const client = NumClient.createClient(CUSTOM_RESOLVERS);
-    client.disableSchemaValidation();
+      function lookup(uri) {
+        const numUri = NumClient.parseNumUri(uri);
 
-    client.setDnsEnv('test');
-    client.setModuleEnv('test');
-    client.setenv('test');
+        const ctx = client.createContext(numUri);
 
-    function lookup(uri) {
-      const numUri = NumClient.parseNumUri(uri);
-
-      const ctx = client.createContext(numUri);
-      
-      ctx.setTargetExpandedSchemaVersion(document.getElementById("version").value);
-
-      return client.retrieveNumRecord(ctx, handler);
-    }
-
-    function reloadRecord() {
-      handler.result = null;
-      handler.errorCode = null;
-      handler.location = null;
-
-      const uri = document.getElementById('urivalue').value;
-      lookup(uri).then((result) => {
-        if (result) {
-          const pretty = JSON.stringify(JSON.parse(result), null, 1);
-          document.getElementById('num').innerHTML = pretty;
+        if (type === 'json') {
+          return client.retrieveNumRecordJson(ctx, handler);
         } else {
-          const pretty = JSON.stringify(handler, null, 1);
-          document.getElementById('num').innerHTML = pretty;
+          return client.retrieveNumRecord(ctx, handler);
         }
+      }
+
+      function reloadRecord() {
+        handler.result = null;
+        handler.errorCode = null;
+        handler.location = null;
+
+        const uri = document.getElementById('urivalue').value;
+        lookup(uri).then((result) => {
+          if (result) {
+            const pretty = (type == 'json') ? JSON.stringify(JSON.parse(result), null, 2) : result;
+            document.getElementById('num').innerHTML = pretty;
+          } else {
+            const pretty = JSON.stringify(handler, null, 1);
+            document.getElementById('num').innerHTML = pretty;
+          }
+        });
+      }
+
+      window.addEventListener('load', function () {
+        reloadRecord();
       });
 
-    }
+      function setResultType() {
+        type = document.getElementById('recType').value;
+        reloadRecord();
+      }
 
-    window.addEventListener('load', function () {
-      reloadRecord();
-    });
-
-    function setEnvironment() {
-      const e = document.getElementById('env').value;
-      client.setDnsEnv(e);
-      client.setModuleEnv(e);
-      client.setenv(e);
-      reloadRecord();
-    }
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
+

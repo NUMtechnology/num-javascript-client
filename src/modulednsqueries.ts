@@ -14,14 +14,8 @@
 //
 
 import { NumInvalidDnsQueryException, NumInvalidRedirectException } from './exceptions';
-import {
-  createDomainLookupGenerator,
-  createEmailLookupGenerator,
-  createTNUMLookupGenerator,
-  createUrlLookupGenerator,
-  LookupGenerator,
-} from './lookupgenerators';
-import { Hostname, NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
+import { createDomainLookupGenerator, createEmailLookupGenerator, createUrlLookupGenerator, LookupGenerator } from './lookupgenerators';
+import { NO_USER_INFO, NumUri, PositiveInteger } from './numuri';
 import { log } from 'num-easy-log';
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -80,8 +74,6 @@ class ModuleDnsQueriesImpl implements ModuleDnsQueries {
       lookupGenerator = createEmailLookupGenerator(this.numUri);
     } else if (this.numUri.protocol.startsWith('http')) {
       lookupGenerator = createUrlLookupGenerator(this.numUri);
-    } else if (Hostname.isValidTNUM(this.numUri.host.s)) {
-      lookupGenerator = createTNUMLookupGenerator(this.numUri);
     } else {
       lookupGenerator = createDomainLookupGenerator(this.numUri);
     }
